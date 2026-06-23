@@ -40,6 +40,9 @@
     "ninjaone_evidence": {
       "type": "string"
     },
+    "cortex_xdr_evidence": {
+      "type": "string"
+    },
     "physical_evidence": {
       "type": "string"
     },

@@ -1,13 +1,17 @@
 import { ExternalLink, FolderArchive, Camera, FileCheck2, MonitorSmartphone, FileText, ClipboardCheck, BookOpen } from 'lucide-react';
 
-const adminPortals = [
+const basePortals = [
   { key: 'm365_evidence', label: 'Microsoft 365 Admin Center', url: 'https://admin.microsoft.com' },
   { key: 'sharepoint_evidence', label: 'SharePoint Admin Center', url: 'https://admin.microsoft.com/sharepoint' },
   { key: 'entra_evidence', label: 'Entra ID Portal', url: 'https://entra.microsoft.com' },
   { key: 'exchange_evidence', label: 'Exchange Admin Center', url: 'https://admin.exchange.microsoft.com' },
-  { key: 'ninjaone_evidence', label: 'NinjaOne Dashboard', url: 'https://app.ninjaone.com' },
   { key: 'physical_evidence', label: 'Physical Security (On-Site)', url: null },
 ];
+
+const optionalPortals = {
+  ninjaone: { key: 'ninjaone_evidence', label: 'NinjaOne Dashboard', url: 'https://app.ninjaone.com' },
+  cortex_xdr: { key: 'cortex_xdr_evidence', label: 'Palo Alto Cortex XDR', url: 'https://xdr.paloaltonetworks.com' },
+};
 
 const splitSteps = (text) => {
   if (!text) return [];
@@ -19,13 +23,18 @@ const splitSentences = (text) => {
   return text.split(/(?<=\.)\s+/).map(s => s.trim()).filter(Boolean);
 };
 
-export default function TechnicianInstructions({ control, clientName }) {
+export default function TechnicianInstructions({ control, clientName, ninjaoneInScope = true, cortexXdrInScope = false }) {
   const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '');
   const company = sanitize(clientName) || 'CompanyName';
   const levelCode = control.level === 'Level 1' ? 'L1' : control.level === 'Level 2' ? 'L2' : 'L3';
   const controlNumber = (control.control_id || '').split('-').pop() || 'Control';
   const namingPrefix = `${company}-CMMC-2.0-${levelCode}-${controlNumber}`;
 
+  const adminPortals = [
+    ...basePortals,
+    ...(ninjaoneInScope ? [optionalPortals.ninjaone] : []),
+    ...(cortexXdrInScope ? [optionalPortals.cortex_xdr] : []),
+  ];
   const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
   const implSteps = splitSentences(control.implementation_guidance);
   const screenshotList = splitSteps(control.required_screenshots);

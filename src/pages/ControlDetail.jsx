@@ -77,7 +77,7 @@ export default function ControlDetail() {
         </div>
       </div>
 
-      <TechnicianInstructions control={control} clientName={selectedClient?.legal_name} />
+      <TechnicianInstructions control={control} clientName={selectedClient?.legal_name} ninjaoneInScope={selectedClient?.ninjaone_in_scope} cortexXdrInScope={selectedClient?.cortex_xdr_in_scope} />
 
       {/* Evidence by system */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -85,7 +85,8 @@ export default function ControlDetail() {
         <EvidenceSection title="SharePoint Evidence" content={current.sharepoint_evidence} icon={FileText} />
         <EvidenceSection title="Entra ID Evidence" content={current.entra_evidence} icon={ShieldCheck} />
         <EvidenceSection title="Exchange Evidence" content={current.exchange_evidence} icon={FileText} />
-        <EvidenceSection title="NinjaOne Evidence" content={current.ninjaone_evidence} icon={Image} />
+        {selectedClient?.ninjaone_in_scope && <EvidenceSection title="NinjaOne Evidence" content={current.ninjaone_evidence} icon={Image} />}
+        {selectedClient?.cortex_xdr_in_scope && <EvidenceSection title="Cortex XDR Evidence" content={current.cortex_xdr_evidence} icon={ShieldCheck} />}
         <EvidenceSection title="Physical Security Evidence" content={current.physical_evidence} icon={ShieldCheck} />
       </div>
 
