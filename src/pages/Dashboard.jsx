@@ -80,7 +80,7 @@ export default function Dashboard() {
         <StatCard icon={Building2} label="Active Client" value={selectedClient.legal_name?.split(' ')[0] || '—'} sublabel={selectedClient.environment_type} color="navy" onClick={() => navigate('/clients')} />
         <StatCard icon={Clock} label="Current Phase" value={currentPhase?.split(' ').slice(0, 2).join(' ') || '—'} sublabel={currentPhase} color="blue" onClick={() => navigate('/board')} />
         <StatCard icon={ShieldCheck} label="L1 Controls Done" value={`${l1Complete}/${l1Controls.length}`} sublabel={`${Math.round(l1Pct)}% complete`} color="green" onClick={() => navigate('/controls')} />
-        <StatCard icon={Layers} label="Level 2 Controls" value={`${Math.round(l2Pct)}%`} sublabel="Level 2 controls" color="amber" onClick={() => navigate('/level2')} />
+        <StatCard icon={Layers} label="Level 2 Controls" value={`${l2Complete}/${l2Controls.length}`} sublabel={`${Math.round(l2Pct)}% complete`} color="amber" onClick={() => navigate('/level2')} />
         <StatCard icon={Image} label="Evidence Items" value={evidenceItems} sublabel="Collected" color="white" onClick={() => navigate('/evidence')} />
         <StatCard icon={AlertCircle} label="Missing Screenshots" value={missingScreenshots} sublabel="Tasks needing capture" color="amber" onClick={() => navigate('/screenshots')} />
         <StatCard icon={AlertCircle} label="Missing Exports" value={missingExports} sublabel="Tasks needing export" color="amber" onClick={() => navigate('/evidence')} />
