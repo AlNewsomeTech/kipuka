@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar } from 'lucide-react';
+import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
@@ -11,6 +11,7 @@ const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 export default function Clients() {
   const { clients, setSelectedClientId, selectedClientId } = useClient();
   const [showForm, setShowForm] = useState(false);
+  const [editingClient, setEditingClient] = useState(null);
   const [form, setForm] = useState({
     legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
     poc_name: '', poc_email: '', executive_sponsor: '',
@@ -23,14 +24,39 @@ export default function Clients() {
   });
   const [saving, setSaving] = useState(false);
 
+  const openNew = () => {
+    setEditingClient(null);
+    setForm({
+      legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
+      poc_name: '', poc_email: '', executive_sponsor: '',
+      initial_user_count: 13, expected_user_count: 13,
+      environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
+      fci_in_scope: true, cui_in_scope: false,
+      ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, mac_heavy: true,
+      windows_devices_count: 0, macos_devices_count: 10, mobile_devices_count: 3,
+      project_status: 'Not Started', start_date: '', target_completion_date: '', notes: ''
+    });
+    setShowForm(true);
+  };
+
+  const openEdit = (client) => {
+    setEditingClient(client);
+    setForm({ ...client });
+    setShowForm(true);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
-      await base44.entities.Client.create(form);
+      if (editingClient) {
+        await base44.entities.Client.update(editingClient.id, form);
+      } else {
+        await base44.entities.Client.create(form);
+      }
       setShowForm(false);
       window.location.reload();
     } catch (e) {
-      alert('Error creating client: ' + e.message);
+      alert('Error saving client: ' + e.message);
     }
     setSaving(false);
   };
@@ -42,13 +68,13 @@ export default function Clients() {
           <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
           <p className="text-sm text-slate-500 mt-1">Manage client deployments and scope</p>
         </div>
-        <button onClick={() => setShowForm(true)} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors">
+        <button onClick={openNew} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors">
           <Plus className="w-4 h-4" /> New Client
         </button>
       </div>
 
       {clients.length === 0 && !showForm ? (
-        <EmptyState icon={Building2} title="No clients yet" description="Create your first client to begin a CMMC deployment project." action={<button onClick={() => setShowForm(true)} className="bg-[#0F1E3C] text-white text-sm px-4 py-2 rounded-lg">Create Client</button>} />
+        <EmptyState icon={Building2} title="No clients yet" description="Create your first client to begin a CMMC deployment project." action={<button onClick={openNew} className="bg-[#0F1E3C] text-white text-sm px-4 py-2 rounded-lg">Create Client</button>} />
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clients.map((c) => (
@@ -77,6 +103,12 @@ export default function Clients() {
                 {c.cui_in_scope && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">CUI In Scope</span>}
                 {c.mac_heavy && <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Mac-Heavy</span>}
               </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); openEdit(c); }}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0F1E3C] hover:bg-slate-50 px-2.5 py-1.5 rounded-lg transition-colors mt-3 border border-slate-200"
+              >
+                <Pencil className="w-3 h-3" /> Edit Client
+              </button>
             </div>
           ))}
         </div>
@@ -87,7 +119,7 @@ export default function Clients() {
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-slate-200 sticky top-0 bg-white z-10">
-              <h2 className="text-lg font-bold text-slate-900">New Client</h2>
+              <h2 className="text-lg font-bold text-slate-900">{editingClient ? 'Edit Client' : 'New Client'}</h2>
               <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
@@ -120,7 +152,7 @@ export default function Clients() {
             </div>
             <div className="flex justify-end gap-2 p-5 border-t border-slate-200 sticky bottom-0 bg-white">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
-              <button onClick={handleSave} disabled={saving || !form.legal_name} className="px-4 py-2 text-sm bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">{saving ? 'Saving...' : 'Create Client'}</button>
+              <button onClick={handleSave} disabled={saving || !form.legal_name} className="px-4 py-2 text-sm bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">{saving ? 'Saving...' : editingClient ? 'Save Changes' : 'Create Client'}</button>
             </div>
           </div>
         </div>
