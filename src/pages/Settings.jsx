@@ -8,7 +8,7 @@ export default function Settings() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', url: '', description: '', category: '', is_default: false });
 
-  const load = () => base44.entities.AdminCenterLink.list().then(setLinks).catch(() => {});
+  const load = () => { base44.entities.AdminCenterLink.list().then(setLinks).catch(() => {}); };
   useEffect(load, []);
 
   const addLink = () => {
