@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check, Bot
+  Moon, Sun, Terminal, Check, Bot, ClipboardCheck
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -15,6 +15,7 @@ const navSections = [
   { label: 'Overview', items: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
     { to: '/clients', label: 'Clients', icon: Building2 },
+    { to: '/intake', label: 'Client Intake', icon: ClipboardCheck },
     { to: '/board', label: 'Deployment Board', icon: KanbanSquare },
   ]},
   { label: 'CMMC Controls', items: [

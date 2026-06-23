@@ -1,0 +1,60 @@
+{
+  "name": "ClientIntake",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "global_admin_email": {
+      "type": "string"
+    },
+    "global_admin_password": {
+      "type": "string"
+    },
+    "secondary_admin_email": {
+      "type": "string"
+    },
+    "e5_license_count": {
+      "type": "number",
+      "default": 0
+    },
+    "e5_license_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "tenant_domain_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "dns_access_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "billing_admin_confirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "intake_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "checklist_completed": {
+      "type": "string"
+    },
+    "intake_notes": {
+      "type": "string"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}

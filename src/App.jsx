@@ -11,6 +11,7 @@ import { ThemeProvider } from '@/lib/themeContext';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
+import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
 import ControlDetail from '@/pages/ControlDetail';
@@ -57,6 +58,7 @@ const AuthenticatedApp = () => {
       <Route element={<ClientProvider><Layout /></ClientProvider>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/clients" element={<Clients />} />
+        <Route path="/intake" element={<ClientIntake />} />
         <Route path="/board" element={<DeploymentBoard />} />
         <Route path="/controls" element={<CMMCControls />} />
         <Route path="/controls/:id" element={<ControlDetail />} />
