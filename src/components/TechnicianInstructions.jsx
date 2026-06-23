@@ -22,8 +22,9 @@ const splitSentences = (text) => {
 export default function TechnicianInstructions({ control, clientName }) {
   const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '');
   const company = sanitize(clientName) || 'CompanyName';
-  const controlId = sanitize(control.control_id) || 'Control';
-  const namingPrefix = `${company}-CMMC-2.0-${controlId}`;
+  const levelCode = control.level === 'Level 1' ? 'L1' : control.level === 'Level 2' ? 'L2' : 'L3';
+  const controlNumber = (control.control_id || '').split('-').pop() || 'Control';
+  const namingPrefix = `${company}-CMMC-2.0-${levelCode}-${controlNumber}`;
 
   const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
   const implSteps = splitSentences(control.implementation_guidance);
@@ -141,7 +142,7 @@ export default function TechnicianInstructions({ control, clientName }) {
           <p className="text-xs text-slate-600 mb-2">Every screenshot and export must follow this naming pattern:</p>
           <div className="bg-slate-900 rounded-lg p-3 space-y-1.5">
             <div className="text-[10px] text-slate-400 uppercase tracking-wide">Pattern:</div>
-            <div className="text-green-400 font-mono text-xs break-all">CompanyName-CMMC-2.0-ControlID-##.png</div>
+            <div className="text-green-400 font-mono text-xs break-all">CompanyName-CMMC-2.0-L1/2/3-ControlNumber-##.png</div>
             <div className="text-[10px] text-slate-400 uppercase tracking-wide pt-1">Your files for this control:</div>
             {screenshotList.length > 0 ? screenshotList.map((_, i) => (
               <div key={i} className="text-green-400 font-mono text-xs break-all">{namingPrefix}-{String(i + 1).padStart(2, '0')}.png</div>
@@ -150,7 +151,7 @@ export default function TechnicianInstructions({ control, clientName }) {
             )}
           </div>
           <p className="text-[11px] text-slate-500 mt-2">
-            Replace <span className="font-mono">CompanyName</span> with the client's name (no spaces). The number goes up by 1 for each file (01, 02, 03…).
+            Replace <span className="font-mono">CompanyName</span> with the client's name (no spaces). <span className="font-mono">L1/2/3</span> is the CMMC level. <span className="font-mono">ControlNumber</span> is the number after the dash (e.g., 3.1.1). The last number goes up by 1 for each file (01, 02, 03…).
           </p>
         </Step>
 
