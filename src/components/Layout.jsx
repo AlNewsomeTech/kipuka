@@ -3,10 +3,12 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
-  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog
+  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
+  Moon, Sun, Terminal, Check
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useTheme } from '@/lib/themeContext';
 import WarningBanner from '@/components/WarningBanner';
 
 const navSections = [
@@ -46,6 +48,8 @@ export default function Layout() {
   const location = useLocation();
   const { clients, selectedClientId, setSelectedClientId, selectedClient, loading } = useClient();
   const { user } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [themeOpen, setThemeOpen] = useState(false);
 
   return (
     <div className="flex h-screen bg-[#F1F4F8] overflow-hidden">
@@ -143,7 +147,41 @@ export default function Layout() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <button
+                onClick={() => setThemeOpen(!themeOpen)}
+                className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                {theme === 'light' ? <Sun className="w-4 h-4" /> : theme === 'dark-green' ? <Terminal className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                <span className="hidden sm:inline">{theme === 'dark-green' ? 'Green' : theme === 'dark' ? 'Dark' : 'Light'}</span>
+              </button>
+              {themeOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setThemeOpen(false)} />
+                  <div className="absolute right-0 mt-2 w-44 bg-white rounded-lg border border-slate-200 shadow-lg z-50 py-1">
+                    {[
+                      { value: 'dark', label: 'Dark', icon: Moon },
+                      { value: 'dark-green', label: 'Dark (Green)', icon: Terminal },
+                      { value: 'light', label: 'Light', icon: Sun },
+                    ].map(opt => {
+                      const Icon = opt.icon;
+                      return (
+                        <button
+                          key={opt.value}
+                          onClick={() => { setTheme(opt.value); setThemeOpen(false); }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <Icon className="w-3.5 h-3.5" />
+                          {opt.label}
+                          {theme === opt.value && <Check className="w-3.5 h-3.5 ml-auto text-blue-600" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
             <span className="hidden md:inline text-xs text-slate-400">Level 1 First</span>
             <div className="w-8 h-8 rounded-full bg-[#0F1E3C] text-white text-xs font-bold flex items-center justify-center">
               CMMC
