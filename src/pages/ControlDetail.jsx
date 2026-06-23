@@ -6,12 +6,13 @@ import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
+import TechnicianInstructions from '@/components/TechnicianInstructions';
 
 const statuses = ['Not Started', 'In Progress', 'Evidence Needed', 'Ready for Review', 'Reviewed', 'Complete'];
 
 export default function ControlDetail() {
   const { id } = useParams();
-  const { selectedClientId } = useClient();
+  const { selectedClientId, selectedClient } = useClient();
   const [control, setControl] = useState(null);
   const [screenshots, setScreenshots] = useState([]);
   const [evidence, setEvidence] = useState([]);
@@ -75,6 +76,8 @@ export default function ControlDetail() {
           <Section title="Implementation Guidance" content={current.implementation_guidance} editing={editing} field="implementation_guidance" form={form} setForm={setForm} />
         </div>
       </div>
+
+      <TechnicianInstructions control={control} clientName={selectedClient?.legal_name} />
 
       {/* Evidence by system */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
