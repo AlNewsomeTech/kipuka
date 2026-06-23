@@ -1,0 +1,85 @@
+{
+  "name": "Screenshot",
+  "type": "object",
+  "properties": {
+    "file_url": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "related_control": {
+      "type": "string"
+    },
+    "related_task": {
+      "type": "string"
+    },
+    "related_system": {
+      "type": "string"
+    },
+    "evidence_type": {
+      "type": "string",
+      "default": "Screenshot"
+    },
+    "screenshot_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "captured_by": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "suggested_file_name": {
+      "type": "string"
+    },
+    "actual_file_name": {
+      "type": "string"
+    },
+    "admin_center_url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Validated",
+        "Rejected"
+      ],
+      "default": "Not Started"
+    },
+    "reviewer_status": {
+      "type": "string",
+      "enum": [
+        "Not Reviewed",
+        "In Review",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Not Reviewed"
+    },
+    "include_in_final_package": {
+      "type": "boolean",
+      "default": false
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready"
+      ],
+      "default": "Level 1"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}

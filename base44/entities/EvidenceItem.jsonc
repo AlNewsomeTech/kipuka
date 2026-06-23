@@ -1,0 +1,84 @@
+{
+  "name": "EvidenceItem",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "evidence_title": {
+      "type": "string"
+    },
+    "evidence_type": {
+      "type": "string",
+      "enum": [
+        "Screenshot",
+        "Export",
+        "Report",
+        "Policy",
+        "Narrative",
+        "Validation",
+        "Other"
+      ],
+      "default": "Screenshot"
+    },
+    "source_system": {
+      "type": "string",
+      "enum": [
+        "Microsoft 365",
+        "Entra ID",
+        "SharePoint",
+        "Exchange",
+        "Defender",
+        "Purview",
+        "Intune",
+        "NinjaOne",
+        "Physical Security",
+        "Other"
+      ],
+      "default": "Microsoft 365"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "folder_path": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "upload_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "captured_by": {
+      "type": "string"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewer_status": {
+      "type": "string",
+      "enum": [
+        "Not Reviewed",
+        "In Review",
+        "Approved",
+        "Rejected"
+      ],
+      "default": "Not Reviewed"
+    },
+    "include_in_final_package": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "evidence_title"
+  ]
+}

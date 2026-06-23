@@ -1,0 +1,62 @@
+{
+  "name": "AssessmentPackage",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "package_name": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready"
+      ],
+      "default": "Level 1"
+    },
+    "percent_complete": {
+      "type": "number",
+      "default": 0
+    },
+    "missing_controls": {
+      "type": "string"
+    },
+    "controls_no_evidence": {
+      "type": "string"
+    },
+    "evidence_without_review": {
+      "type": "string"
+    },
+    "screenshots_no_filename": {
+      "type": "string"
+    },
+    "documents_not_approved": {
+      "type": "string"
+    },
+    "level1_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "level2_supplemental_status": {
+      "type": "string"
+    },
+    "checklist": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Finalized"
+      ],
+      "default": "Draft"
+    }
+  },
+  "required": [
+    "client_id",
+    "package_name"
+  ]
+}

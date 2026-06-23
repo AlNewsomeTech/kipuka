@@ -1,0 +1,74 @@
+{
+  "name": "NinjaOneEvidence",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "device": {
+      "type": "string"
+    },
+    "user": {
+      "type": "string"
+    },
+    "ninjaone_org": {
+      "type": "string"
+    },
+    "evidence_category": {
+      "type": "string",
+      "enum": [
+        "Tenant Baseline",
+        "Agent Deployment",
+        "macOS Device Inventory",
+        "Windows Device Inventory",
+        "Patch Management",
+        "Vulnerability Scanning",
+        "Remote Assistance",
+        "MDM for Non-Windows",
+        "FileVault and Disk Encryption",
+        "Endpoint Protection Status",
+        "Software Inventory",
+        "Alerting and Monitoring",
+        "Reports"
+      ]
+    },
+    "related_control": {
+      "type": "string"
+    },
+    "related_l2_domain": {
+      "type": "string"
+    },
+    "screenshot_url": {
+      "type": "string"
+    },
+    "report_url": {
+      "type": "string"
+    },
+    "export_url": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Evidence Needed",
+        "Ready for Review",
+        "Reviewed",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "validation_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "client_id",
+    "evidence_category"
+  ]
+}

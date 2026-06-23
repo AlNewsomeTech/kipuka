@@ -1,0 +1,107 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "legal_name": {
+      "type": "string"
+    },
+    "dba_name": {
+      "type": "string"
+    },
+    "primary_domain": {
+      "type": "string"
+    },
+    "ms_tenant_domain": {
+      "type": "string"
+    },
+    "poc_name": {
+      "type": "string"
+    },
+    "poc_email": {
+      "type": "string"
+    },
+    "executive_sponsor": {
+      "type": "string"
+    },
+    "initial_user_count": {
+      "type": "number"
+    },
+    "expected_user_count": {
+      "type": "number"
+    },
+    "environment_type": {
+      "type": "string",
+      "enum": [
+        "Greenfield",
+        "Existing M365",
+        "Google Migration",
+        "Hybrid"
+      ],
+      "default": "Greenfield"
+    },
+    "target_cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "fci_in_scope": {
+      "type": "boolean",
+      "default": false
+    },
+    "cui_in_scope": {
+      "type": "boolean",
+      "default": false
+    },
+    "ms_license_level": {
+      "type": "string"
+    },
+    "ninjaone_in_scope": {
+      "type": "boolean",
+      "default": true
+    },
+    "mac_heavy": {
+      "type": "boolean",
+      "default": false
+    },
+    "windows_devices_count": {
+      "type": "number",
+      "default": 0
+    },
+    "macos_devices_count": {
+      "type": "number",
+      "default": 0
+    },
+    "mobile_devices_count": {
+      "type": "number",
+      "default": 0
+    },
+    "project_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "On Hold",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "target_completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "legal_name"
+  ]
+}

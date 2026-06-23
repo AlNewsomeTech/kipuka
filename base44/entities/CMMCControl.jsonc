@@ -1,0 +1,100 @@
+{
+  "name": "CMMCControl",
+  "type": "object",
+  "properties": {
+    "control_id": {
+      "type": "string"
+    },
+    "control_family": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "explanation": {
+      "type": "string"
+    },
+    "implementation_guidance": {
+      "type": "string"
+    },
+    "m365_evidence": {
+      "type": "string"
+    },
+    "sharepoint_evidence": {
+      "type": "string"
+    },
+    "entra_evidence": {
+      "type": "string"
+    },
+    "exchange_evidence": {
+      "type": "string"
+    },
+    "ninjaone_evidence": {
+      "type": "string"
+    },
+    "physical_evidence": {
+      "type": "string"
+    },
+    "required_screenshots": {
+      "type": "string"
+    },
+    "required_exports": {
+      "type": "string"
+    },
+    "required_policies": {
+      "type": "string"
+    },
+    "required_validation_steps": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Evidence Needed",
+        "Ready for Review",
+        "Reviewed",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "assigned_owner": {
+      "type": "string"
+    },
+    "evidence_count": {
+      "type": "number",
+      "default": 0
+    },
+    "screenshot_count": {
+      "type": "number",
+      "default": 0
+    },
+    "export_count": {
+      "type": "number",
+      "default": 0
+    },
+    "control_narrative": {
+      "type": "string"
+    },
+    "reviewer_notes": {
+      "type": "string"
+    },
+    "ready_for_assessment": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "control_id",
+    "control_title"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "TrainingRecord",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "training_name": {
+      "type": "string"
+    },
+    "completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete"
+      ],
+      "default": "Not Started"
+    }
+  },
+  "required": [
+    "client_id",
+    "user_name",
+    "training_name"
+  ]
+}

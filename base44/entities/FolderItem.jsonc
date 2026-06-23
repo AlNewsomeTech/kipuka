@@ -1,0 +1,42 @@
+{
+  "name": "FolderItem",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "folder_name": {
+      "type": "string"
+    },
+    "folder_path": {
+      "type": "string"
+    },
+    "parent_path": {
+      "type": "string"
+    },
+    "depth": {
+      "type": "number",
+      "default": 0
+    },
+    "is_control_folder": {
+      "type": "boolean",
+      "default": false
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "created_locally": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_in_sharepoint": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "client_id",
+    "folder_name",
+    "folder_path"
+  ]
+}

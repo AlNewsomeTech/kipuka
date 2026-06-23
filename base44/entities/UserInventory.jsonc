@@ -1,0 +1,41 @@
+{
+  "name": "UserInventory",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "mfa_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "license_assigned": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Disabled",
+        "Pending"
+      ],
+      "default": "Pending"
+    },
+    "groups": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "display_name"
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "name": "DeviceInventory",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "device_name": {
+      "type": "string"
+    },
+    "device_type": {
+      "type": "string",
+      "enum": [
+        "Windows",
+        "macOS",
+        "iOS",
+        "Android",
+        "Other"
+      ],
+      "default": "macOS"
+    },
+    "os": {
+      "type": "string"
+    },
+    "user_assigned": {
+      "type": "string"
+    },
+    "ninjaone_managed": {
+      "type": "boolean",
+      "default": false
+    },
+    "compliance_status": {
+      "type": "string",
+      "enum": [
+        "Compliant",
+        "Non-Compliant",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "last_seen": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "client_id",
+    "device_name"
+  ]
+}

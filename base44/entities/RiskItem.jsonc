@@ -1,0 +1,54 @@
+{
+  "name": "RiskItem",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "risk_description": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Medium"
+    },
+    "likelihood": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Medium"
+    },
+    "mitigation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Mitigating",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "client_id",
+    "risk_description"
+  ]
+}

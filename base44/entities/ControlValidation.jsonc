@@ -1,0 +1,40 @@
+{
+  "name": "ControlValidation",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "validation_step": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Validated",
+        "Failed"
+      ],
+      "default": "Not Started"
+    },
+    "validated_by": {
+      "type": "string"
+    },
+    "validation_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "control_id",
+    "validation_step"
+  ]
+}

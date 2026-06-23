@@ -1,0 +1,133 @@
+{
+  "name": "DeploymentTask",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "phase": {
+      "type": "string",
+      "enum": [
+        "Intake",
+        "Scope",
+        "Tenant Baseline",
+        "Google Migration Planning",
+        "Identity Setup",
+        "MFA and Conditional Access",
+        "SharePoint Evidence Archive",
+        "FCI Storage Setup",
+        "Exchange Security",
+        "Defender and Security Baseline",
+        "NinjaOne Endpoint Setup",
+        "Level 1 Control Validation",
+        "Level 1 Evidence Review",
+        "SPRS and Attestation",
+        "Level 2 Readiness",
+        "Final Package"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Evidence Needed",
+        "Ready for Review",
+        "Reviewed",
+        "Complete",
+        "Blocker"
+      ],
+      "default": "Not Started"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Medium"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "related_control": {
+      "type": "string"
+    },
+    "related_system": {
+      "type": "string"
+    },
+    "instructions": {
+      "type": "string"
+    },
+    "admin_center_url": {
+      "type": "string"
+    },
+    "required_screenshots": {
+      "type": "string"
+    },
+    "required_exports": {
+      "type": "string"
+    },
+    "required_documents": {
+      "type": "string"
+    },
+    "validation_checklist": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "completion_status": {
+      "type": "boolean",
+      "default": false
+    },
+    "runbook_purpose": {
+      "type": "string"
+    },
+    "runbook_url": {
+      "type": "string"
+    },
+    "runbook_role": {
+      "type": "string"
+    },
+    "runbook_clicks": {
+      "type": "string"
+    },
+    "runbook_setting": {
+      "type": "string"
+    },
+    "runbook_screenshot": {
+      "type": "string"
+    },
+    "runbook_naming": {
+      "type": "string"
+    },
+    "runbook_save_location": {
+      "type": "string"
+    },
+    "runbook_validation": {
+      "type": "string"
+    },
+    "runbook_mistakes": {
+      "type": "string"
+    },
+    "order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "title",
+    "client_id",
+    "phase"
+  ]
+}

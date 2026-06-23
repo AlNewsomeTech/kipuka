@@ -1,0 +1,25 @@
+{
+  "name": "SystemLink",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "system_name": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "system_name"
+  ]
+}

@@ -6,7 +6,23 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-// Add page imports here
+import { ClientProvider } from '@/lib/clientContext';
+import Layout from '@/components/Layout';
+import Dashboard from '@/pages/Dashboard';
+import Clients from '@/pages/Clients';
+import DeploymentBoard from '@/pages/DeploymentBoard';
+import CMMCControls from '@/pages/CMMCControls';
+import ControlDetail from '@/pages/ControlDetail';
+import Level2Readiness from '@/pages/Level2Readiness';
+import Microsoft365Setup from '@/pages/Microsoft365Setup';
+import GoogleMigration from '@/pages/GoogleMigration';
+import SharePointArchive from '@/pages/SharePointArchive';
+import NinjaOneEvidence from '@/pages/NinjaOneEvidence';
+import ScreenshotLibrary from '@/pages/ScreenshotLibrary';
+import DocumentLibrary from '@/pages/DocumentLibrary';
+import EvidenceIndex from '@/pages/EvidenceIndex';
+import FinalPackage from '@/pages/FinalPackage';
+import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -34,7 +50,23 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<ClientProvider><Layout /></ClientProvider>}>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/clients" element={<Clients />} />
+        <Route path="/board" element={<DeploymentBoard />} />
+        <Route path="/controls" element={<CMMCControls />} />
+        <Route path="/controls/:id" element={<ControlDetail />} />
+        <Route path="/level2" element={<Level2Readiness />} />
+        <Route path="/m365" element={<Microsoft365Setup />} />
+        <Route path="/google" element={<GoogleMigration />} />
+        <Route path="/sharepoint" element={<SharePointArchive />} />
+        <Route path="/ninjaone" element={<NinjaOneEvidence />} />
+        <Route path="/screenshots" element={<ScreenshotLibrary />} />
+        <Route path="/documents" element={<DocumentLibrary />} />
+        <Route path="/evidence" element={<EvidenceIndex />} />
+        <Route path="/package" element={<FinalPackage />} />
+        <Route path="/settings" element={<Settings />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

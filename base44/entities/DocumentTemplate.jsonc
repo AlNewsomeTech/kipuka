@@ -1,0 +1,49 @@
+{
+  "name": "DocumentTemplate",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "purpose": {
+      "type": "string"
+    },
+    "body_content": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "approval_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "control_mappings": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Approved",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "include_in_final_package": {
+      "type": "boolean",
+      "default": false
+    },
+    "category": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

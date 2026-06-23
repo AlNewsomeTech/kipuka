@@ -1,0 +1,27 @@
+{
+  "name": "PolicyAcknowledgement",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "policy_name": {
+      "type": "string"
+    },
+    "acknowledgement_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "signature": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "user_name",
+    "policy_name"
+  ]
+}

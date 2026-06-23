@@ -1,0 +1,84 @@
+{
+  "name": "GoogleMigration",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "source_domain": {
+      "type": "string"
+    },
+    "destination_tenant": {
+      "type": "string"
+    },
+    "user_count": {
+      "type": "number"
+    },
+    "gmail_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Blocked"
+      ],
+      "default": "Not Started"
+    },
+    "drive_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Blocked"
+      ],
+      "default": "Not Started"
+    },
+    "shared_drive_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Blocked"
+      ],
+      "default": "Not Started"
+    },
+    "calendar_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Blocked"
+      ],
+      "default": "Not Started"
+    },
+    "dns_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Blocked"
+      ],
+      "default": "Not Started"
+    },
+    "cutover_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "migration_tool": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "evidence_uploads": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}
