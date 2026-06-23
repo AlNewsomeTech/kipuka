@@ -74,7 +74,7 @@ export default function Dashboard() {
         </button>
       </div>
 
-      <WarningBanner compact />
+      <WarningBanner compact indices={[3]} />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         <StatCard icon={Building2} label="Active Client" value={selectedClient.legal_name?.split(' ')[0] || '—'} sublabel={selectedClient.environment_type} color="navy" onClick={() => navigate('/clients')} />
@@ -169,6 +169,8 @@ export default function Dashboard() {
       </div>
 
       <ClientProgressOverview />
+
+      <WarningBanner indices={[0, 1, 2]} />
 
       <div className="bg-[#0F1E3C] rounded-xl p-5 text-white">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Implementation Order</h3>
