@@ -64,7 +64,7 @@ export default function Level2Readiness() {
           <h1 className="text-2xl font-bold text-slate-900">Level 2 Controls</h1>
           <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Level 2 Ready</span>
         </div>
-        <p className="text-sm text-slate-500">All 110 Level 2 controls (includes the 18 Level 1 controls) — complete Level 1 first, then work through these</p>
+        <p className="text-sm text-slate-500">All 110 Level 2 controls (includes the 17 Level 1 controls) — complete Level 1 first, then work through these</p>
       </div>
 
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-4">
