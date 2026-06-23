@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil } from 'lucide-react';
+import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { useAuth } from '@/lib/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 
@@ -10,8 +11,12 @@ const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 
 export default function Clients() {
   const { clients, setSelectedClientId, selectedClientId } = useClient();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const [form, setForm] = useState({
     legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
     poc_name: '', poc_email: '', executive_sponsor: '',
@@ -61,6 +66,24 @@ export default function Clients() {
     setSaving(false);
   };
 
+  const handleDelete = async (client) => {
+    setDeleting(true);
+    try {
+      await Promise.all([
+        base44.entities.DeploymentTask.deleteMany({ client_id: client.id }).catch(() => {}),
+        base44.entities.Screenshot.deleteMany({ client_id: client.id }).catch(() => {}),
+        base44.entities.EvidenceItem.deleteMany({ client_id: client.id }).catch(() => {}),
+        base44.entities.GeneratedDocument.deleteMany({ client_id: client.id }).catch(() => {}),
+      ]);
+      await base44.entities.Client.delete(client.id);
+      setConfirmDelete(null);
+      window.location.reload();
+    } catch (e) {
+      alert('Error deleting client: ' + e.message);
+    }
+    setDeleting(false);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -68,9 +91,11 @@ export default function Clients() {
           <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
           <p className="text-sm text-slate-500 mt-1">Manage client deployments and scope</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors">
-          <Plus className="w-4 h-4" /> New Client
-        </button>
+        {isAdmin && (
+          <button onClick={openNew} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors">
+            <Plus className="w-4 h-4" /> New Client
+          </button>
+        )}
       </div>
 
       {clients.length === 0 && !showForm ? (
@@ -104,12 +129,22 @@ export default function Clients() {
                 {c.cui_in_scope && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">CUI In Scope</span>}
                 {c.mac_heavy && <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Mac-Heavy</span>}
               </div>
-              <button
-                onClick={(e) => { e.stopPropagation(); openEdit(c); }}
-                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0F1E3C] hover:bg-slate-50 px-2.5 py-1.5 rounded-lg transition-colors mt-3 border border-slate-200"
-              >
-                <Pencil className="w-3 h-3" /> Edit Client
-              </button>
+              <div className="flex gap-2 mt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); openEdit(c); }}
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0F1E3C] hover:bg-slate-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
+                >
+                  <Pencil className="w-3 h-3" /> Edit
+                </button>
+                {isAdmin && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setConfirmDelete(c); }}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <Trash2 className="w-3 h-3" /> Delete
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -155,6 +190,26 @@ export default function Clients() {
             <div className="flex justify-end gap-2 p-5 border-t border-slate-200 sticky bottom-0 bg-white">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.legal_name} className="px-4 py-2 text-sm bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">{saving ? 'Saving...' : editingClient ? 'Save Changes' : 'Create Client'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDelete && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => !deleting && setConfirmDelete(null)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Delete Client?</h3>
+                <p className="text-sm text-slate-500">This permanently deletes {confirmDelete.legal_name} and all related tasks, screenshots, and evidence.</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setConfirmDelete(null)} disabled={deleting} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50">Cancel</button>
+              <button onClick={() => handleDelete(confirmDelete)} disabled={deleting} className="px-4 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50">{deleting ? 'Deleting...' : 'Delete Permanently'}</button>
             </div>
           </div>
         </div>

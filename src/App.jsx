@@ -23,6 +23,7 @@ import DocumentLibrary from '@/pages/DocumentLibrary';
 import EvidenceIndex from '@/pages/EvidenceIndex';
 import FinalPackage from '@/pages/FinalPackage';
 import PIEESelfCert from '@/pages/PIEESelfCert';
+import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 
 const AuthenticatedApp = () => {
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
         <Route path="/evidence" element={<EvidenceIndex />} />
         <Route path="/package" element={<FinalPackage />} />
         <Route path="/piee" element={<PIEESelfCert />} />
+        <Route path="/users" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

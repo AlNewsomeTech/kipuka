@@ -3,9 +3,10 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
-  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck
+  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
+import { useAuth } from '@/lib/AuthContext';
 import WarningBanner from '@/components/WarningBanner';
 
 const navSections = [
@@ -34,6 +35,9 @@ const navSections = [
     { to: '/package', label: 'Final Package', icon: Package },
     { to: '/settings', label: 'Settings', icon: Settings },
   ]},
+  { label: 'Administration', items: [
+    { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
+  ]},
 ];
 
 export default function Layout() {
@@ -41,6 +45,7 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { clients, selectedClientId, setSelectedClientId, selectedClient, loading } = useClient();
+  const { user } = useAuth();
 
   return (
     <div className="flex h-screen bg-[#F1F4F8] overflow-hidden">
@@ -72,7 +77,7 @@ export default function Layout() {
                 </div>
               )}
               <div className="space-y-0.5">
-                {section.items.map((item) => {
+                {section.items.filter(item => !item.adminOnly || user?.role === 'admin').map((item) => {
                   const Icon = item.icon;
                   return (
                     <NavLink
