@@ -1,39 +1,36 @@
 import { useState, useEffect } from 'react';
-import { Layers, AlertTriangle, Plus, X, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Layers, AlertTriangle, Plus, X, ShieldCheck, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
+import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
-
-const l2Modules = [
-  { domain: 'Vulnerability Management', description: 'NinjaOne vulnerability scanning, remediation tracking, and reporting', control: 'RA.L2-3.11.2' },
-  { domain: 'Patch Management', description: 'Automated patch policies for macOS and Windows, patch status reporting', control: 'SI.L2-3.14.1' },
-  { domain: 'Configuration Management', description: 'Baseline configurations, drift detection, and hardening standards', control: 'CM.L2-3.4.1' },
-  { domain: 'Audit and Log Review', description: 'Unified audit logging, log retention, and periodic review', control: 'AU.L2-3.3.1' },
-  { domain: 'Device Compliance', description: 'Intune compliance policies, conditional access enforcement', control: 'AC.L2-3.1.18' },
-  { domain: 'MDM for macOS', description: 'NinjaOne MDM or Intune macOS enrollment, FileVault, configuration profiles', control: 'AC.L2-3.1.18' },
-  { domain: 'Remote Assistance Controls', description: 'NinjaOne remote control logging, approval workflows, session recording', control: 'AC.L2-3.1.12' },
-  { domain: 'Risk Tracking', description: 'Risk register, severity scoring, mitigation tracking', control: 'RA.L2-3.11.1' },
-  { domain: 'POA&M Tracking', description: 'Plan of Action and Milestones for open weaknesses', control: 'RA.L2-3.11.3' },
-  { domain: 'CUI Readiness', description: 'CUI identification, labeling, encryption, and access controls', control: 'AC.L2-3.1.1' },
-  { domain: 'Policy Expansion', description: 'Expanded policies for Level 2 requirements', control: 'Multiple' },
-  { domain: 'Incident Response Maturity', description: 'IR plan, tabletop exercises, incident logging', control: 'IR.L2-3.6.1' },
-  { domain: 'Access Review Maturity', description: 'Periodic access reviews, privileged access management', control: 'AC.L2-3.1.12' },
-];
 
 export default function Level2Readiness() {
   const { selectedClientId, selectedClient } = useClient();
+  const [controls, setControls] = useState([]);
   const [risks, setRisks] = useState([]);
   const [poams, setPoams] = useState([]);
-  const [poamForm, setPoamForm] = useState({ weakness_description: '', control_id: '', remediation_plan: '', severity: 'Medium', scheduled_completion: '', status: 'Open', owner: '' });
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [familyFilter, setFamilyFilter] = useState('all');
   const [showRisk, setShowRisk] = useState(false);
   const [showPOAM, setShowPOAM] = useState(false);
   const [riskForm, setRiskForm] = useState({ risk_description: '', severity: 'Medium', likelihood: 'Medium', mitigation: '', status: 'Open', owner: '' });
+  const [poamForm, setPoamForm] = useState({ weakness_description: '', control_id: '', remediation_plan: '', severity: 'Medium', scheduled_completion: '', status: 'Open', owner: '' });
+
+  useEffect(() => {
+    base44.entities.CMMCControl.filter({ level: 'Level 2' })
+      .then(setControls)
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const load = () => {
     if (!selectedClientId) return;
     base44.entities.RiskItem.filter({ client_id: selectedClientId }).then(setRisks).catch(() => {});
-    base44.entities.POAMItem.filter({ client_id: selectedClientId }).then(setPOAM).catch(() => {});
+    base44.entities.POAMItem.filter({ client_id: selectedClientId }).then(setPoams).catch(() => {});
   };
 
   useEffect(load, [selectedClientId]);
@@ -47,39 +44,84 @@ export default function Level2Readiness() {
       .then(() => { setShowPOAM(false); setPoamForm({ weakness_description: '', control_id: '', remediation_plan: '', severity: 'Medium', scheduled_completion: '', status: 'Open', owner: '' }); load(); });
   };
 
+  const families = [...new Set(controls.map(c => c.control_family))];
+  const filtered = controls.filter(c => {
+    const matchSearch = !search || c.control_id.toLowerCase().includes(search.toLowerCase()) || c.control_title.toLowerCase().includes(search.toLowerCase());
+    const matchFamily = familyFilter === 'all' || c.control_family === familyFilter;
+    return matchSearch && matchFamily;
+  });
+
+  const complete = controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length;
+  const pct = controls.length ? (complete / controls.length) * 100 : 0;
+
+  if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
   if (!selectedClient) return <EmptyState icon={Layers} title="No client selected" description="Select a client to view Level 2 readiness." />;
 
   return (
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-bold text-slate-900">Level 2 Readiness</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Level 2 Controls</h1>
           <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Level 2 Ready</span>
         </div>
-        <p className="text-sm text-slate-500">Planning modules for controls that exceed Level 1 — kept separate from the Level 1 final package</p>
+        <p className="text-sm text-slate-500">All 93 additional Level 2 controls beyond Level 1 — complete Level 1 first, then work through these</p>
       </div>
 
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-4">
         <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-amber-800">
-          <strong>Level 1 package should be completed before Level 2-ready evidence is presented as final.</strong> These modules are available for planning but should not distract from completing Level 1 controls first.
+          <strong>Level 1 package should be completed before Level 2-ready evidence is presented as final.</strong> These controls are available for planning but should not distract from completing Level 1 controls first.
         </div>
       </div>
 
-      {/* Planning modules */}
-      <div>
-        <h3 className="text-sm font-semibold text-slate-700 mb-3">Level 2 Planning Modules</h3>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {l2Modules.map((m) => (
-            <div key={m.domain} className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-sm transition-shadow">
-              <div className="flex items-start justify-between mb-2">
-                <h4 className="text-sm font-semibold text-slate-800">{m.domain}</h4>
-                <span className="text-[10px] font-mono text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">{m.control}</span>
-              </div>
-              <p className="text-xs text-slate-500">{m.description}</p>
-            </div>
-          ))}
+      <div className="bg-white rounded-xl border border-slate-200 p-4">
+        <ProgressBar value={pct} label="Level 2 Completion" color="amber" />
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            placeholder="Search Level 2 controls..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+          />
         </div>
+        <select value={familyFilter} onChange={e => setFamilyFilter(e.target.value)} className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30">
+          <option value="all">All Families</option>
+          {families.map(f => <option key={f} value={f}>{f}</option>)}
+        </select>
+      </div>
+
+      {/* Control table */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-slate-50 border-b border-slate-200">
+            <tr>
+              <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3">Control ID</th>
+              <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden md:table-cell">Title</th>
+              <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden lg:table-cell">Family</th>
+              <th className="text-center text-xs font-semibold text-slate-600 px-4 py-3">Evidence</th>
+              <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3">Status</th>
+              <th className="text-center text-xs font-semibold text-slate-600 px-4 py-3">Ready</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {filtered.map((c) => (
+              <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => window.location.href = `/controls/${c.id}`}>
+                <td className="px-4 py-3"><Link to={`/controls/${c.id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>{c.control_id}</Link></td>
+                <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-700">{c.control_title}</td>
+                <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-500">{c.control_family}</td>
+                <td className="px-4 py-3 text-center text-sm text-slate-600">{c.evidence_count || 0}</td>
+                <td className="px-4 py-3"><StatusBadge status={c.status} size="xs" /></td>
+                <td className="px-4 py-3 text-center">{c.ready_for_assessment ? '✅' : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {filtered.length === 0 && <EmptyState icon={ShieldCheck} title="No controls found" description="Try adjusting your search or filters." />}
       </div>
 
       {/* Risk Register */}
