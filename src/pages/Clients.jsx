@@ -18,7 +18,7 @@ export default function Clients() {
     initial_user_count: 13, expected_user_count: 13,
     environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
     fci_in_scope: true, cui_in_scope: false,
-    ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, mac_heavy: true,
+    ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, cortex_xdr_in_scope: false, mac_heavy: true,
     windows_devices_count: 0, macos_devices_count: 10, mobile_devices_count: 3,
     project_status: 'Not Started', start_date: '', target_completion_date: '', notes: ''
   });
@@ -32,7 +32,7 @@ export default function Clients() {
       initial_user_count: 13, expected_user_count: 13,
       environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
       fci_in_scope: true, cui_in_scope: false,
-      ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, mac_heavy: true,
+      ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, cortex_xdr_in_scope: false, mac_heavy: true,
       windows_devices_count: 0, macos_devices_count: 10, mobile_devices_count: 3,
       project_status: 'Not Started', start_date: '', target_completion_date: '', notes: ''
     });
@@ -97,6 +97,7 @@ export default function Clients() {
                 <span className="flex items-center gap-1 text-slate-500"><Users className="w-3 h-3" /> {c.initial_user_count} users</span>
                 <span className="flex items-center gap-1 text-slate-500"><Monitor className="w-3 h-3" /> {c.macos_devices_count} Mac / {c.windows_devices_count} Win</span>
                 {c.ninjaone_in_scope && <span className="flex items-center gap-1 text-green-600"><Shield className="w-3 h-3" /> NinjaOne</span>}
+                {c.cortex_xdr_in_scope && <span className="flex items-center gap-1 text-orange-600"><Shield className="w-3 h-3" /> Cortex XDR</span>}
               </div>
               <div className="flex gap-2 mt-2">
                 {c.fci_in_scope && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">FCI In Scope</span>}
@@ -142,10 +143,11 @@ export default function Clients() {
                 <Field label="Start Date"><input type="date" className="form-input" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} /></Field>
                 <Field label="Target Completion"><input type="date" className="form-input" value={form.target_completion_date} onChange={e => setForm({...form, target_completion_date: e.target.value})} /></Field>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <Toggle label="FCI In Scope" checked={form.fci_in_scope} onChange={v => setForm({...form, fci_in_scope: v})} />
                 <Toggle label="CUI In Scope" checked={form.cui_in_scope} onChange={v => setForm({...form, cui_in_scope: v})} />
                 <Toggle label="NinjaOne" checked={form.ninjaone_in_scope} onChange={v => setForm({...form, ninjaone_in_scope: v})} />
+                <Toggle label="Cortex XDR" checked={form.cortex_xdr_in_scope} onChange={v => setForm({...form, cortex_xdr_in_scope: v})} />
                 <Toggle label="Mac-Heavy" checked={form.mac_heavy} onChange={v => setForm({...form, mac_heavy: v})} />
               </div>
               <Field label="Notes"><textarea className="form-input min-h-[80px]" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} /></Field>
