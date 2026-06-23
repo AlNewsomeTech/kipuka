@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ShieldCheck, Image, FileText, AlertTriangle, ListChecks,
-  Clock, CheckCircle2, AlertCircle, Package, Layers
+  Clock, CheckCircle2, AlertCircle, Package, Layers, FileBarChart
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
@@ -11,12 +11,16 @@ import ProgressBar from '@/components/ProgressBar';
 import StatusBadge from '@/components/StatusBadge';
 import WarningBanner from '@/components/WarningBanner';
 import EmptyState from '@/components/EmptyState';
+import ProgressSummary from '@/components/dashboard/ProgressSummary';
+import ClientProgressOverview from '@/components/dashboard/ClientProgressOverview';
+import WeeklyReportModal from '@/components/dashboard/WeeklyReportModal';
 
 export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
   const [loading, setLoading] = useState(true);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (!selectedClientId) { setLoading(false); return; }
@@ -57,9 +61,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">{selectedClient.legal_name}</h1>
-        <p className="text-sm text-slate-500 mt-1">CMMC deployment dashboard — Level 1 first, Level 2 ready second</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">{selectedClient.legal_name}</h1>
+          <p className="text-sm text-slate-500 mt-1">CMMC deployment dashboard — Level 1 first, Level 2 ready second</p>
+        </div>
+        <button
+          onClick={() => setShowReport(true)}
+          className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-[#0F1E3C] text-white hover:bg-[#1E2D4A] flex-shrink-0"
+        >
+          <FileBarChart className="w-4 h-4" /> Generate Weekly Report
+        </button>
       </div>
 
       <WarningBanner compact />
@@ -95,6 +107,8 @@ export default function Dashboard() {
           <div className="mt-3 text-xs text-slate-500">{l2Complete} of {l2Controls.length} controls complete. Level 2 builds on Level 1 — finish Level 1 first, then advance Level 2 readiness.</div>
         </div>
       </div>
+
+      <ProgressSummary l1Controls={l1Controls} l2Controls={l2Controls} tasks={stats.tasks} />
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
@@ -139,6 +153,8 @@ export default function Dashboard() {
         </div>
       </div>
 
+      <ClientProgressOverview />
+
       <div className="bg-[#0F1E3C] rounded-xl p-5 text-white">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Implementation Order</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
@@ -150,6 +166,16 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
+
+      {showReport && (
+        <WeeklyReportModal
+          client={selectedClient}
+          l1Controls={l1Controls}
+          l2Controls={l2Controls}
+          tasks={stats.tasks}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </div>
   );
 }
