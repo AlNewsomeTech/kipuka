@@ -167,13 +167,25 @@ export default function ControlDetail() {
 }
 
 function Section({ title, content, editing, field, form, setForm }) {
+  const lines = content ? content.split('\n').filter(l => l.trim()) : [];
   return (
     <div>
       <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">{title}</h4>
       {editing ? (
         <textarea className="form-input min-h-[80px]" value={form[field] || ''} onChange={e => setForm({...form, [field]: e.target.value})} />
+      ) : lines.length === 0 ? (
+        <p className="text-sm text-slate-400">—</p>
       ) : (
-        <p className="text-sm text-slate-600 whitespace-pre-wrap">{content || '—'}</p>
+        <div className="space-y-1">
+          {lines.map((line, i) => {
+            const isSubBullet = /^\s*[-•]/.test(line);
+            return (
+              <p key={i} className={`text-sm text-slate-600 leading-relaxed ${isSubBullet ? 'pl-5' : ''}`}>
+                {line.trim()}
+              </p>
+            );
+          })}
+        </div>
       )}
     </div>
   );

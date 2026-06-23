@@ -18,11 +18,6 @@ const splitSteps = (text) => {
   return text.split('\n').map(s => s.trim()).filter(Boolean);
 };
 
-const splitSentences = (text) => {
-  if (!text) return [];
-  return text.split(/(?<=\.)\s+/).map(s => s.trim()).filter(Boolean);
-};
-
 export default function TechnicianInstructions({ control, clientName, ninjaoneInScope = true, cortexXdrInScope = false }) {
   const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '');
   const company = sanitize(clientName) || 'CompanyName';
@@ -36,7 +31,7 @@ export default function TechnicianInstructions({ control, clientName, ninjaoneIn
     ...(cortexXdrInScope ? [optionalPortals.cortex_xdr] : []),
   ];
   const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
-  const implSteps = splitSentences(control.implementation_guidance);
+  const implSteps = splitSteps(control.implementation_guidance);
   const screenshotList = splitSteps(control.required_screenshots);
   const exportList = splitSteps(control.required_exports);
   const policyList = splitSteps(control.required_policies);
@@ -77,14 +72,18 @@ export default function TechnicianInstructions({ control, clientName, ninjaoneIn
           {implSteps.length === 0 ? (
             <p className="text-xs text-slate-400">No implementation guidance recorded. Click Edit to add steps.</p>
           ) : (
-            <ol className="space-y-2">
-              {implSteps.map((step, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
-                  <span className="text-xs text-slate-700">{step}</span>
-                </li>
-              ))}
-            </ol>
+            <div className="space-y-1.5">
+              {implSteps.map((step, i) => {
+                const isSubBullet = /^[-•]/.test(step);
+                return (
+                  <div key={i} className={isSubBullet ? 'pl-5 flex items-start gap-1.5' : 'flex items-start gap-2'}>
+                    {!isSubBullet && <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0 mt-1.5" />}
+                    {isSubBullet && <span className="text-slate-400 flex-shrink-0 mt-0.5">•</span>}
+                    <span className="text-xs text-slate-700 leading-relaxed">{step}</span>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </Step>
 
