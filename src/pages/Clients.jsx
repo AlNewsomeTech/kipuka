@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -64,6 +64,16 @@ export default function Clients() {
       alert('Error saving client: ' + e.message);
     }
     setSaving(false);
+  };
+
+  const handleClone = async (client) => {
+    try {
+      const { id, created_date, updated_date, created_by_id, ...rest } = client;
+      await base44.entities.Client.create({ ...rest, legal_name: `${client.legal_name} (Clone)`, project_status: 'Not Started' });
+      window.location.reload();
+    } catch (e) {
+      alert('Error cloning client: ' + e.message);
+    }
   };
 
   const handleDelete = async (client) => {
@@ -135,6 +145,12 @@ export default function Clients() {
                   className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-[#0F1E3C] hover:bg-slate-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
                 >
                   <Pencil className="w-3 h-3" /> Edit
+                </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleClone(c); }}
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
+                >
+                  <Copy className="w-3 h-3" /> Clone
                 </button>
                 {isAdmin && (
                   <button
