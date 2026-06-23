@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ShieldCheck, Image, FileText, AlertTriangle, ListChecks,
   TrendingUp, Clock, CheckCircle2, AlertCircle, Package, Layers
@@ -14,6 +14,7 @@ import EmptyState from '@/components/EmptyState';
 
 export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({ controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
   const [loading, setLoading] = useState(true);
 
@@ -61,16 +62,16 @@ export default function Dashboard() {
       <WarningBanner compact />
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        <StatCard icon={Building2} label="Active Client" value={selectedClient.legal_name?.split(' ')[0] || '—'} sublabel={selectedClient.environment_type} color="navy" />
-        <StatCard icon={Clock} label="Current Phase" value={currentPhase?.split(' ').slice(0, 2).join(' ') || '—'} sublabel={currentPhase} color="blue" />
-        <StatCard icon={ShieldCheck} label="L1 Controls Done" value={`${l1Complete}/${l1Controls.length}`} sublabel={`${Math.round(l1Pct)}% complete`} color="green" />
-        <StatCard icon={Layers} label="L2 Readiness" value={`${Math.round(l2Pct)}%`} sublabel="Level 2 ready" color="amber" />
-        <StatCard icon={Image} label="Evidence Items" value={evidenceItems} sublabel="Collected" color="white" />
-        <StatCard icon={AlertCircle} label="Missing Screenshots" value={missingScreenshots} sublabel="Tasks needing capture" color="amber" />
-        <StatCard icon={AlertCircle} label="Missing Exports" value={missingExports} sublabel="Tasks needing export" color="amber" />
-        <StatCard icon={ListChecks} label="Open Tasks" value={openTasks.length} sublabel="In progress" color="white" />
-        <StatCard icon={AlertTriangle} label="High Priority Blockers" value={blockers.length} sublabel="Critical items" color="red" />
-        <StatCard icon={Package} label="Package Readiness" value={packageReady ? 'Ready' : 'Not Ready'} sublabel={packageReady ? 'Level 1 complete' : 'Complete L1 first'} color={packageReady ? 'green' : 'white'} />
+        <StatCard icon={Building2} label="Active Client" value={selectedClient.legal_name?.split(' ')[0] || '—'} sublabel={selectedClient.environment_type} color="navy" onClick={() => navigate('/clients')} />
+        <StatCard icon={Clock} label="Current Phase" value={currentPhase?.split(' ').slice(0, 2).join(' ') || '—'} sublabel={currentPhase} color="blue" onClick={() => navigate('/board')} />
+        <StatCard icon={ShieldCheck} label="L1 Controls Done" value={`${l1Complete}/${l1Controls.length}`} sublabel={`${Math.round(l1Pct)}% complete`} color="green" onClick={() => navigate('/controls')} />
+        <StatCard icon={Layers} label="L2 Readiness" value={`${Math.round(l2Pct)}%`} sublabel="Level 2 ready" color="amber" onClick={() => navigate('/level2')} />
+        <StatCard icon={Image} label="Evidence Items" value={evidenceItems} sublabel="Collected" color="white" onClick={() => navigate('/evidence')} />
+        <StatCard icon={AlertCircle} label="Missing Screenshots" value={missingScreenshots} sublabel="Tasks needing capture" color="amber" onClick={() => navigate('/screenshots')} />
+        <StatCard icon={AlertCircle} label="Missing Exports" value={missingExports} sublabel="Tasks needing export" color="amber" onClick={() => navigate('/evidence')} />
+        <StatCard icon={ListChecks} label="Open Tasks" value={openTasks.length} sublabel="In progress" color="white" onClick={() => navigate('/board')} />
+        <StatCard icon={AlertTriangle} label="High Priority Blockers" value={blockers.length} sublabel="Critical items" color="red" onClick={() => navigate('/board')} />
+        <StatCard icon={Package} label="Package Readiness" value={packageReady ? 'Ready' : 'Not Ready'} sublabel={packageReady ? 'Level 1 complete' : 'Complete L1 first'} color={packageReady ? 'green' : 'white'} onClick={() => navigate('/package')} />
       </div>
 
       <div className="grid md:grid-cols-2 gap-4">
