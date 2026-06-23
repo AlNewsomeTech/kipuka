@@ -154,6 +154,13 @@
 .dark .border-orange-200 { border-color: #3a2a10; }
 .dark .border-slate-200\/60 { border-color: #1e293b; }
 .dark .border-amber-200\/60 { border-color: #422006; }
+.dark .bg-slate-100\/70 { background-color: #1a2332; }
+.dark .text-amber-800 { color: #fbbf24; }
+.dark .divide-slate-100 > * + * { border-color: #1e293b; }
+.dark .border-slate-300 { border-color: #334155; }
+.dark .hover\:bg-slate-200:hover { background-color: #334155; }
+.dark .hover\:border-slate-300:hover { border-color: #475569; }
+.dark .text-slate-200 { color: #cbd5e1; }
 
 .dark .hover\:bg-slate-50:hover { background-color: #1a2332; }
 .dark .hover\:bg-slate-100:hover { background-color: #243044; }

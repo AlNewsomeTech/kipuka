@@ -98,8 +98,8 @@ export default function ClientProgressOverview() {
           <thead>
             <tr className="bg-slate-50 text-[10px] uppercase tracking-wide text-slate-500">
               <th className="text-left font-semibold px-4 py-2.5">Client</th>
-              <th className="text-left font-semibold px-3 py-2.5 hidden md:table-cell">L1 Progress</th>
-              <th className="text-left font-semibold px-3 py-2.5 hidden md:table-cell">L2 Progress</th>
+              <th className="text-left font-semibold px-3 py-2.5 hidden md:table-cell">Level 1</th>
+              <th className="text-left font-semibold px-3 py-2.5 hidden md:table-cell">Level 2</th>
               <th className="text-left font-semibold px-3 py-2.5">Overall</th>
               <th className="text-center font-semibold px-3 py-2.5">Overdue</th>
               <th className="text-center font-semibold px-3 py-2.5">Blockers</th>

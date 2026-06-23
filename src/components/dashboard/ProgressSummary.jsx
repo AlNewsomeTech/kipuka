@@ -30,7 +30,7 @@ export default function ProgressSummary({ l1Controls, l2Controls, tasks }) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <Metric icon={ShieldCheck} label="L1 Controls" complete={l1Complete} total={l1Controls.length} color="green" />
-        <Metric icon={Layers} label="L2 Controls" complete={l2Complete} total={l2Controls.length} color="amber" />
+        <Metric icon={Layers} label="Level 2 Controls" complete={l2Complete} total={l2Controls.length} color="amber" />
         <Metric icon={ListChecks} label="Tasks Done" complete={tasksComplete} total={tasks.length} color="blue" />
         <Metric icon={Clock} label="Remaining" complete={tasksRemaining} total={tasks.length} color="navy" raw />
       </div>

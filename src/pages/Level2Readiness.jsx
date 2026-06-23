@@ -61,7 +61,7 @@ export default function Level2Readiness() {
     <div className="space-y-6">
       <div>
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-2xl font-bold text-slate-900">Level 2 Controls</h1>
+          <h1 className="text-2xl font-bold text-slate-900">CMMC Level 2 Controls</h1>
           <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Level 2 Ready</span>
         </div>
         <p className="text-sm text-slate-500">All 110 Level 2 controls (includes the 17 Level 1 controls) — complete Level 1 first, then work through these</p>

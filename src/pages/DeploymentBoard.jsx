@@ -46,6 +46,8 @@ export default function DeploymentBoard() {
   };
 
   const exitBulkMode = () => { setBulkMode(false); setSelectedIds([]); };
+  const activePhases = phases.filter(p => tasks.some(t => t.phase === p));
+  const otherTasks = tasks.filter(t => !phases.includes(t.phase));
 
   if (!selectedClient) return <EmptyState icon={KanbanSquare} title="No client selected" description="Select a client to view the deployment board." />;
 
@@ -64,9 +66,14 @@ export default function DeploymentBoard() {
         </button>
       </div>
 
+      {loading ? (
+        <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>
+      ) : tasks.length === 0 ? (
+        <EmptyState icon={KanbanSquare} title="No tasks yet" description="Deployment tasks will appear here once they are created for this client." />
+      ) : (
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {phases.map((phase) => {
-          const phaseTasks = tasks.filter(t => t.phase === phase);
+        {[...activePhases, ...(otherTasks.length > 0 ? ['Other'] : [])].map((phase) => {
+          const phaseTasks = phase === 'Other' ? otherTasks : tasks.filter(t => t.phase === phase);
           return (
             <div
               key={phase}
@@ -113,12 +120,12 @@ export default function DeploymentBoard() {
                     {task.owner && <div className="text-[10px] text-slate-400 mt-0.5">👤 {task.owner}</div>}
                   </div>
                 ))}
-                {phaseTasks.length === 0 && <div className="text-[10px] text-slate-400 text-center py-4">No tasks</div>}
               </div>
             </div>
           );
         })}
       </div>
+      )}
 
       {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
 

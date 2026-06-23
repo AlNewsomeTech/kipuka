@@ -80,7 +80,7 @@ export default function Dashboard() {
         <StatCard icon={Building2} label="Active Client" value={selectedClient.legal_name?.split(' ')[0] || '—'} sublabel={selectedClient.environment_type} color="navy" onClick={() => navigate('/clients')} />
         <StatCard icon={Clock} label="Current Phase" value={currentPhase?.split(' ').slice(0, 2).join(' ') || '—'} sublabel={currentPhase} color="blue" onClick={() => navigate('/board')} />
         <StatCard icon={ShieldCheck} label="L1 Controls Done" value={`${l1Complete}/${l1Controls.length}`} sublabel={`${Math.round(l1Pct)}% complete`} color="green" onClick={() => navigate('/controls')} />
-        <StatCard icon={Layers} label="L2 Readiness" value={`${Math.round(l2Pct)}%`} sublabel="Level 2 ready" color="amber" onClick={() => navigate('/level2')} />
+        <StatCard icon={Layers} label="Level 2 Controls" value={`${Math.round(l2Pct)}%`} sublabel="Level 2 controls" color="amber" onClick={() => navigate('/level2')} />
         <StatCard icon={Image} label="Evidence Items" value={evidenceItems} sublabel="Collected" color="white" onClick={() => navigate('/evidence')} />
         <StatCard icon={AlertCircle} label="Missing Screenshots" value={missingScreenshots} sublabel="Tasks needing capture" color="amber" onClick={() => navigate('/screenshots')} />
         <StatCard icon={AlertCircle} label="Missing Exports" value={missingExports} sublabel="Tasks needing export" color="amber" onClick={() => navigate('/evidence')} />
@@ -101,10 +101,10 @@ export default function Dashboard() {
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-3">
             <Layers className="w-5 h-5 text-amber-600" />
-            <h3 className="text-sm font-semibold text-slate-800">CMMC Level 2 Readiness</h3>
+            <h3 className="text-sm font-semibold text-slate-800">CMMC Level 2 Controls</h3>
           </div>
           <ProgressBar value={l2Pct} color="amber" size="md" />
-          <div className="mt-3 text-xs text-slate-500">{l2Complete} of {l2Controls.length} controls complete. Level 2 builds on Level 1 — finish Level 1 first, then advance Level 2 readiness.</div>
+          <div className="mt-3 text-xs text-slate-500">{l2Complete} of {l2Controls.length} controls complete. Level 2 builds on Level 1 — finish Level 1 first, then advance Level 2 controls.</div>
         </div>
       </div>
 
