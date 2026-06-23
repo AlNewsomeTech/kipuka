@@ -1,0 +1,107 @@
+{
+  "name": "SelfCertificationWalkthrough",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "cage_code": {
+      "type": "string"
+    },
+    "uei": {
+      "type": "string"
+    },
+    "assessment_level": {
+      "type": "string",
+      "enum": [
+        "Level 1 Self-Assessment",
+        "Level 2 Self-Assessment"
+      ],
+      "default": "Level 1 Self-Assessment"
+    },
+    "piee_user_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Existing PIEE User",
+        "New PIEE User",
+        "Role Requested",
+        "Role Approved"
+      ],
+      "default": "Not Started"
+    },
+    "sprs_role_requested": {
+      "type": "boolean",
+      "default": false
+    },
+    "sprs_role_approved": {
+      "type": "boolean",
+      "default": false
+    },
+    "ao_name": {
+      "type": "string"
+    },
+    "ao_email": {
+      "type": "string"
+    },
+    "assessment_entered": {
+      "type": "boolean",
+      "default": false
+    },
+    "transferred_to_ao": {
+      "type": "boolean",
+      "default": false
+    },
+    "affirmed": {
+      "type": "boolean",
+      "default": false
+    },
+    "cmmc_uid": {
+      "type": "string"
+    },
+    "cmmc_status": {
+      "type": "string"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "evidence_notes": {
+      "type": "string"
+    },
+    "completion_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Pending AO",
+        "Submitted",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "last_reviewed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "prerequisites_checked": {
+      "type": "string"
+    },
+    "wizard_steps_completed": {
+      "type": "string"
+    },
+    "evidence_checked": {
+      "type": "string"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "entered_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id"
+  ]
+}

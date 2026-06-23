@@ -3,7 +3,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
-  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert
+  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import WarningBanner from '@/components/WarningBanner';
@@ -30,6 +30,7 @@ const navSections = [
     { to: '/evidence', label: 'Evidence Index', icon: ListChecks },
   ]},
   { label: 'Delivery', items: [
+    { to: '/piee', label: 'PIEE Self-Cert', icon: BadgeCheck },
     { to: '/package', label: 'Final Package', icon: Package },
     { to: '/settings', label: 'Settings', icon: Settings },
   ]},

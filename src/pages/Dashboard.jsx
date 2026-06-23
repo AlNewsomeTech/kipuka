@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ShieldCheck, Image, FileText, AlertTriangle, ListChecks,
-  Clock, CheckCircle2, AlertCircle, Package, Layers, FileBarChart
+  Clock, CheckCircle2, AlertCircle, Package, Layers, FileBarChart, BadgeCheck
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
@@ -109,6 +109,21 @@ export default function Dashboard() {
       </div>
 
       <ProgressSummary l1Controls={l1Controls} l2Controls={l2Controls} tasks={stats.tasks} />
+
+      <Link to="/piee" className="block bg-gradient-to-r from-[#0F1E3C] to-[#1E2D4A] rounded-xl p-5 text-white hover:shadow-lg transition-shadow">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+              <BadgeCheck className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold">PIEE / SPRS CMMC Self-Certification Walkthrough</h3>
+              <p className="text-xs text-white/60 mt-0.5">Guide clients through PIEE access, SPRS role requests, assessment entry, and AO affirmation.</p>
+            </div>
+          </div>
+          <span className="text-xs text-white/70 hidden sm:inline">Start Walkthrough →</span>
+        </div>
+      </Link>
 
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
