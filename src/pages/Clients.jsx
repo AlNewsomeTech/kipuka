@@ -10,7 +10,7 @@ const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 
 export default function Clients() {
-  const { clients, setSelectedClientId, selectedClientId } = useClient();
+  const { clients, setSelectedClientId, selectedClientId, refreshClients } = useClient();
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
@@ -59,7 +59,7 @@ export default function Clients() {
         await base44.entities.Client.create(form);
       }
       setShowForm(false);
-      window.location.reload();
+      refreshClients();
     } catch (e) {
       alert('Error saving client: ' + e.message);
     }
@@ -70,7 +70,7 @@ export default function Clients() {
     try {
       const { id, created_date, updated_date, created_by_id, ...rest } = client;
       await base44.entities.Client.create({ ...rest, legal_name: `${client.legal_name} (Clone)`, project_status: 'Not Started' });
-      window.location.reload();
+      refreshClients();
     } catch (e) {
       alert('Error cloning client: ' + e.message);
     }
@@ -87,7 +87,7 @@ export default function Clients() {
       ]);
       await base44.entities.Client.delete(client.id);
       setConfirmDelete(null);
-      window.location.reload();
+      refreshClients();
     } catch (e) {
       alert('Error deleting client: ' + e.message);
     }

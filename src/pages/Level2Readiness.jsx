@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Layers, AlertTriangle, Plus, X, ShieldCheck, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
@@ -19,6 +19,7 @@ export default function Level2Readiness() {
   const [showPOAM, setShowPOAM] = useState(false);
   const [riskForm, setRiskForm] = useState({ risk_description: '', severity: 'Medium', likelihood: 'Medium', mitigation: '', status: 'Open', owner: '' });
   const [poamForm, setPoamForm] = useState({ weakness_description: '', control_id: '', remediation_plan: '', severity: 'Medium', scheduled_completion: '', status: 'Open', owner: '' });
+  const navigate = useNavigate();
 
   useEffect(() => {
     base44.entities.CMMCControl.list('-control_id', 200)
@@ -110,7 +111,7 @@ export default function Level2Readiness() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => window.location.href = `/controls/${c.id}`}>
+              <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => navigate(`/controls/${c.id}`)}>
                 <td className="px-4 py-3"><Link to={`/controls/${c.id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>{c.control_id}</Link></td>
                 <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-700">{c.control_title}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-500">{c.control_family}</td>

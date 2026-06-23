@@ -97,17 +97,6 @@ export default function SharePointArchive() {
 
   if (!selectedClient) return <EmptyState icon={FolderArchive} title="No client selected" description="Select a client to manage the SharePoint evidence archive." />;
 
-  const FolderToggle = ({ path, label }) => {
-    const f = folderMap[path];
-    return (
-      <div className="flex items-center gap-2 py-1">
-        <span className="text-xs text-slate-600 flex-1">{label}</span>
-        <button onClick={() => toggleFolder(path, 'created_locally')} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${f?.created_locally ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>{f?.created_locally ? '✓ Local' : 'Local'}</button>
-        <button onClick={() => toggleFolder(path, 'created_in_sharepoint')} className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${f?.created_in_sharepoint ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-500'}`}>{f?.created_in_sharepoint ? '✓ SP' : 'SP'}</button>
-      </div>
-    );
-  };
-
   return (
     <div className="space-y-6">
       <div>

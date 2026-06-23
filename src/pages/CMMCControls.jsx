@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Search, Filter } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
@@ -11,6 +11,7 @@ export default function CMMCControls() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [familyFilter, setFamilyFilter] = useState('all');
+  const navigate = useNavigate();
 
   useEffect(() => {
     base44.entities.CMMCControl.filter({ level: 'Level 1' })
@@ -74,7 +75,7 @@ export default function CMMCControls() {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => window.location.href = `/controls/${c.id}`}>
+              <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => navigate(`/controls/${c.id}`)}>
                 <td className="px-4 py-3"><Link to={`/controls/${c.id}`} className="text-sm font-mono font-medium text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>{c.control_id}</Link></td>
                 <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-700">{c.control_title}</td>
                 <td className="px-4 py-3 hidden lg:table-cell text-xs text-slate-500">{c.control_family}</td>

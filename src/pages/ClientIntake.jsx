@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   ClipboardCheck, Mail, KeyRound, ShieldCheck, Globe, CreditCard,
-  CheckCircle2, Circle, AlertCircle, Save, UserCog, FileText, Lock
+  CheckCircle2, Circle, AlertCircle, Save, UserCog, FileText
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
@@ -15,7 +15,7 @@ const REQUIREMENTS = [
     title: 'Global Administrator Account',
     critical: true,
     instruction: 'Provide the credentials for a Global Administrator account on the M365 tenant. This account is required to configure security settings, conditional access policies, and compliance features across the tenant.',
-    fields: ['global_admin_email', 'global_admin_password'],
+    fields: ['global_admin_email', 'global_admin_credentials_confirmed'],
   },
   {
     id: 'e5_license',
@@ -66,7 +66,7 @@ export default function ClientIntake() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     global_admin_email: '',
-    global_admin_password: '',
+    global_admin_credentials_confirmed: false,
     secondary_admin_email: '',
     e5_license_count: 0,
     e5_license_confirmed: false,
@@ -86,7 +86,7 @@ export default function ClientIntake() {
           setIntake(r);
           setForm({
             global_admin_email: r.global_admin_email || '',
-            global_admin_password: r.global_admin_password || '',
+            global_admin_credentials_confirmed: r.global_admin_credentials_confirmed || false,
             secondary_admin_email: r.secondary_admin_email || '',
             e5_license_count: r.e5_license_count || 0,
             e5_license_confirmed: r.e5_license_confirmed || false,
@@ -104,7 +104,7 @@ export default function ClientIntake() {
   }, [selectedClientId]);
 
   const completedChecklist = REQUIREMENTS.filter((req) => {
-    if (req.id === 'global_admin') return form.global_admin_email && form.global_admin_password;
+    if (req.id === 'global_admin') return form.global_admin_email && form.global_admin_credentials_confirmed;
     if (req.id === 'e5_license') return form.e5_license_confirmed && form.e5_license_count >= 1;
     if (req.id === 'secondary_admin') return form.secondary_admin_email;
     if (req.id === 'tenant_domain') return form.tenant_domain_confirmed;
@@ -114,7 +114,7 @@ export default function ClientIntake() {
   });
 
   const allCriticalDone = REQUIREMENTS.filter((r) => r.critical).every((req) => {
-    if (req.id === 'global_admin') return form.global_admin_email && form.global_admin_password;
+    if (req.id === 'global_admin') return form.global_admin_email && form.global_admin_credentials_confirmed;
     if (req.id === 'e5_license') return form.e5_license_confirmed && form.e5_license_count >= 1;
     if (req.id === 'tenant_domain') return form.tenant_domain_confirmed;
     return false;
@@ -215,14 +215,8 @@ export default function ClientIntake() {
                     </div>
                   </div>
                 )}
-                {req.fields.includes('global_admin_password') && (
-                  <div>
-                    <label className="text-[10px] font-medium text-slate-500 mb-0.5 block">Global Admin Password / Temp Access Code</label>
-                    <div className="relative">
-                      <Lock className="absolute left-2.5 top-2.5 w-3.5 h-3.5 text-slate-400" />
-                      <input type="text" className="form-input pl-8" placeholder="Password or temporary access code" value={form.global_admin_password} onChange={(e) => setForm({ ...form, global_admin_password: e.target.value })} />
-                    </div>
-                  </div>
+                {req.fields.includes('global_admin_credentials_confirmed') && (
+                  <CheckRow label="Global admin credentials provided via secure channel (password manager, encrypted email, or direct handoff) — do NOT store passwords in this app" checked={form.global_admin_credentials_confirmed} onChange={(v) => setForm({ ...form, global_admin_credentials_confirmed: v })} />
                 )}
                 {req.fields.includes('secondary_admin_email') && (
                   <div>

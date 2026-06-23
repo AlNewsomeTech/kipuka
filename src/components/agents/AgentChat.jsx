@@ -29,7 +29,7 @@ export default function AgentChat({ agentName }) {
     const unsubscribe = base44.agents.subscribeToConversation(currentConvId, (data) => {
       setMessages(data.messages || []);
     });
-    return () => unsubscribe();
+    return () => { if (typeof unsubscribe === 'function') unsubscribe(); };
   }, [currentConvId]);
 
   useEffect(() => {

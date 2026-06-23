@@ -8,8 +8,9 @@
     "global_admin_email": {
       "type": "string"
     },
-    "global_admin_password": {
-      "type": "string"
+    "global_admin_credentials_confirmed": {
+      "type": "boolean",
+      "default": false
     },
     "secondary_admin_email": {
       "type": "string"
