@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle } from 'lucide-react';
+import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle, ListChecks } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import BulkUpdateBar from '@/components/BulkUpdateBar';
 
 const phases = [
   'Intake', 'Scope', 'Tenant Baseline', 'Google Migration Planning', 'Identity Setup',
@@ -21,6 +22,8 @@ export default function DeploymentBoard() {
   const [loading, setLoading] = useState(true);
   const [draggedId, setDraggedId] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   const loadTasks = () => {
     if (!selectedClientId) { setLoading(false); return; }
@@ -38,13 +41,27 @@ export default function DeploymentBoard() {
       .then(() => { setDraggedId(null); loadTasks(); });
   };
 
+  const toggleSelect = (taskId) => {
+    setSelectedIds(prev => prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId]);
+  };
+
+  const exitBulkMode = () => { setBulkMode(false); setSelectedIds([]); };
+
   if (!selectedClient) return <EmptyState icon={KanbanSquare} title="No client selected" description="Select a client to view the deployment board." />;
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Deployment Board</h1>
-        <p className="text-sm text-slate-500 mt-1">Kanban board for {selectedClient.legal_name} — drag cards between phases</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Deployment Board</h1>
+          <p className="text-sm text-slate-500 mt-1">Kanban board for {selectedClient.legal_name} — drag cards between phases</p>
+        </div>
+        <button
+          onClick={() => bulkMode ? exitBulkMode() : setBulkMode(true)}
+          className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg transition-colors ${bulkMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+        >
+          <ListChecks className="w-4 h-4" /> {bulkMode ? 'Exit Bulk Update' : 'Bulk Update'}
+        </button>
       </div>
 
       <div className="flex gap-3 overflow-x-auto pb-4">
@@ -65,14 +82,28 @@ export default function DeploymentBoard() {
                 {phaseTasks.map((task) => (
                   <div
                     key={task.id}
-                    draggable
+                    draggable={!bulkMode}
                     onDragStart={() => setDraggedId(task.id)}
-                    onClick={() => setSelectedTask(task)}
-                    className="bg-white rounded-lg p-3 shadow-sm border border-slate-200/60 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all"
+                    onClick={() => bulkMode ? toggleSelect(task.id) : setSelectedTask(task)}
+                    className={`bg-white rounded-lg p-3 shadow-sm border cursor-pointer hover:shadow-md transition-all ${bulkMode && selectedIds.includes(task.id) ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200/60 hover:border-slate-300'}`}
                   >
-                    <div className="flex items-start justify-between gap-1 mb-1.5">
-                      <span className="text-xs font-medium text-slate-800 leading-tight">{task.title}</span>
-                    </div>
+                    {bulkMode && (
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(task.id)}
+                          onChange={() => toggleSelect(task.id)}
+                          onClick={e => e.stopPropagation()}
+                          className="w-4 h-4 rounded border-slate-300"
+                        />
+                        <span className="text-xs font-medium text-slate-800 leading-tight flex-1">{task.title}</span>
+                      </div>
+                    )}
+                    {!bulkMode && (
+                      <div className="flex items-start justify-between gap-1 mb-1.5">
+                        <span className="text-xs font-medium text-slate-800 leading-tight">{task.title}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <StatusBadge status={task.status} size="xs" />
                       {task.priority === 'Critical' && <span className="text-[10px] text-red-600 font-medium">🔴 {task.priority}</span>}
@@ -90,6 +121,14 @@ export default function DeploymentBoard() {
       </div>
 
       {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
+
+      {bulkMode && (
+        <BulkUpdateBar
+          selectedIds={selectedIds}
+          onClear={() => setSelectedIds([])}
+          onApplied={() => { setSelectedIds([]); loadTasks(); }}
+        />
+      )}
     </div>
   );
 }
