@@ -1,13 +1,23 @@
-import { ExternalLink, FolderArchive, Camera, FileCheck2, MonitorSmartphone } from 'lucide-react';
+import { ExternalLink, FolderArchive, Camera, FileCheck2, MonitorSmartphone, FileText, ClipboardCheck, BookOpen } from 'lucide-react';
 
 const adminPortals = [
   { key: 'm365_evidence', label: 'Microsoft 365 Admin Center', url: 'https://admin.microsoft.com' },
   { key: 'sharepoint_evidence', label: 'SharePoint Admin Center', url: 'https://admin.microsoft.com/sharepoint' },
-  { key: 'entra_evidence', label: 'Entra ID (Azure AD) Portal', url: 'https://entra.microsoft.com' },
+  { key: 'entra_evidence', label: 'Entra ID Portal', url: 'https://entra.microsoft.com' },
   { key: 'exchange_evidence', label: 'Exchange Admin Center', url: 'https://admin.exchange.microsoft.com' },
   { key: 'ninjaone_evidence', label: 'NinjaOne Dashboard', url: 'https://app.ninjaone.com' },
   { key: 'physical_evidence', label: 'Physical Security (On-Site)', url: null },
 ];
+
+const splitSteps = (text) => {
+  if (!text) return [];
+  return text.split('\n').map(s => s.trim()).filter(Boolean);
+};
+
+const splitSentences = (text) => {
+  if (!text) return [];
+  return text.split(/(?<=\.)\s+/).map(s => s.trim()).filter(Boolean);
+};
 
 export default function TechnicianInstructions({ control, clientName }) {
   const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '');
@@ -15,90 +25,176 @@ export default function TechnicianInstructions({ control, clientName }) {
   const controlId = sanitize(control.control_id) || 'Control';
   const namingPrefix = `${company}-CMMC-2.0-${controlId}`;
 
-  const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '');
-  const screenshots = control.required_screenshots
-    ? control.required_screenshots.split('\n').filter(Boolean)
-    : [];
+  const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
+  const implSteps = splitSentences(control.implementation_guidance);
+  const screenshotList = splitSteps(control.required_screenshots);
+  const exportList = splitSteps(control.required_exports);
+  const policyList = splitSteps(control.required_policies);
+  const validationList = splitSteps(control.required_validation_steps);
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
       <div className="bg-[#0F1E3C] px-5 py-3 flex items-center gap-2">
         <MonitorSmartphone className="w-4 h-4 text-white" />
-        <h3 className="text-sm font-semibold text-white">Technician Implementation Guide</h3>
+        <h3 className="text-sm font-semibold text-white">Technician Step-by-Step Guide</h3>
       </div>
-      <div className="p-5 space-y-4">
-        {/* Step 1: Admin Portal */}
-        <Step number={1} icon={ExternalLink} title="Open the Admin Portal">
-          {activePortals.length === 0 ? (
-            <p className="text-xs text-slate-500">No specific admin portal mapped for this control. Check the evidence sections below for guidance.</p>
+      <div className="p-5 space-y-5">
+
+        {/* Step 1: What this control is about */}
+        <Step number={1} icon={BookOpen} title="What This Control Means">
+          <p className="text-sm text-slate-700">{control.explanation || 'No explanation available — click Edit to add one.'}</p>
+        </Step>
+
+        {/* Step 2: Write the policy */}
+        <Step number={2} icon={FileText} title="Write the Required Policy">
+          {policyList.length === 0 ? (
+            <p className="text-xs text-slate-400">No specific policy listed for this control.</p>
           ) : (
-            <div className="space-y-1.5">
-              {activePortals.map(p => (
-                <div key={p.key} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2">
-                  <span className="text-xs text-slate-700 font-medium">{p.label}</span>
-                  {p.url && (
-                    <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline">
-                      Open <ExternalLink className="w-3 h-3" />
-                    </a>
-                  )}
+            <div className="space-y-2">
+              <p className="text-xs text-slate-600">You need a written policy document for each of the following. Create it in the Document Library if it doesn't exist:</p>
+              {policyList.map((p, i) => (
+                <div key={i} className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                  <FileText className="w-3.5 h-3.5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-amber-800 font-medium">{p}</span>
                 </div>
               ))}
             </div>
           )}
         </Step>
 
-        {/* Step 2: Implement */}
-        <Step number={2} icon={FileCheck2} title="Implement the Control">
-          {control.implementation_guidance ? (
-            <p className="text-xs text-slate-600 whitespace-pre-wrap">{control.implementation_guidance}</p>
-          ) : (
+        {/* Step 3: Implement the control */}
+        <Step number={3} icon={FileCheck2} title="Implement the Control — Do These Things">
+          {implSteps.length === 0 ? (
             <p className="text-xs text-slate-400">No implementation guidance recorded. Click Edit to add steps.</p>
-          )}
-        </Step>
-
-        {/* Step 3: Screenshot */}
-        <Step number={3} icon={Camera} title="Capture Evidence Screenshots">
-          {screenshots.length === 0 ? (
-            <p className="text-xs text-slate-400">No specific screenshots listed. Capture what proves the control is implemented.</p>
           ) : (
-            <ul className="space-y-1">
-              {screenshots.map((s, i) => (
-                <li key={i} className="text-xs text-slate-600 flex items-start gap-1.5">
-                  <span className="text-slate-300 mt-0.5">•</span>
-                  <span>{s}</span>
+            <ol className="space-y-2">
+              {implSteps.map((step, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
+                  <span className="text-xs text-slate-700">{step}</span>
                 </li>
               ))}
-            </ul>
+            </ol>
           )}
         </Step>
 
-        {/* Step 4: Naming Convention */}
-        <Step number={4} icon={FolderArchive} title="Name Files & Upload to Archive">
-          <p className="text-xs text-slate-600 mb-2">Use this exact naming convention for every evidence file:</p>
-          <div className="bg-slate-900 text-green-400 font-mono text-xs px-3 py-2 rounded-lg break-all">
-            {namingPrefix}-01.png
+        {/* Step 4: Go to each portal and capture evidence */}
+        <Step number={4} icon={ExternalLink} title="Go to Each Admin Portal & Capture Evidence">
+          {activePortals.length === 0 ? (
+            <p className="text-xs text-slate-400">No admin portals mapped for this control.</p>
+          ) : (
+            <div className="space-y-3">
+              {activePortals.map((p, idx) => (
+                <div key={p.key} className="border border-slate-200 rounded-lg overflow-hidden">
+                  <div className="bg-slate-50 px-3 py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center text-[10px] font-bold">{idx + 1}</span>
+                      <span className="text-xs font-semibold text-slate-800">{p.label}</span>
+                    </div>
+                    {p.url && (
+                      <a href={p.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-blue-600 hover:underline font-medium">
+                        Open Portal <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
+                  <div className="px-3 py-2.5">
+                    <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1">What to do here:</p>
+                    <p className="text-xs text-slate-700">{control[p.key]}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Step>
+
+        {/* Step 5: Take these specific screenshots */}
+        <Step number={5} icon={Camera} title="Take These Exact Screenshots">
+          {screenshotList.length === 0 ? (
+            <p className="text-xs text-slate-400">No specific screenshots listed.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {screenshotList.map((s, i) => (
+                <div key={i} className="flex items-start gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                  <Camera className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-slate-700">{s}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {exportList.length > 0 && (
+            <div className="mt-3">
+              <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Also Export These:</p>
+              <div className="space-y-1.5">
+                {exportList.map((e, i) => (
+                  <div key={i} className="flex items-start gap-2 bg-slate-50 rounded-lg px-3 py-2">
+                    <FileText className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs text-slate-700">{e}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </Step>
+
+        {/* Step 6: Name your files */}
+        <Step number={6} icon={FolderArchive} title="Name Each File Exactly Like This">
+          <p className="text-xs text-slate-600 mb-2">Every screenshot and export must follow this naming pattern:</p>
+          <div className="bg-slate-900 rounded-lg p-3 space-y-1.5">
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide">Pattern:</div>
+            <div className="text-green-400 font-mono text-xs break-all">CompanyName-CMMC-2.0-ControlID-##.png</div>
+            <div className="text-[10px] text-slate-400 uppercase tracking-wide pt-1">Your files for this control:</div>
+            {screenshotList.length > 0 ? screenshotList.map((_, i) => (
+              <div key={i} className="text-green-400 font-mono text-xs break-all">{namingPrefix}-{String(i + 1).padStart(2, '0')}.png</div>
+            )) : (
+              <div className="text-green-400 font-mono text-xs break-all">{namingPrefix}-01.png</div>
+            )}
           </div>
           <p className="text-[11px] text-slate-500 mt-2">
-            Pattern: <span className="font-mono text-slate-700">CompanyName-CMMC-2.0-ControlID-##.ext</span>
-            <br />
-            Increment the two-digit number for each screenshot (01, 02, 03…). Upload to the client's SharePoint evidence archive under the folder for this control.
+            Replace <span className="font-mono">CompanyName</span> with the client's name (no spaces). The number goes up by 1 for each file (01, 02, 03…).
           </p>
         </Step>
+
+        {/* Step 7: Upload to archive */}
+        <Step number={7} icon={FolderArchive} title="Upload to the SharePoint Evidence Archive">
+          <ol className="space-y-1.5">
+            <li className="flex items-start gap-2"><span className="text-slate-300 mt-0.5">→</span><span className="text-xs text-slate-700">Go to the client's SharePoint evidence archive site</span></li>
+            <li className="flex items-start gap-2"><span className="text-slate-300 mt-0.5">→</span><span className="text-xs text-slate-700">Navigate to the folder for control <span className="font-mono font-medium">{control.control_id}</span></span></li>
+            <li className="flex items-start gap-2"><span className="text-slate-300 mt-0.5">→</span><span className="text-xs text-slate-700">Upload all screenshots and exports with the correct file names above</span></li>
+            <li className="flex items-start gap-2"><span className="text-slate-300 mt-0.5">→</span><span className="text-xs text-slate-700">Come back here and use the upload area below to log each file in the system</span></li>
+          </ol>
+        </Step>
+
+        {/* Step 8: Validate */}
+        <Step number={8} icon={ClipboardCheck} title="Validate — Check Off Each Item" last>
+          {validationList.length === 0 ? (
+            <p className="text-xs text-slate-400">No validation steps listed.</p>
+          ) : (
+            <div className="space-y-1.5">
+              {validationList.map((v, i) => (
+                <label key={i} className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" className="w-4 h-4 rounded border-slate-300 mt-0.5 flex-shrink-0" />
+                  <span className="text-xs text-slate-700">{v}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </Step>
+
       </div>
     </div>
   );
 }
 
-function Step({ number, icon: Icon, title, children }) {
+function Step({ number, icon: Icon, title, children, last }) {
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
-        <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold flex-shrink-0">{number}</div>
-        <div className="w-px flex-1 bg-slate-200 mt-1" />
+        <div className="w-8 h-8 rounded-full bg-[#0F1E3C] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">{number}</div>
+        {!last && <div className="w-px flex-1 bg-slate-200 mt-1" />}
       </div>
       <div className="flex-1 pb-1">
-        <h4 className="text-xs font-semibold text-slate-800 flex items-center gap-1.5 mb-1.5">
-          <Icon className="w-3.5 h-3.5 text-slate-500" /> {title}
+        <h4 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5 mb-2">
+          <Icon className="w-4 h-4 text-slate-500" /> {title}
         </h4>
         {children}
       </div>
