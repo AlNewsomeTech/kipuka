@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Building2, ShieldCheck, Image, FileText, AlertTriangle, ListChecks,
-  TrendingUp, Clock, CheckCircle2, AlertCircle, Package, Layers
+  Clock, CheckCircle2, AlertCircle, Package, Layers
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
@@ -15,7 +15,7 @@ import EmptyState from '@/components/EmptyState';
 export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
+  const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -23,12 +23,13 @@ export default function Dashboard() {
     setLoading(true);
     Promise.all([
       base44.entities.CMMCControl.filter({ level: 'Level 1' }).catch(() => []),
+      base44.entities.CMMCControl.filter({ level: 'Level 2' }).catch(() => []),
       base44.entities.DeploymentTask.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.Screenshot.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.GeneratedDocument.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.EvidenceItem.filter({ client_id: selectedClientId }).catch(() => []),
-    ]).then(([controls, tasks, screenshots, documents, evidence]) => {
-      setStats({ controls, tasks, screenshots, documents, evidence });
+    ]).then(([l1Controls, l2Controls, tasks, screenshots, documents, evidence]) => {
+      setStats({ controls: l1Controls, l2Controls, tasks, screenshots, documents, evidence });
       setLoading(false);
     });
   }, [selectedClientId]);
@@ -40,7 +41,9 @@ export default function Dashboard() {
   const l1Controls = stats.controls;
   const l1Complete = l1Controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length;
   const l1Pct = l1Controls.length ? (l1Complete / l1Controls.length) * 100 : 0;
-  const l2Pct = l1Pct >= 100 ? 35 : 0;
+  const l2Controls = stats.l2Controls;
+  const l2Complete = l2Controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length;
+  const l2Pct = l2Controls.length ? (l2Complete / l2Controls.length) * 100 : 0;
 
   const openTasks = stats.tasks.filter(t => t.status !== 'Complete' && t.status !== 'Reviewed');
   const blockers = stats.tasks.filter(t => t.status === 'Blocker' || t.priority === 'Critical');
@@ -85,11 +88,11 @@ export default function Dashboard() {
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-5 h-5 text-amber-600" />
-            <h3 className="text-sm font-semibold text-slate-800">Level 2 Readiness</h3>
+            <Layers className="w-5 h-5 text-amber-600" />
+            <h3 className="text-sm font-semibold text-slate-800">CMMC Level 2 Readiness</h3>
           </div>
           <ProgressBar value={l2Pct} color="amber" size="md" />
-          <div className="mt-3 text-xs text-slate-500">Level 2 readiness expands on Level 1. Available now but should not distract from Level 1 completion.</div>
+          <div className="mt-3 text-xs text-slate-500">{l2Complete} of {l2Controls.length} controls complete. Level 2 builds on Level 1 — finish Level 1 first, then advance Level 2 readiness.</div>
         </div>
       </div>
 
