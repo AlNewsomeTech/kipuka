@@ -56,8 +56,8 @@ export default function Layout() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-white font-bold text-sm leading-tight truncate">CMMC Command</div>
-              <div className="text-white/50 text-[10px] leading-tight">Deployment Center</div>
+              <div className="text-white font-bold text-sm leading-tight truncate">CMMC Command Center</div>
+              <div className="text-white/50 text-[10px] leading-tight">Deployment &amp; Evidence Platform</div>
             </div>
           )}
         </div>
