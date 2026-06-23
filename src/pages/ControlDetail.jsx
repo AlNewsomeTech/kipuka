@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Image, FileText, Download, CheckCircle2, Save, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
 
 const statuses = ['Not Started', 'In Progress', 'Evidence Needed', 'Ready for Review', 'Reviewed', 'Complete'];
 
@@ -17,6 +18,12 @@ export default function ControlDetail() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
+
+  const loadScreenshots = useCallback(() => {
+    if (selectedClientId && control?.control_id) {
+      base44.entities.Screenshot.filter({ client_id: selectedClientId, related_control: control.control_id }).then(setScreenshots).catch(() => {});
+    }
+  }, [selectedClientId, control?.control_id]);
 
   useEffect(() => {
     base44.entities.CMMCControl.get(id)
@@ -93,6 +100,17 @@ export default function ControlDetail() {
       {/* Uploaded screenshots */}
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <h3 className="text-sm font-semibold text-slate-800 mb-3">Screenshot Gallery</h3>
+        {selectedClientId ? (
+          <div className="mb-4">
+            <BulkScreenshotUpload
+              clientId={selectedClientId}
+              controlId={control.control_id}
+              onUploaded={loadScreenshots}
+            />
+          </div>
+        ) : (
+          <p className="text-xs text-amber-600 mb-3">Select a client to upload screenshots.</p>
+        )}
         {screenshots.length === 0 ? (
           <p className="text-xs text-slate-400">No screenshots uploaded for this control yet. <Link to="/screenshots" className="text-blue-600 hover:underline">Upload evidence →</Link></p>
         ) : (
