@@ -35,7 +35,7 @@ export default function CMMCControls() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">CMMC Level 1 Controls</h1>
-        <p className="text-sm text-slate-500 mt-1">All 17 Level 1 controls — complete these first before Level 2</p>
+        <p className="text-sm text-slate-500 mt-1">All 18 Level 1 controls — complete these first before Level 2</p>
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-4">

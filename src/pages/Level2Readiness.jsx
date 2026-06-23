@@ -21,7 +21,7 @@ export default function Level2Readiness() {
   const [poamForm, setPoamForm] = useState({ weakness_description: '', control_id: '', remediation_plan: '', severity: 'Medium', scheduled_completion: '', status: 'Open', owner: '' });
 
   useEffect(() => {
-    base44.entities.CMMCControl.filter({ level: 'Level 2' })
+    base44.entities.CMMCControl.list('-control_id', 200)
       .then(setControls)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -64,7 +64,7 @@ export default function Level2Readiness() {
           <h1 className="text-2xl font-bold text-slate-900">Level 2 Controls</h1>
           <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full">Level 2 Ready</span>
         </div>
-        <p className="text-sm text-slate-500">All 93 additional Level 2 controls beyond Level 1 — complete Level 1 first, then work through these</p>
+        <p className="text-sm text-slate-500">All 110 Level 2 controls (includes the 18 Level 1 controls) — complete Level 1 first, then work through these</p>
       </div>
 
       <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-xl p-4">
