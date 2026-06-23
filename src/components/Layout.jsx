@@ -138,6 +138,7 @@ export default function Layout() {
               className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[200px]"
             >
               {clients.length === 0 && <option value="">No clients yet</option>}
+              {user?.role === 'admin' && clients.length > 0 && <option value="">All Clients (Overview)</option>}
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.legal_name}</option>
               ))}

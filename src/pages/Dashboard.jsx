@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { useAuth } from '@/lib/AuthContext';
+import AdminClientSummary from '@/components/dashboard/AdminClientSummary';
 import StatCard from '@/components/StatCard';
 import ProgressBar from '@/components/ProgressBar';
 import StatusBadge from '@/components/StatusBadge';
@@ -17,6 +19,7 @@ import WeeklyReportModal from '@/components/dashboard/WeeklyReportModal';
 
 export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
   const [loading, setLoading] = useState(true);
@@ -39,6 +42,9 @@ export default function Dashboard() {
   }, [selectedClientId]);
 
   if (!selectedClient) {
+    if (user?.role === 'admin') {
+      return <AdminClientSummary />;
+    }
     return <EmptyState icon={Building2} title="No client selected" description="Create a client in the Clients section to get started." action={<Link to="/clients" className="text-sm text-blue-600 font-medium hover:underline">Go to Clients →</Link>} />;
   }
 
