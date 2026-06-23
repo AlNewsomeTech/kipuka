@@ -42,7 +42,7 @@ export default function Dashboard() {
   }, [selectedClientId]);
 
   if (!selectedClient) {
-    if (user?.role === 'admin') {
+    if (user?.role === 'admin' || user?.role === 'technician') {
       return <AdminClientSummary />;
     }
     return <EmptyState icon={Building2} title="No client selected" description="Create a client in the Clients section to get started." action={<Link to="/clients" className="text-sm text-blue-600 font-medium hover:underline">Go to Clients →</Link>} />;

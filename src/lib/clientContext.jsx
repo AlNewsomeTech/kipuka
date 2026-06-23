@@ -21,8 +21,12 @@ export function ClientProvider({ children }) {
           filtered = data.filter((c) => assignedIds.includes(c.id));
         }
         setClients(filtered);
-        if (filtered.length > 0 && !selectedClientId && user.role !== 'admin') {
-          setSelectedClientId(filtered[0].id);
+        if (filtered.length > 0 && !selectedClientId) {
+          if (user.role === 'admin' || (user.role === 'technician' && filtered.length > 1)) {
+            // Start with overview — no auto-select
+          } else {
+            setSelectedClientId(filtered[0].id);
+          }
         }
       })
       .catch(() => {})

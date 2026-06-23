@@ -131,6 +131,12 @@ export default function Layout() {
 
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-slate-500 hidden sm:inline">Active Client:</span>
+            <button
+              onClick={() => setSelectedClientId('')}
+              className={`flex items-center gap-1.5 text-sm font-medium px-3 py-2 rounded-lg transition-colors flex-shrink-0 ${!selectedClientId ? 'bg-[#0F1E3C] text-white' : 'bg-slate-50 text-slate-700 border border-slate-200 hover:bg-slate-100'}`}
+            >
+              <Layers className="w-4 h-4" /> <span className="hidden sm:inline">All Clients</span>
+            </button>
             <select
               value={selectedClientId || ''}
               onChange={(e) => setSelectedClientId(e.target.value)}
@@ -138,7 +144,6 @@ export default function Layout() {
               className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[200px]"
             >
               {clients.length === 0 && <option value="">No clients yet</option>}
-              {user?.role === 'admin' && clients.length > 0 && <option value="">All Clients (Overview)</option>}
               {clients.map((c) => (
                 <option key={c.id} value={c.id}>{c.legal_name}</option>
               ))}
