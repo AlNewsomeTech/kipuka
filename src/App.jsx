@@ -26,6 +26,7 @@ import FinalPackage from '@/pages/FinalPackage';
 import PIEESelfCert from '@/pages/PIEESelfCert';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
+import AIAssistant from '@/pages/AIAssistant';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
         <Route path="/piee" element={<PIEESelfCert />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/assistant" element={<AIAssistant />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

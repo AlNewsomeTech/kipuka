@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check
+  Moon, Sun, Terminal, Check, Bot
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -36,6 +36,9 @@ const navSections = [
     { to: '/piee', label: 'PIEE Self-Cert', icon: BadgeCheck },
     { to: '/package', label: 'Final Package', icon: Package },
     { to: '/settings', label: 'Settings', icon: Settings },
+  ]},
+  { label: 'AI Assistants', items: [
+    { to: '/assistant', label: 'AI Assistants', icon: Bot },
   ]},
   { label: 'Administration', items: [
     { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
