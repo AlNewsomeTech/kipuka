@@ -16,7 +16,7 @@ const navSections = [
   ]},
   { label: 'CMMC Controls', items: [
     { to: '/controls', label: 'Level 1 Controls', icon: ShieldCheck },
-    { to: '/level2', label: 'Level 2 Readiness', icon: Layers },
+    { to: '/level2', label: 'Level 2 Controls', icon: Layers },
   ]},
   { label: 'Implementation', items: [
     { to: '/m365', label: 'Microsoft 365 Setup', icon: Settings2 },
