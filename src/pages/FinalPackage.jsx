@@ -20,16 +20,17 @@ export default function FinalPackage() {
   const [docs, setDocs] = useState([]);
   const [packages, setPackages] = useState([]);
   const [preparing, setPreparing] = useState(false);
+  const [packageLevel, setPackageLevel] = useState('Level 1');
 
   const load = () => {
     if (!selectedClientId) return;
-    base44.entities.CMMCControl.filter({ level: 'Level 1' }).then(setControls).catch(() => {});
+    base44.entities.CMMCControl.filter({ level: packageLevel }).then(setControls).catch(() => {});
     base44.entities.EvidenceItem.filter({ client_id: selectedClientId }).then(setEvidence).catch(() => {});
     base44.entities.Screenshot.filter({ client_id: selectedClientId }).then(setScreenshots).catch(() => {});
     base44.entities.GeneratedDocument.filter({ client_id: selectedClientId }).then(setDocs).catch(() => {});
     base44.entities.AssessmentPackage.filter({ client_id: selectedClientId }).then(setPackages).catch(() => {});
   };
-  useEffect(load, [selectedClientId]);
+  useEffect(load, [selectedClientId, packageLevel]);
 
   const l1Complete = controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length;
   const l1Pct = controls.length ? (l1Complete / controls.length) * 100 : 0;
@@ -41,7 +42,7 @@ export default function FinalPackage() {
   const includedEvidence = [...evidence, ...screenshots].filter(e => e.include_in_final_package).length;
 
   const checklistStatus = packageChecklist.map(item => {
-    if (item === 'Level 1 Control Matrix') return { item, done: l1Pct >= 100, detail: `${l1Complete}/${controls.length} controls complete` };
+    if (item === 'Level 1 Control Matrix') return { item: `${packageLevel} Control Matrix`, done: l1Pct >= 100, detail: `${l1Complete}/${controls.length} controls complete` };
     if (item === 'Evidence Index') return { item, done: evidence.length + screenshots.length > 0, detail: `${evidence.length + screenshots.length} items` };
     if (item === 'Scope Statement') return { item, done: docs.some(d => d.title?.includes('Scope')), detail: docs.some(d => d.title?.includes('Scope')) ? 'Generated' : 'Not generated' };
     if (item === 'Policies') return { item, done: docs.filter(d => d.status === 'Approved').length > 0, detail: `${docs.filter(d => d.status === 'Approved').length} approved` };
@@ -57,7 +58,7 @@ export default function FinalPackage() {
   const preparePackage = () => {
     setPreparing(true);
     base44.entities.AssessmentPackage.create({
-      client_id: selectedClientId, package_name: `${selectedClient.legal_name} - Level 1 Package`, level: 'Level 1',
+      client_id: selectedClientId, package_name: `${selectedClient.legal_name} - ${packageLevel} Package`, level: packageLevel,
       percent_complete: Math.round(packagePct),
       missing_controls: missingControls.map(c => c.control_id).join(', '),
       controls_no_evidence: controlsNoEvidence.map(c => c.control_id).join(', '),
@@ -65,7 +66,7 @@ export default function FinalPackage() {
       screenshots_no_filename: screenshotsNoFilename.length.toString(),
       documents_not_approved: docsNotApproved.length.toString(),
       level1_ready: l1Pct >= 100 && evidenceWithoutReview.length === 0,
-      level2_supplemental_status: 'Available - not included in Level 1 package',
+      level2_supplemental_status: packageLevel === 'Level 1' ? 'Available - not included in Level 1 package' : 'Level 2 package - Level 1 prerequisite required',
       checklist: JSON.stringify(checklistStatus),
       status: 'Draft'
     }).then(() => { setPreparing(false); load(); });
@@ -75,14 +76,20 @@ export default function FinalPackage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Final Package</h1>
-          <p className="text-sm text-slate-500 mt-1">Level 1 assessment package readiness and preparation</p>
+          <p className="text-sm text-slate-500 mt-1">{packageLevel} assessment package readiness and preparation</p>
         </div>
-        <button onClick={preparePackage} disabled={preparing} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">
-          <Package className="w-4 h-4" /> {preparing ? 'Preparing...' : 'Prepare Level 1 Package'}
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex bg-slate-100 rounded-lg p-1">
+            <button onClick={() => setPackageLevel('Level 1')} className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${packageLevel === 'Level 1' ? 'bg-[#0F1E3C] text-white' : 'text-slate-600 hover:text-slate-800'}`}>Level 1</button>
+            <button onClick={() => setPackageLevel('Level 2')} className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${packageLevel === 'Level 2' ? 'bg-[#0F1E3C] text-white' : 'text-slate-600 hover:text-slate-800'}`}>Level 2</button>
+          </div>
+          <button onClick={preparePackage} disabled={preparing} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">
+            <Package className="w-4 h-4" /> {preparing ? 'Preparing...' : `Prepare ${packageLevel} Package`}
+          </button>
+        </div>
       </div>
 
       {/* Readiness score */}
@@ -125,17 +132,27 @@ export default function FinalPackage() {
         </div>
       </div>
 
-      {/* Level 1 vs Level 2 status */}
+      {/* Level status */}
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="flex items-center gap-2 mb-2"><ShieldCheck className="w-5 h-5 text-green-600" /><h3 className="text-sm font-semibold text-slate-800">Level 1 Ready Status</h3></div>
+          <div className="flex items-center gap-2 mb-2"><ShieldCheck className="w-5 h-5 text-green-600" /><h3 className="text-sm font-semibold text-slate-800">{packageLevel} Ready Status</h3></div>
           <StatusBadge status={l1Pct >= 100 && evidenceWithoutReview.length === 0 ? 'Complete' : 'In Progress'} />
           <p className="text-xs text-slate-500 mt-2">{l1Complete} of {controls.length} controls complete. {evidenceWithoutReview.length} items need review.</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <div className="flex items-center gap-2 mb-2"><Package className="w-5 h-5 text-amber-600" /><h3 className="text-sm font-semibold text-slate-800">Level 2-Ready Supplemental</h3></div>
-          <span className="text-xs text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full font-medium">Available — Not in L1 Package</span>
-          <p className="text-xs text-slate-500 mt-2">Level 2-ready evidence is tracked separately and should not be included in the Level 1 final package unless explicitly marked as supplemental.</p>
+          {packageLevel === 'Level 1' ? (
+            <>
+              <div className="flex items-center gap-2 mb-2"><Package className="w-5 h-5 text-amber-600" /><h3 className="text-sm font-semibold text-slate-800">Level 2-Ready Supplemental</h3></div>
+              <span className="text-xs text-amber-700 bg-amber-100 px-2.5 py-1 rounded-full font-medium">Available — Not in L1 Package</span>
+              <p className="text-xs text-slate-500 mt-2">Level 2-ready evidence is tracked separately and should not be included in the Level 1 final package unless explicitly marked as supplemental.</p>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-2 mb-2"><ShieldCheck className="w-5 h-5 text-blue-600" /><h3 className="text-sm font-semibold text-slate-800">Level 1 Prerequisite</h3></div>
+              <span className="text-xs text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full font-medium">Required before Level 2</span>
+              <p className="text-xs text-slate-500 mt-2">Level 1 must be fully complete before a Level 2 package is finalized. Complete all Level 1 controls and evidence first.</p>
+            </>
+          )}
         </div>
       </div>
 
