@@ -172,11 +172,11 @@ export default function Clients() {
 
       {/* Create form modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => !saving && setShowForm(false)}>
           <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-5 border-b border-slate-200 sticky top-0 bg-white z-10">
               <h2 className="text-lg font-bold text-slate-900">{editingClient ? 'Edit Client' : 'New Client'}</h2>
-              <button onClick={() => setShowForm(false)} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
+              <button onClick={() => !saving && setShowForm(false)} disabled={saving} className="text-slate-400 hover:text-slate-600 disabled:opacity-50"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-5 space-y-4">
               <div className="grid md:grid-cols-2 gap-3">
@@ -208,7 +208,7 @@ export default function Clients() {
               <Field label="Notes"><textarea className="form-input min-h-[80px]" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} /></Field>
             </div>
             <div className="flex justify-end gap-2 p-5 border-t border-slate-200 sticky bottom-0 bg-white">
-              <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+              <button onClick={() => setShowForm(false)} disabled={saving} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.legal_name} className="px-4 py-2 text-sm bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">{saving ? 'Saving...' : editingClient ? 'Save Changes' : 'Create Client'}</button>
             </div>
           </div>

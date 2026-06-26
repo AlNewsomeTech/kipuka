@@ -29,7 +29,10 @@ export function ClientProvider({ children }) {
           }
         }
       })
-      .catch(() => {})
+      .catch((e) => {
+        setClients([]);
+        alert('Error loading clients: ' + e.message);
+      })
       .finally(() => setLoading(false));
   }, [user]);
 
