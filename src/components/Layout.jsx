@@ -135,7 +135,7 @@ export default function Layout() {
             <span className="text-sm font-medium text-slate-500 hidden sm:inline">Active Client:</span>
             <select
               value={selectedClientId || ''}
-              onChange={(e) => setSelectedClientId(e.target.value)}
+              onChange={(e) => setSelectedClientId(e.target.value || null)}
               disabled={loading || clients.length === 0}
               className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[200px]"
             >
@@ -198,7 +198,7 @@ export default function Layout() {
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 lg:p-6">
           <div className="max-w-7xl mx-auto">
-            <Outlet />
+            <Outlet key={selectedClientId || 'all-clients'} />
           </div>
         </main>
       </div>

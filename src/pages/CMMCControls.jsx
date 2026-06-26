@@ -23,7 +23,10 @@ export default function CMMCControls() {
       loadProgressMap(selectedClientId),
     ])
       .then(([defs, progress]) => setControls(defs.map(c => mergeControl(c, progress[c.control_id]))))
-      .catch(() => {})
+      .catch((e) => {
+        setControls([]);
+        alert('Error loading Level 1 controls: ' + e.message);
+      })
       .finally(() => setLoading(false));
   }, [selectedClientId]);
 
