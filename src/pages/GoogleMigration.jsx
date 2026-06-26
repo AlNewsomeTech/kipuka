@@ -29,9 +29,11 @@ export default function GoogleMigration() {
   const [form, setForm] = useState({ source_domain: '', destination_tenant: '', user_count: 0, cutover_date: '', migration_tool: 'Microsoft Migration Manager', notes: '' });
 
   useEffect(() => {
-    if (!selectedClientId) return;
+    if (!selectedClientId) { setMigration(null); return; }
+    setMigration(null);
+    setChecklist({});
     base44.entities.GoogleMigration.filter({ client_id: selectedClientId })
-      .then(items => { if (items.length > 0) setMigration(items[0]); })
+      .then(items => { setMigration(items.length > 0 ? items[0] : null); })
       .catch(() => {});
   }, [selectedClientId]);
 

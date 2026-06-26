@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Image, FileText, Download, CheckCircle2, Save, ExternalLink } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { mergeControl, saveProgress } from '@/lib/controlProgress';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
@@ -27,18 +28,32 @@ export default function ControlDetail() {
   }, [selectedClientId, control?.control_id]);
 
   useEffect(() => {
-    base44.entities.CMMCControl.get(id)
-      .then(c => { setControl(c); setForm(c); })
+    // Load the global control definition, then overlay this client's progress.
+    Promise.all([
+      base44.entities.CMMCControl.get(id),
+      selectedClientId ? base44.entities.ControlProgress.filter({ client_id: selectedClientId, control_id: undefined }).catch(() => []) : Promise.resolve([]),
+    ])
+      .then(async ([def]) => {
+        let progressRow = null;
+        if (selectedClientId && def?.control_id) {
+          const rows = await base44.entities.ControlProgress.filter({ client_id: selectedClientId, control_id: def.control_id }).catch(() => []);
+          progressRow = rows[0] || null;
+        }
+        const merged = mergeControl(def, progressRow);
+        setControl(merged);
+        setForm(merged);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-    if (selectedClientId) {
-      base44.entities.Screenshot.filter({ client_id: selectedClientId, related_control: control?.control_id }).then(setScreenshots).catch(() => {});
-      base44.entities.EvidenceItem.filter({ client_id: selectedClientId, control_id: control?.control_id }).then(setEvidence).catch(() => {});
+    if (selectedClientId && control?.control_id) {
+      base44.entities.Screenshot.filter({ client_id: selectedClientId, related_control: control.control_id }).then(setScreenshots).catch(() => {});
+      base44.entities.EvidenceItem.filter({ client_id: selectedClientId, control_id: control.control_id }).then(setEvidence).catch(() => {});
     }
   }, [id, selectedClientId, control?.control_id]);
 
   const handleSave = () => {
-    base44.entities.CMMCControl.update(id, form)
+    if (!selectedClientId) { alert('Select a client before saving control progress.'); return; }
+    saveProgress(selectedClientId, control.control_id, control.level, form)
       .then(() => { setControl(form); setEditing(false); })
       .catch(e => alert(e.message));
   };
@@ -158,7 +173,7 @@ export default function ControlDetail() {
           {editing ? <textarea className="form-input" value={form.reviewer_notes || ''} onChange={e => setForm({...form, reviewer_notes: e.target.value})} /> : <p className="text-sm text-slate-600">{control.reviewer_notes || '—'}</p>}
         </div>
         <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={form.ready_for_assessment || false} onChange={e => { setForm({...form, ready_for_assessment: e.target.checked}); if (!editing) base44.entities.CMMCControl.update(id, { ready_for_assessment: e.target.checked }); }} className="w-4 h-4 rounded border-slate-300" />
+          <input type="checkbox" checked={form.ready_for_assessment || false} onChange={e => { const updated = {...form, ready_for_assessment: e.target.checked}; setForm(updated); setControl(updated); if (!editing && selectedClientId) saveProgress(selectedClientId, control.control_id, control.level, updated); }} className="w-4 h-4 rounded border-slate-300" />
           <span className="text-sm font-medium text-slate-700">Ready for Assessment</span>
         </label>
       </div>

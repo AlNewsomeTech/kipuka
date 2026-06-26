@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
       client, allClients, allControls, controlValidations, tasks, evidence,
       screenshots, docs, templates, devices, users, ninjaEvidence, poams, risks,
       training, policyAcks, selfCert, googleMig, folderItems, assessmentPackages,
-      systemLinks, adminLinks, sspRecords, systemComponents, dataFlows,
+      systemLinks, adminLinks, controlProgress, sspRecords, systemComponents, dataFlows,
       externalConnections, serviceProviders
     ] = await Promise.all([
       sr.entities.Client.get(clientId).catch(() => null),
@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
       sr.entities.AssessmentPackage.filter({ client_id: clientId }).catch(() => []),
       sr.entities.SystemLink.filter({ client_id: clientId }).catch(() => []),
       sr.entities.AdminCenterLink.list().catch(() => []),
+      sr.entities.ControlProgress.filter({ client_id: clientId }).catch(() => []),
       sr.entities.SSPRecord.filter({ client_id: clientId }).catch(() => []),
       sr.entities.SystemComponent.filter({ client_id: clientId }).catch(() => []),
       sr.entities.DataFlow.filter({ client_id: clientId }).catch(() => []),
@@ -105,8 +106,23 @@ Deno.serve(async (req) => {
     const cuiInScope = client.cui_in_scope === true;
     const fciInScope = client.fci_in_scope === true;
 
-    const l1Controls = allControls.filter(c => c.level === 'Level 1');
-    const l2Controls = allControls.filter(c => c.level === 'Level 2');
+    // Overlay per-client control progress onto the shared control definitions
+    const progressByCtrl = {};
+    controlProgress.forEach(p => { if (p.control_id) progressByCtrl[p.control_id] = p; });
+    const overlay = (c) => {
+      const p = progressByCtrl[c.control_id];
+      if (!p) return c;
+      return {
+        ...c,
+        status: p.status || c.status,
+        ready_for_assessment: p.ready_for_assessment === true,
+        control_narrative: p.control_narrative || '',
+        reviewer_notes: p.reviewer_notes || '',
+        assigned_owner: p.assigned_owner || c.assigned_owner,
+      };
+    };
+    const l1Controls = allControls.filter(c => c.level === 'Level 1').map(overlay);
+    const l2Controls = allControls.filter(c => c.level === 'Level 2').map(overlay);
     const levelControls = isLevel2 ? l2Controls : l1Controls;
 
     // Evidence linkage helpers

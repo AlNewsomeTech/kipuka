@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Search, Filter } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useClient } from '@/lib/clientContext';
+import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
 
 export default function CMMCControls() {
+  const { selectedClientId } = useClient();
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -14,11 +17,15 @@ export default function CMMCControls() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.entities.CMMCControl.filter({ level: 'Level 1' })
-      .then(setControls)
+    setLoading(true);
+    Promise.all([
+      base44.entities.CMMCControl.filter({ level: 'Level 1' }),
+      loadProgressMap(selectedClientId),
+    ])
+      .then(([defs, progress]) => setControls(defs.map(c => mergeControl(c, progress[c.control_id]))))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedClientId]);
 
   const families = [...new Set(controls.map(c => c.control_family))];
   const filtered = controls.filter(c => {

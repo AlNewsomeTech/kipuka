@@ -9,14 +9,20 @@ const systems = ['Microsoft 365', 'Entra ID', 'SharePoint', 'Exchange', 'Defende
 const l1Controls = ['AC.L1-3.1.1', 'AC.L1-3.1.2', 'AC.L1-3.1.20', 'AC.L1-3.1.22', 'IA.L1-3.5.1', 'IA.L1-3.5.2', 'MP.L1-3.8.3', 'PE.L1-3.10.1', 'PE.L1-3.10.3', 'PE.L1-3.10.4', 'PE.L1-3.10.5', 'SC.L1-3.13.1', 'SC.L1-3.13.5', 'SI.L1-3.14.1', 'SI.L1-3.14.2', 'SI.L1-3.14.4', 'SI.L1-3.14.5'];
 const l2Domains = ['RA', 'CM', 'AU', 'IR', 'AC', 'SC', 'SI'];
 
-function suggestFileName(level, control, system, description, date) {
+function clientPrefix(name) {
+  if (!name) return 'CLIENT';
+  return name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 10) || 'CLIENT';
+}
+
+function suggestFileName(level, control, system, description, date, clientName) {
   const d = date ? date.replace(/-/g, '') : new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const desc = (description || 'Evidence').replace(/[^a-zA-Z0-9]/g, '-').replace(/-+/g, '-');
+  const prefix = clientPrefix(clientName);
   if (level === 'Level 2 Ready') {
     const domain = control || 'RA';
-    return `FULCRUM-CMMC-L2READY-${domain}-${system}-${desc}-${d}-v01.png`;
+    return `${prefix}-CMMC-L2READY-${domain}-${system}-${desc}-${d}-v01.png`;
   }
-  return `FULCRUM-CMMC-L1-${control || 'CTRL'}-${system}-${desc}-${d}-v01.png`;
+  return `${prefix}-CMMC-L1-${control || 'CTRL'}-${system}-${desc}-${d}-v01.png`;
 }
 
 export default function ScreenshotLibrary() {
@@ -38,7 +44,7 @@ export default function ScreenshotLibrary() {
   };
   useEffect(load, [selectedClientId]);
 
-  const suggested = suggestFileName(form.level, form.level === 'Level 2 Ready' ? form.l2_domain : form.related_control, form.related_system, form.description, form.screenshot_date);
+  const suggested = suggestFileName(form.level, form.level === 'Level 2 Ready' ? form.l2_domain : form.related_control, form.related_system, form.description, form.screenshot_date, selectedClient?.legal_name);
 
   const handleUpload = async () => {
     if (!file) return;

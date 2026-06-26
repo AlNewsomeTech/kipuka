@@ -1,0 +1,61 @@
+{
+  "name": "ControlProgress",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Evidence Needed",
+        "Ready for Review",
+        "Reviewed",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "assigned_owner": {
+      "type": "string"
+    },
+    "control_narrative": {
+      "type": "string"
+    },
+    "reviewer_notes": {
+      "type": "string"
+    },
+    "ready_for_assessment": {
+      "type": "boolean",
+      "default": false
+    },
+    "evidence_count": {
+      "type": "number",
+      "default": 0
+    },
+    "screenshot_count": {
+      "type": "number",
+      "default": 0
+    },
+    "export_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "client_id",
+    "control_id"
+  ]
+}

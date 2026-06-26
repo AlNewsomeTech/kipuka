@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Layers, AlertTriangle, Plus, X, ShieldCheck, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
@@ -22,11 +23,15 @@ export default function Level2Readiness() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.entities.CMMCControl.list('-control_id', 200)
-      .then(setControls)
+    setLoading(true);
+    Promise.all([
+      base44.entities.CMMCControl.list('-control_id', 200),
+      loadProgressMap(selectedClientId),
+    ])
+      .then(([defs, progress]) => setControls(defs.map(c => mergeControl(c, progress[c.control_id]))))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedClientId]);
 
   const load = () => {
     if (!selectedClientId) return;
