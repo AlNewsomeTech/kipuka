@@ -31,10 +31,14 @@
     "status": {
       "type": "string",
       "enum": [
+        "Not Generated",
         "Draft",
         "In Review",
+        "Changes Requested",
         "Approved",
-        "Published"
+        "Published",
+        "Superseded",
+        "Archived"
       ],
       "default": "Draft"
     },
@@ -47,33 +51,103 @@
       "enum": [
         "SSP",
         "Policy",
+        "Procedure",
         "Evidence Index",
         "Screenshot Log",
+        "Export Log",
         "Control Matrix",
         "Scope Statement",
+        "Boundary Description",
+        "Data Flow",
         "Self-Assessment",
         "Attestation",
         "Assessment Summary",
+        "Readiness Report",
+        "Gap Report",
         "Asset Inventory",
         "User Inventory",
         "Device Inventory",
+        "System Component Inventory",
+        "Cloud Services Inventory",
+        "Service Provider Matrix",
         "POAM",
         "Risk Register",
         "Training Summary",
+        "Policy Acknowledgement Summary",
         "Incident Response",
-        "Service Provider Matrix",
+        "Handoff Index",
+        "Cover Sheet",
         "Other"
       ],
       "default": "Other"
     },
-    "supersedes_document_id": {
+    "document_type": {
+      "type": "string"
+    },
+    "cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "source_scope": {
       "type": "string"
     },
     "generated_from_source_snapshot": {
       "type": "string"
     },
+    "source_entities_used": {
+      "type": "string"
+    },
+    "source_records_used": {
+      "type": "number",
+      "default": 0
+    },
+    "related_controls": {
+      "type": "string"
+    },
+    "related_evidence_count": {
+      "type": "number",
+      "default": 0
+    },
+    "related_screenshot_count": {
+      "type": "number",
+      "default": 0
+    },
+    "related_poam_count": {
+      "type": "number",
+      "default": 0
+    },
+    "related_risk_count": {
+      "type": "number",
+      "default": 0
+    },
+    "version_number": {
+      "type": "number",
+      "default": 1
+    },
+    "supersedes_document_id": {
+      "type": "string"
+    },
+    "superseded_by_document_id": {
+      "type": "string"
+    },
     "changelog": {
       "type": "string"
+    },
+    "generation_mode": {
+      "type": "string",
+      "enum": [
+        "Generate New",
+        "Regenerate Full Body",
+        "Refresh Tables Only",
+        "New Version",
+        "Preserve Edits"
+      ],
+      "default": "Generate New"
     },
     "generated_by": {
       "type": "string"
@@ -81,6 +155,27 @@
     "generated_date": {
       "type": "string",
       "format": "date"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "human_edited": {
+      "type": "boolean",
+      "default": false
+    },
+    "unresolved_placeholders": {
+      "type": "string"
+    },
+    "unresolved_placeholders_count": {
+      "type": "number",
+      "default": 0
     },
     "placeholder_waived": {
       "type": "boolean",
@@ -94,6 +189,30 @@
       "default": false
     },
     "duplicate_of_document_id": {
+      "type": "string"
+    },
+    "client_mismatch_warning": {
+      "type": "string"
+    },
+    "missing_source_data": {
+      "type": "string"
+    },
+    "gap_count": {
+      "type": "number",
+      "default": 0
+    },
+    "completeness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "readiness_blockers": {
+      "type": "string"
+    },
+    "final_package_required": {
+      "type": "boolean",
+      "default": false
+    },
+    "final_package_blocked_reason": {
       "type": "string"
     }
   },
