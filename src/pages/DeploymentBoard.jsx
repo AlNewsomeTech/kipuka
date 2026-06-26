@@ -5,6 +5,7 @@ import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkUpdateBar from '@/components/BulkUpdateBar';
+import Level2Board from '@/components/board/Level2Board';
 
 const phases = [
   'Intake', 'Scope', 'Tenant Baseline', 'Google Migration Planning', 'Identity Setup',
@@ -65,7 +66,7 @@ export default function DeploymentBoard() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Deployment Board</h1>
-          <p className="text-sm text-slate-500 mt-1">Kanban board for {selectedClient.legal_name} — drag cards between phases</p>
+          <p className="text-sm text-slate-500 mt-1">Level 1 &amp; Level 2 boards for {selectedClient.legal_name} — drag cards between phases</p>
         </div>
         <button
           onClick={() => bulkMode ? exitBulkMode() : setBulkMode(true)}
@@ -93,7 +94,17 @@ export default function DeploymentBoard() {
           }
         />
       ) : (
-      <div className="flex gap-3 overflow-x-auto pb-4">
+      <div>
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+            <KanbanSquare className="w-5 h-5 text-blue-700" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Level 1 Deployment Board</h2>
+            <p className="text-sm text-slate-500">{tasks.length} tasks across implementation phases</p>
+          </div>
+        </div>
+        <div className="flex gap-3 overflow-x-auto pb-4">
         {[...activePhases, ...(otherTasks.length > 0 ? ['Other'] : [])].map((phase) => {
           const phaseTasks = phase === 'Other' ? otherTasks : tasks.filter(t => t.phase === phase);
           return (
@@ -146,8 +157,13 @@ export default function DeploymentBoard() {
             </div>
           );
         })}
+        </div>
       </div>
       )}
+
+      <div className="pt-4 mt-2 border-t border-slate-200">
+        <Level2Board clientId={selectedClientId} />
+      </div>
 
       {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
 
