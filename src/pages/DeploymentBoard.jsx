@@ -24,6 +24,15 @@ export default function DeploymentBoard() {
   const [selectedTask, setSelectedTask] = useState(null);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerate = () => {
+    setGenerating(true);
+    base44.functions.invoke('generateDeploymentTasks', { client_id: selectedClientId })
+      .then(() => loadTasks())
+      .catch(() => {})
+      .finally(() => setGenerating(false));
+  };
 
   const loadTasks = () => {
     if (!selectedClientId) { setLoading(false); return; }
@@ -69,7 +78,20 @@ export default function DeploymentBoard() {
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>
       ) : tasks.length === 0 ? (
-        <EmptyState icon={KanbanSquare} title="No tasks yet" description="Deployment tasks will appear here once they are created for this client." />
+        <EmptyState
+          icon={KanbanSquare}
+          title="No tasks yet"
+          description="Generate the standard CMMC deployment task set for this client to populate the board."
+          action={
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" /> {generating ? 'Generating...' : 'Generate Deployment Tasks'}
+            </button>
+          }
+        />
       ) : (
       <div className="flex gap-3 overflow-x-auto pb-4">
         {[...activePhases, ...(otherTasks.length > 0 ? ['Other'] : [])].map((phase) => {

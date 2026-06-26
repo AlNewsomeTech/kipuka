@@ -58,6 +58,10 @@ export default function Clients() {
         savedClient = await base44.entities.Client.update(editingClient.id, form);
       } else {
         savedClient = await base44.entities.Client.create(form);
+        // Auto-generate the standard CMMC deployment task set for the new client
+        if (savedClient?.id) {
+          await base44.functions.invoke('generateDeploymentTasks', { client_id: savedClient.id }).catch(() => {});
+        }
       }
       await refreshClients();
       if (savedClient?.id) setSelectedClientId(savedClient.id);
@@ -72,6 +76,9 @@ export default function Clients() {
     try {
       const { id, created_date, updated_date, created_by_id, ...rest } = client;
       const clonedClient = await base44.entities.Client.create({ ...rest, legal_name: `${client.legal_name} (Clone)`, project_status: 'Not Started' });
+      if (clonedClient?.id) {
+        await base44.functions.invoke('generateDeploymentTasks', { client_id: clonedClient.id }).catch(() => {});
+      }
       await refreshClients();
       if (clonedClient?.id) setSelectedClientId(clonedClient.id);
     } catch (e) {
