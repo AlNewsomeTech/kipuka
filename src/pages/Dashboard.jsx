@@ -22,7 +22,7 @@ export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [] });
+  const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [], validations: [] });
   const [loading, setLoading] = useState(true);
   const [showReport, setShowReport] = useState(false);
 
@@ -36,12 +36,13 @@ export default function Dashboard() {
       base44.entities.Screenshot.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.GeneratedDocument.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.EvidenceItem.filter({ client_id: selectedClientId }).catch(() => []),
+      base44.entities.ControlValidation.filter({ client_id: selectedClientId }).catch(() => []),
       loadProgressMap(selectedClientId),
-    ]).then(([l1Controls, l2Controls, tasks, screenshots, documents, evidence, progress]) => {
+    ]).then(([l1Controls, l2Controls, tasks, screenshots, documents, evidence, validations, progress]) => {
       setStats({
         controls: l1Controls.map(c => mergeControl(c, progress[c.control_id])),
         l2Controls: l2Controls.map(c => mergeControl(c, progress[c.control_id])),
-        tasks, screenshots, documents, evidence,
+        tasks, screenshots, documents, evidence, validations,
       });
       setLoading(false);
     });
@@ -69,7 +70,11 @@ export default function Dashboard() {
   const recentScreenshots = [...stats.screenshots].sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 5);
   const recentDocs = [...stats.documents].sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 5);
   const currentPhase = stats.tasks.find(t => t.status === 'In Progress')?.phase || 'Not Started';
-  const packageReady = l1Pct >= 100 && stats.evidence.filter(e => e.reviewer_status === 'Approved').length > 0;
+  const approvedEvidenceCount = stats.evidence.filter(e => e.reviewer_status === 'Approved').length + stats.screenshots.filter(s => s.reviewer_status === 'Approved' || s.validation_status === 'Validated').length;
+  const approvedDocCount = stats.documents.filter(d => d.status === 'Approved' || d.status === 'Published').length;
+  const docsWithPlaceholders = stats.documents.filter(d => /\[[A-Z][A-Z_0-9]{2,}\]/.test(d.body_content || '') && !d.placeholder_waived).length;
+  const validatedControls = stats.validations.filter(v => v.status === 'Validated' || v.validation_status === 'Validated').length;
+  const packageReady = l1Pct >= 100 && approvedEvidenceCount > 0 && approvedDocCount > 0 && docsWithPlaceholders === 0 && validatedControls > 0;
 
   return (
     <div className="space-y-6">

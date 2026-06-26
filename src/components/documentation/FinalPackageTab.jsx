@@ -7,6 +7,7 @@ export default function FinalPackageTab({ synthesis, clientId }) {
   const readyCount = fp.ready_count || 0;
   const totalCount = fp.total_count || 0;
   const readinessPct = totalCount > 0 ? Math.round((readyCount / totalCount) * 100) : 0;
+  const blockers = fp.hard_blockers || [];
 
   return (
     <div className="space-y-4">
@@ -26,6 +27,20 @@ export default function FinalPackageTab({ synthesis, clientId }) {
         </div>
         <div className="text-xs text-slate-500 mt-1.5">{readinessPct}% package readiness</div>
       </div>
+
+      {blockers.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-semibold text-red-800">Final package is blocked</p>
+              <ul className="text-xs text-red-700 mt-1 space-y-0.5 list-disc pl-4">
+                {blockers.map((b, i) => <li key={i}>{b}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
         <p className="text-xs text-amber-800">

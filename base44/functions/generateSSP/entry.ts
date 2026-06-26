@@ -106,24 +106,34 @@ Deno.serve(async (req) => {
     const cuiInScope = client.cui_in_scope === true;
     const fciInScope = client.fci_in_scope === true;
 
-    // Overlay per-client control progress onto the shared control definitions
+    // Overlay per-client control progress onto the shared control definitions.
+    // Global CMMCControl records are definitions only; they must never imply client completion.
     const progressByCtrl = {};
     controlProgress.forEach(p => { if (p.control_id) progressByCtrl[p.control_id] = p; });
+    const defaultProgress = {
+      status: 'Not Started', assigned_owner: '', control_narrative: '', reviewer_notes: '',
+      ready_for_assessment: false, evidence_count: 0, screenshot_count: 0, export_count: 0,
+    };
     const overlay = (c) => {
       const p = progressByCtrl[c.control_id];
-      if (!p) return c;
       return {
         ...c,
-        status: p.status || c.status,
-        ready_for_assessment: p.ready_for_assessment === true,
-        control_narrative: p.control_narrative || '',
-        reviewer_notes: p.reviewer_notes || '',
-        assigned_owner: p.assigned_owner || c.assigned_owner,
+        ...defaultProgress,
+        ...(p ? {
+          status: p.status || defaultProgress.status,
+          ready_for_assessment: p.ready_for_assessment === true,
+          control_narrative: p.control_narrative || '',
+          reviewer_notes: p.reviewer_notes || '',
+          assigned_owner: p.assigned_owner || '',
+          evidence_count: p.evidence_count || 0,
+          screenshot_count: p.screenshot_count || 0,
+          export_count: p.export_count || 0,
+        } : {}),
       };
     };
     const l1Controls = allControls.filter(c => c.level === 'Level 1').map(overlay);
     const l2Controls = allControls.filter(c => c.level === 'Level 2').map(overlay);
-    const levelControls = isLevel2 ? l2Controls : l1Controls;
+    const levelControls = isLevel2 ? [...l1Controls, ...l2Controls] : l1Controls;
 
     // Evidence linkage helpers
     const evByCtrl = {}, ssByCtrl = {}, valByCtrl = {}, poamByCtrl = {};
@@ -179,7 +189,7 @@ Deno.serve(async (req) => {
     }
     const approvedDocs = docs.filter(d => d.status === 'Approved' || d.status === 'Published').length;
     const pkgDocs = docs.filter(d => d.include_in_final_package).length;
-    const finalPkgReadiness = pct(approvedDocs + pkgDocs, docs.length * 2 || 1);
+    let finalPkgReadiness = 0;
     const completeness = Math.round((controlNarrScore + evidenceScore + inventoryScore + policyScore) / 4);
 
     // Gaps
@@ -236,6 +246,21 @@ Deno.serve(async (req) => {
       let match = req.match ? docs.find(d => req.match.test(d.title || '') || d.document_category === req.category) : docs.find(d => d.document_category === req.category);
       return { name: req.name, category: req.category, present: !!match, document_id: match?.id || null, status: match?.status || 'Missing', include_in_final_package: match?.include_in_final_package || false, has_placeholders: match ? findPlaceholders(match.body_content).length > 0 : false };
     });
+    const docReadyCount = finalPackage.filter(d => d.present && (d.status === 'Approved' || d.status === 'Published') && !d.has_placeholders).length;
+    const validatedControlIds = new Set(controlValidations.filter(v => v.status === 'Validated' || v.validation_status === 'Validated').map(v => v.control_id).filter(Boolean));
+    const controlsMissingEvidence = levelControls.filter(c => (evByCtrl[c.control_id] || []).length === 0 && (ssByCtrl[c.control_id] || []).length === 0);
+    const completedControlsMissingValidation = levelControls.filter(c => (c.status === 'Complete' || c.ready_for_assessment) && !validatedControlIds.has(c.control_id));
+    const unreviewedEvidence = evidence.filter(e => e.reviewer_status !== 'Approved').length + screenshots.filter(s => s.reviewer_status !== 'Approved' && s.validation_status !== 'Validated').length;
+    const packageBlockers = [];
+    if (docReadyCount < finalPackage.length) packageBlockers.push(`${finalPackage.length - docReadyCount} required document(s) missing approval or not generated`);
+    if (placeholderIssues.length > 0) packageBlockers.push(`${placeholderIssues.length} document(s) contain unresolved placeholders`);
+    if (evidence.length + screenshots.length === 0) packageBlockers.push('No evidence or screenshots are linked to this client');
+    if (controlsMissingEvidence.length > 0) packageBlockers.push(`${controlsMissingEvidence.length} applicable control(s) have no linked evidence`);
+    if (unreviewedEvidence > 0) packageBlockers.push(`${unreviewedEvidence} evidence item(s) are not approved or validated`);
+    if (controlValidations.length === 0) packageBlockers.push('No control validation records exist');
+    if (completedControlsMissingValidation.length > 0) packageBlockers.push(`${completedControlsMissingValidation.length} completed control(s) are missing validation records`);
+    const packageReady = packageBlockers.length === 0;
+    finalPkgReadiness = packageReady ? pct(docReadyCount, finalPackage.length) : 0;
 
     // Section checklist
     const today = new Date().toISOString().split('T')[0];
@@ -452,7 +477,7 @@ Deno.serve(async (req) => {
       gaps, placeholders: placeholderIssues, duplicates, client_mismatches: mismatches,
       control_narratives: controlNarratives, narratives_by_family: narrativesByFamily,
       section_checklist: sectionChecklist, traceability, generated_body: b,
-      final_package: { level: targetLevel, required_docs: finalPackage, ready_count: finalPackage.filter(d => d.present && d.status === 'Approved' && !d.has_placeholders).length, total_count: finalPackage.length },
+      final_package: { level: targetLevel, required_docs: finalPackage, ready_count: packageReady ? docReadyCount : 0, doc_ready_count: docReadyCount, total_count: finalPackage.length, package_ready: packageReady, hard_blockers: packageBlockers },
       source_summary: {
         controls: levelControls.length, l1_controls: l1Controls.length, l2_controls: l2Controls.length,
         tasks: tasks.length, evidence: evidence.length, screenshots: screenshots.length, documents: docs.length,

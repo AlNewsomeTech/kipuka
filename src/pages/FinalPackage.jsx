@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Package, CheckCircle2, AlertCircle, XCircle, FileText, ShieldCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
 import ProgressBar from '@/components/ProgressBar';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
@@ -19,15 +20,22 @@ export default function FinalPackage() {
   const [screenshots, setScreenshots] = useState([]);
   const [docs, setDocs] = useState([]);
   const [packages, setPackages] = useState([]);
+  const [validations, setValidations] = useState([]);
   const [preparing, setPreparing] = useState(false);
   const [packageLevel, setPackageLevel] = useState('Level 1');
 
   const load = () => {
     if (!selectedClientId) return;
-    base44.entities.CMMCControl.filter({ level: packageLevel }).then(setControls).catch(() => {});
+    const controlQuery = packageLevel === 'Level 2'
+      ? base44.entities.CMMCControl.list('-control_id', 200)
+      : base44.entities.CMMCControl.filter({ level: 'Level 1' });
+    Promise.all([controlQuery, loadProgressMap(selectedClientId)])
+      .then(([defs, progress]) => setControls(defs.map(c => mergeControl(c, progress[c.control_id]))))
+      .catch(() => {});
     base44.entities.EvidenceItem.filter({ client_id: selectedClientId }).then(setEvidence).catch(() => {});
     base44.entities.Screenshot.filter({ client_id: selectedClientId }).then(setScreenshots).catch(() => {});
     base44.entities.GeneratedDocument.filter({ client_id: selectedClientId }).then(setDocs).catch(() => {});
+    base44.entities.ControlValidation.filter({ client_id: selectedClientId }).then(setValidations).catch(() => {});
     base44.entities.AssessmentPackage.filter({ client_id: selectedClientId }).then(setPackages).catch(() => {});
   };
   useEffect(load, [selectedClientId, packageLevel]);
@@ -35,20 +43,29 @@ export default function FinalPackage() {
   const l1Complete = controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length;
   const l1Pct = controls.length ? (l1Complete / controls.length) * 100 : 0;
   const missingControls = controls.filter(c => c.status !== 'Complete' && !c.ready_for_assessment);
-  const controlsNoEvidence = controls.filter(c => (c.evidence_count || 0) === 0);
-  const evidenceWithoutReview = [...evidence, ...screenshots].filter(e => e.reviewer_status === 'Not Reviewed' || !e.reviewer_status);
+  const controlsNoEvidence = controls.filter(c => !evidence.some(e => e.control_id === c.control_id) && !screenshots.some(s => s.related_control === c.control_id));
+  const evidenceWithoutReview = [
+    ...evidence.filter(e => e.reviewer_status !== 'Approved'),
+    ...screenshots.filter(s => s.reviewer_status !== 'Approved' && s.validation_status !== 'Validated'),
+  ];
   const screenshotsNoFilename = screenshots.filter(s => !s.actual_file_name);
   const docsNotApproved = docs.filter(d => d.status !== 'Approved' && d.status !== 'Published');
+  const docsWithPlaceholders = docs.filter(d => /\[[A-Z][A-Z_0-9]{2,}\]/.test(d.body_content || '') && !d.placeholder_waived);
+  const validationMissing = validations.length === 0;
   const includedEvidence = [...evidence, ...screenshots].filter(e => e.include_in_final_package).length;
+  const packageReadyStrict = l1Pct >= 100 && controlsNoEvidence.length === 0 && evidenceWithoutReview.length === 0 && docsNotApproved.length === 0 && docsWithPlaceholders.length === 0 && !validationMissing;
 
   const checklistStatus = packageChecklist.map(item => {
     if (item === 'Level 1 Control Matrix') return { item: `${packageLevel} Control Matrix`, done: l1Pct >= 100, detail: `${l1Complete}/${controls.length} controls complete` };
-    if (item === 'Evidence Index') return { item, done: evidence.length + screenshots.length > 0, detail: `${evidence.length + screenshots.length} items` };
+    if (item === 'Evidence Index') return { item, done: evidence.length + screenshots.length > 0 && controlsNoEvidence.length === 0 && evidenceWithoutReview.length === 0, detail: `${evidence.length + screenshots.length} items; ${controlsNoEvidence.length} controls missing evidence` };
     if (item === 'Scope Statement') return { item, done: docs.some(d => d.title?.includes('Scope')), detail: docs.some(d => d.title?.includes('Scope')) ? 'Generated' : 'Not generated' };
     if (item === 'Policies') return { item, done: docs.filter(d => d.status === 'Approved').length > 0, detail: `${docs.filter(d => d.status === 'Approved').length} approved` };
-    if (item === 'Screenshots') return { item, done: screenshots.length > 0, detail: `${screenshots.length} screenshots` };
-    if (item === 'NinjaOne Reports') return { item, done: true, detail: 'See NinjaOne section' };
-    if (item === 'Executive Attestation') return { item, done: docs.some(d => d.title?.includes('Attestation')), detail: docs.some(d => d.title?.includes('Attestation')) ? 'Generated' : 'Not generated' };
+    if (item === 'Screenshots') return { item, done: screenshots.length > 0 && screenshotsNoFilename.length === 0, detail: `${screenshots.length} screenshots` };
+    if (item === 'NinjaOne Reports') {
+      const ninjaEvidence = evidence.filter(e => e.source_system === 'NinjaOne').length + screenshots.filter(s => /ninja/i.test(s.related_system || '')).length;
+      return { item, done: !selectedClient?.ninjaone_in_scope || ninjaEvidence > 0, detail: selectedClient?.ninjaone_in_scope ? `${ninjaEvidence} NinjaOne item(s)` : 'Not in scope' };
+    }
+    if (item === 'Executive Attestation') return { item, done: docs.some(d => d.title?.includes('Attestation') && (d.status === 'Approved' || d.status === 'Published')), detail: docs.some(d => d.title?.includes('Attestation')) ? 'Generated' : 'Not generated' };
     return { item, done: false, detail: 'Pending' };
   });
 
@@ -64,8 +81,8 @@ export default function FinalPackage() {
       controls_no_evidence: controlsNoEvidence.map(c => c.control_id).join(', '),
       evidence_without_review: evidenceWithoutReview.length.toString(),
       screenshots_no_filename: screenshotsNoFilename.length.toString(),
-      documents_not_approved: docsNotApproved.length.toString(),
-      level1_ready: l1Pct >= 100 && evidenceWithoutReview.length === 0,
+      documents_not_approved: (docsNotApproved.length + docsWithPlaceholders.length).toString(),
+      level1_ready: packageReadyStrict,
       level2_supplemental_status: packageLevel === 'Level 1' ? 'Available - not included in Level 1 package' : 'Level 2 package - Level 1 prerequisite required',
       checklist: JSON.stringify(checklistStatus),
       status: 'Draft'
@@ -113,6 +130,8 @@ export default function FinalPackage() {
         <IssueCard icon={AlertCircle} label="Evidence Without Review" count={evidenceWithoutReview.length} color="amber" />
         <IssueCard icon={AlertCircle} label="Screenshots Without File Names" count={screenshotsNoFilename.length} color="amber" />
         <IssueCard icon={FileText} label="Documents Not Approved" count={docsNotApproved.length} color="amber" />
+        <IssueCard icon={AlertCircle} label="Documents with Placeholders" count={docsWithPlaceholders.length} color="amber" />
+        <IssueCard icon={AlertCircle} label="Validation Missing" count={validationMissing ? 1 : 0} color="amber" />
         <IssueCard icon={CheckCircle2} label="Evidence Included in Package" count={includedEvidence} color="green" />
       </div>
 
@@ -136,8 +155,8 @@ export default function FinalPackage() {
       <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-2"><ShieldCheck className="w-5 h-5 text-green-600" /><h3 className="text-sm font-semibold text-slate-800">{packageLevel} Ready Status</h3></div>
-          <StatusBadge status={l1Pct >= 100 && evidenceWithoutReview.length === 0 ? 'Complete' : 'In Progress'} />
-          <p className="text-xs text-slate-500 mt-2">{l1Complete} of {controls.length} controls complete. {evidenceWithoutReview.length} items need review.</p>
+          <StatusBadge status={packageReadyStrict ? 'Complete' : 'In Progress'} />
+          <p className="text-xs text-slate-500 mt-2">{l1Complete} of {controls.length} controls complete. {evidenceWithoutReview.length} items need review. {validationMissing ? 'Validation records are missing.' : ''}</p>
         </div>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           {packageLevel === 'Level 1' ? (
