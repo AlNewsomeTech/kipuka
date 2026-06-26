@@ -1,0 +1,145 @@
+{
+  "name": "SSPRecord",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "ssp_title": {
+      "type": "string"
+    },
+    "ssp_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "version": {
+      "type": "string",
+      "default": "1.0"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Approved",
+        "Published"
+      ],
+      "default": "Draft"
+    },
+    "system_name": {
+      "type": "string"
+    },
+    "system_description": {
+      "type": "string"
+    },
+    "authorization_boundary": {
+      "type": "string"
+    },
+    "assessment_boundary": {
+      "type": "string"
+    },
+    "fci_boundary": {
+      "type": "string"
+    },
+    "cui_boundary": {
+      "type": "string"
+    },
+    "data_types_in_scope": {
+      "type": "string"
+    },
+    "data_flow_summary": {
+      "type": "string"
+    },
+    "external_connections_summary": {
+      "type": "string"
+    },
+    "cloud_services_summary": {
+      "type": "string"
+    },
+    "endpoint_summary": {
+      "type": "string"
+    },
+    "identity_summary": {
+      "type": "string"
+    },
+    "email_summary": {
+      "type": "string"
+    },
+    "collaboration_summary": {
+      "type": "string"
+    },
+    "security_tools_summary": {
+      "type": "string"
+    },
+    "physical_facility_summary": {
+      "type": "string"
+    },
+    "remote_work_summary": {
+      "type": "string"
+    },
+    "mobile_device_summary": {
+      "type": "string"
+    },
+    "macos_summary": {
+      "type": "string"
+    },
+    "third_party_service_provider_summary": {
+      "type": "string"
+    },
+    "inherited_controls_summary": {
+      "type": "string"
+    },
+    "shared_responsibility_summary": {
+      "type": "string"
+    },
+    "assumptions": {
+      "type": "string"
+    },
+    "exclusions": {
+      "type": "string"
+    },
+    "generated_body": {
+      "type": "string"
+    },
+    "last_generated_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "unresolved_placeholders_count": {
+      "type": "number",
+      "default": 0
+    },
+    "missing_required_fields_count": {
+      "type": "number",
+      "default": 0
+    },
+    "evidence_gap_count": {
+      "type": "number",
+      "default": 0
+    },
+    "control_gap_count": {
+      "type": "number",
+      "default": 0
+    },
+    "duplicate_document_count": {
+      "type": "number",
+      "default": 0
+    },
+    "include_in_final_package": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "client_id",
+    "ssp_title"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "SystemComponent",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "component_name": { "type": "string" },
+    "component_type": { "type": "string", "enum": ["Cloud Service", "Endpoint", "Server", "Network Device", "Mobile Device", "SaaS Application", "Other"], "default": "Cloud Service" },
+    "vendor": { "type": "string" },
+    "description": { "type": "string" },
+    "location": { "type": "string" },
+    "handles_fci": { "type": "boolean", "default": false },
+    "handles_cui": { "type": "boolean", "default": false },
+    "in_authorization_boundary": { "type": "boolean", "default": true },
+    "related_controls": { "type": "string" },
+    "notes": { "type": "string" }
+  },
+  "required": ["client_id", "component_name"]
+}

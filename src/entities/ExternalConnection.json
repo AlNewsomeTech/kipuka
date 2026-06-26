@@ -1,0 +1,16 @@
+{
+  "name": "ExternalConnection",
+  "type": "object",
+  "properties": {
+    "client_id": { "type": "string" },
+    "connection_name": { "type": "string" },
+    "external_system": { "type": "string" },
+    "connection_type": { "type": "string" },
+    "data_exchanged": { "type": "string" },
+    "security_controls": { "type": "string" },
+    "responsible_party": { "type": "string" },
+    "status": { "type": "string", "enum": ["Active", "Planned", "Decommissioned"], "default": "Active" },
+    "notes": { "type": "string" }
+  },
+  "required": ["client_id", "connection_name"]
+}

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check, Bot, ClipboardCheck
+  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -30,6 +30,7 @@ const navSections = [
   ]},
   { label: 'Evidence', items: [
     { to: '/screenshots', label: 'Screenshot Library', icon: Image },
+    { to: '/documentation', label: 'SSP & Documentation', icon: FileStack },
     { to: '/documents', label: 'Document Library', icon: FileText },
     { to: '/evidence', label: 'Evidence Index', icon: ListChecks },
   ]},

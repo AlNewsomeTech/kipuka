@@ -1,0 +1,68 @@
+{
+  "name": "SSPSectionChecklist",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "ssp_record_id": {
+      "type": "string"
+    },
+    "section_name": {
+      "type": "string"
+    },
+    "section_category": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Gap"
+      ],
+      "default": "Not Started"
+    },
+    "source_entities": {
+      "type": "string"
+    },
+    "source_record_count": {
+      "type": "number",
+      "default": 0
+    },
+    "missing_records": {
+      "type": "string"
+    },
+    "related_controls": {
+      "type": "string"
+    },
+    "related_evidence_count": {
+      "type": "number",
+      "default": 0
+    },
+    "related_screenshot_count": {
+      "type": "number",
+      "default": 0
+    },
+    "related_policy_count": {
+      "type": "number",
+      "default": 0
+    },
+    "poam_count": {
+      "type": "number",
+      "default": 0
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "section_name"
+  ]
+}

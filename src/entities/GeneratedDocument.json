@@ -1,0 +1,27 @@
+{
+  "name": "GeneratedDocument",
+  "type": "object",
+  "properties": {
+    "template_id": { "type": "string" },
+    "client_id": { "type": "string" },
+    "title": { "type": "string" },
+    "body_content": { "type": "string" },
+    "version": { "type": "string", "default": "1.0" },
+    "owner": { "type": "string" },
+    "approval_date": { "type": "string", "format": "date" },
+    "control_mappings": { "type": "string" },
+    "status": { "type": "string", "enum": ["Draft", "In Review", "Approved", "Published"], "default": "Draft" },
+    "include_in_final_package": { "type": "boolean", "default": false },
+    "document_category": { "type": "string", "enum": ["SSP", "Policy", "Evidence Index", "Screenshot Log", "Control Matrix", "Scope Statement", "Self-Assessment", "Attestation", "Assessment Summary", "Asset Inventory", "User Inventory", "Device Inventory", "POAM", "Risk Register", "Training Summary", "Incident Response", "Service Provider Matrix", "Other"], "default": "Other" },
+    "supersedes_document_id": { "type": "string" },
+    "generated_from_source_snapshot": { "type": "string" },
+    "changelog": { "type": "string" },
+    "generated_by": { "type": "string" },
+    "generated_date": { "type": "string", "format": "date" },
+    "placeholder_waived": { "type": "boolean", "default": false },
+    "placeholder_waiver_note": { "type": "string" },
+    "is_duplicate": { "type": "boolean", "default": false },
+    "duplicate_of_document_id": { "type": "string" }
+  },
+  "required": ["client_id", "title"]
+}

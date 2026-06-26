@@ -22,6 +22,7 @@ import SharePointArchive from '@/pages/SharePointArchive';
 import NinjaOneEvidence from '@/pages/NinjaOneEvidence';
 import ScreenshotLibrary from '@/pages/ScreenshotLibrary';
 import DocumentLibrary from '@/pages/DocumentLibrary';
+import Documentation from '@/pages/Documentation';
 import EvidenceIndex from '@/pages/EvidenceIndex';
 import FinalPackage from '@/pages/FinalPackage';
 import PIEESelfCert from '@/pages/PIEESelfCert';
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
         <Route path="/ninjaone" element={<NinjaOneEvidence />} />
         <Route path="/screenshots" element={<ScreenshotLibrary />} />
         <Route path="/documents" element={<DocumentLibrary />} />
+        <Route path="/documentation" element={<Documentation />} />
         <Route path="/evidence" element={<EvidenceIndex />} />
         <Route path="/package" element={<FinalPackage />} />
         <Route path="/piee" element={<PIEESelfCert />} />
