@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Save, Loader2 } from 'lucide-react';
 
@@ -33,6 +33,9 @@ export default function SSPBuilder({ sspRecord, clientId, onUpdate }) {
   const [form, setForm] = useState(sspRecord || {});
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  // Resync form when the SSP record changes (e.g. client switch or regenerate)
+  useEffect(() => { setForm(sspRecord || {}); }, [sspRecord?.id, sspRecord?.client_id]);
 
   const handleSave = async () => {
     setSaving(true);
