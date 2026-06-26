@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Layers, Cpu, Building, ChevronRight } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
@@ -10,6 +11,7 @@ const STATUSES = ['Not Started', 'In Progress', 'Evidence Needed', 'Ready for Re
 const DOMAIN_ICONS = { technical: Cpu, physical: Building };
 
 export default function Level2Board({ clientId, client }) {
+  const navigate = useNavigate();
   const [controls, setControls] = useState([]);
   const [loading, setLoading] = useState(true);
   const cloudOnly = client?.cloud_only === true;
@@ -103,13 +105,17 @@ export default function Level2Board({ clientId, client }) {
                       <div className="space-y-2">
                         {items.map((control) => (
                           <div key={control.control_id} className="bg-white rounded-lg p-3 shadow-sm border border-slate-200/60">
-                            <div className="flex items-start gap-1.5 mb-2">
-                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0" />
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/controls/${encodeURIComponent(control.control_id)}`)}
+                              className="flex items-start gap-1.5 mb-2 w-full text-left hover:bg-slate-50 -m-1 p-1 rounded transition-colors group"
+                            >
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-slate-600" />
                               <div className="min-w-0">
                                 <div className="text-[10px] font-mono text-slate-400">{control.control_id}</div>
-                                <div className="text-xs font-medium text-slate-800 leading-tight">{control.control_title}</div>
+                                <div className="text-xs font-medium text-slate-800 leading-tight group-hover:text-slate-900">{control.control_title}</div>
                               </div>
-                            </div>
+                            </button>
                             <div className="flex items-center justify-between gap-2">
                               <StatusBadge status={control.status} size="xs" />
                               <select
