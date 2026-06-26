@@ -29,11 +29,9 @@ export default function ControlDetail() {
 
   useEffect(() => {
     // Load the global control definition, then overlay this client's progress.
-    Promise.all([
-      base44.entities.CMMCControl.get(id),
-      selectedClientId ? base44.entities.ControlProgress.filter({ client_id: selectedClientId, control_id: undefined }).catch(() => []) : Promise.resolve([]),
-    ])
-      .then(async ([def]) => {
+    setLoading(true);
+    base44.entities.CMMCControl.get(id)
+      .then(async (def) => {
         let progressRow = null;
         if (selectedClientId && def?.control_id) {
           const rows = await base44.entities.ControlProgress.filter({ client_id: selectedClientId, control_id: def.control_id }).catch(() => []);

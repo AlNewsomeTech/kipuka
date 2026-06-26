@@ -5,6 +5,7 @@ import {
   Clock, CheckCircle2, AlertCircle, Package, Layers, FileBarChart, BadgeCheck
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
 import AdminClientSummary from '@/components/dashboard/AdminClientSummary';
@@ -35,8 +36,13 @@ export default function Dashboard() {
       base44.entities.Screenshot.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.GeneratedDocument.filter({ client_id: selectedClientId }).catch(() => []),
       base44.entities.EvidenceItem.filter({ client_id: selectedClientId }).catch(() => []),
-    ]).then(([l1Controls, l2Controls, tasks, screenshots, documents, evidence]) => {
-      setStats({ controls: l1Controls, l2Controls, tasks, screenshots, documents, evidence });
+      loadProgressMap(selectedClientId),
+    ]).then(([l1Controls, l2Controls, tasks, screenshots, documents, evidence, progress]) => {
+      setStats({
+        controls: l1Controls.map(c => mergeControl(c, progress[c.control_id])),
+        l2Controls: l2Controls.map(c => mergeControl(c, progress[c.control_id])),
+        tasks, screenshots, documents, evidence,
+      });
       setLoading(false);
     });
   }, [selectedClientId]);
