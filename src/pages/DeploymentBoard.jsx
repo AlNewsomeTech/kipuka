@@ -51,6 +51,11 @@ export default function DeploymentBoard() {
       .then(() => { setDraggedId(null); loadTasks(); });
   };
 
+  const handleStatusChange = (taskId, status) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
+    base44.entities.DeploymentTask.update(taskId, { status }).catch(() => loadTasks());
+  };
+
   const toggleSelect = (taskId) => {
     setSelectedIds(prev => prev.includes(taskId) ? prev.filter(id => id !== taskId) : [...prev, taskId]);
   };
@@ -149,6 +154,16 @@ export default function DeploymentBoard() {
                       {task.priority === 'Critical' && <span className="text-[10px] text-red-600 font-medium">🔴 {task.priority}</span>}
                       {task.priority === 'High' && <span className="text-[10px] text-amber-600 font-medium">{task.priority}</span>}
                     </div>
+                    {!bulkMode && (
+                      <select
+                        value={task.status}
+                        onClick={e => e.stopPropagation()}
+                        onChange={e => handleStatusChange(task.id, e.target.value)}
+                        className="mt-2 w-full text-[10px] bg-slate-50 border border-slate-200 rounded px-1.5 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+                      >
+                        {statuses.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    )}
                     {task.related_control && <div className="text-[10px] text-slate-400 mt-1.5">{task.related_control}</div>}
                     {task.owner && <div className="text-[10px] text-slate-400 mt-0.5">👤 {task.owner}</div>}
                   </div>
