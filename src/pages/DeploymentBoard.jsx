@@ -162,7 +162,7 @@ export default function DeploymentBoard() {
       )}
 
       <div className="pt-4 mt-2 border-t border-slate-200">
-        <Level2Board clientId={selectedClientId} />
+        <Level2Board clientId={selectedClientId} client={selectedClient} />
       </div>
 
       {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}

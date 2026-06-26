@@ -105,6 +105,8 @@ Deno.serve(async (req) => {
     const isLevel2 = targetLevel === 'Level 2' || targetLevel === 'Level 2 Ready';
     const cuiInScope = client.cui_in_scope === true;
     const fciInScope = client.fci_in_scope === true;
+    const cloudOnly = client.cloud_only === true;
+    const hasPhysicalLocation = client.has_physical_location === true && !cloudOnly;
 
     // Overlay per-client control progress onto the shared control definitions.
     // Global CMMCControl records are definitions only; they must never imply client completion.
@@ -214,6 +216,9 @@ Deno.serve(async (req) => {
     if (systemComponents.length === 0) gaps.push({ category: 'System Components', description: 'No system components documented for authorization boundary', severity: 'High' });
     if (dataFlows.length === 0) gaps.push({ category: 'Data Flows', description: 'No data flows documented', severity: isLevel2 ? 'High' : 'Medium' });
     if (training.length === 0) gaps.push({ category: 'Training', description: 'No training records documented', severity: 'Medium' });
+    if (!cloudOnly && !hasPhysicalLocation) gaps.push({ category: 'Physical Scope', description: 'Physical location scope not determined — mark client as Cloud Only or document an in-scope physical location', severity: 'High' });
+    if (hasPhysicalLocation && !safe(client.physical_location_description)) gaps.push({ category: 'Physical Protection', description: 'Client has an in-scope physical location but no facility/physical protection description is documented', severity: 'High' });
+    if (cloudOnly && serviceProviders.length === 0) gaps.push({ category: 'Inherited Physical Controls', description: 'Cloud-only client — Physical Protection controls must be documented as inherited from the cloud provider in the Service Provider Responsibility Matrix', severity: 'High' });
 
     // Placeholders
     const placeholderIssues = [];
@@ -281,6 +286,7 @@ Deno.serve(async (req) => {
       { section_name: 'Risk Register', category: 'Risk', source_entities: 'RiskItem', source_count: risks.length, status: risks.length > 0 ? 'Complete' : 'Gap', missing: risks.length === 0 ? 'No risk items documented' : '' },
       { section_name: 'Training Records', category: 'Training', source_entities: 'TrainingRecord', source_count: training.length, status: training.length > 0 ? 'Complete' : 'Gap', missing: training.length === 0 ? 'No training records' : '' },
       { section_name: 'Self-Certification', category: 'Attestation', source_entities: 'SelfCertificationWalkthrough', source_count: selfCert.length, status: selfCert.length > 0 ? 'Complete' : 'Gap', missing: selfCert.length === 0 ? 'No self-certification walkthrough' : '' },
+      { section_name: 'Physical Protection Scope', category: 'Boundary', source_entities: 'Client', source_count: cloudOnly || hasPhysicalLocation ? 1 : 0, status: cloudOnly ? 'Complete' : (hasPhysicalLocation ? (safe(client.physical_location_description) ? 'Complete' : 'Gap') : 'Gap'), missing: cloudOnly ? '' : (hasPhysicalLocation ? (safe(client.physical_location_description) ? '' : 'No facility description') : 'Physical scope not determined') },
     ];
 
     const traceability = sectionChecklist.map(s => ({ section: s.section_name, source_entity: s.source_entities, records_used: s.source_count, missing_records: s.missing, status: s.status, last_updated: today }));
@@ -301,6 +307,17 @@ Deno.serve(async (req) => {
     b += `**Primary Domain:** ${safe(client.primary_domain) || 'Not documented in app yet'}\n\n`;
     b += `**M365 Tenant:** ${safe(client.ms_tenant_domain) || 'Not documented in app yet'}\n\n`;
     b += `**Environment Type:** ${client.environment_type || 'Not documented in app yet'}\n\n`;
+    b += `**Deployment Model:** ${cloudOnly ? 'Cloud Only — no in-scope on-premise/physical infrastructure' : (hasPhysicalLocation ? 'Includes an in-scope physical location/facility' : 'Physical location scope not yet determined')}\n\n`;
+
+    b += `### Physical Protection & Facilities\n\n`;
+    if (cloudOnly) {
+      b += `This system is **Cloud Only**. There is no in-scope on-premise/physical infrastructure. Physical Protection family controls are **inherited from the cloud service provider** (e.g. Microsoft 365 / Azure data-center physical security) and are documented in the Service Provider Responsibility & Inherited Controls section rather than implemented on-site. End-user devices accessing the environment are governed by endpoint and access controls.\n\n`;
+    } else if (hasPhysicalLocation) {
+      b += `This system includes an **in-scope physical location**. Physical Protection family controls are implemented on-site and require local evidence.\n\n`;
+      b += `**Physical Location:** ${safe(client.physical_location_description) || 'Not documented in app yet — describe the in-scope facility, access controls, and equipment.'}\n\n`;
+    } else {
+      b += `Physical location scope has not been determined. **Gap:** Confirm whether this client is Cloud Only or has an in-scope physical location so Physical Protection controls can be correctly scoped.\n\n`;
+    }
 
     b += `## 2. Authorization Boundary\n\n`;
     if (systemComponents.length > 0) {
@@ -472,7 +489,7 @@ Deno.serve(async (req) => {
     if (duplicates.length > 0) await Promise.all(duplicates.map(d => sr.entities.GeneratedDocument.update(d.document_id, { is_duplicate: true, duplicate_of_document_id: d.duplicate_of }).catch(() => {})));
 
     return Response.json({
-      ssp_record: sspRecord, client, level: targetLevel, is_level2: isLevel2, cui_in_scope: cuiInScope, fci_in_scope: fciInScope,
+      ssp_record: sspRecord, client, level: targetLevel, is_level2: isLevel2, cui_in_scope: cuiInScope, fci_in_scope: fciInScope, cloud_only: cloudOnly, has_physical_location: hasPhysicalLocation,
       scores: { completeness, control_narrative: controlNarrScore, evidence_linkage: evidenceScore, inventory: inventoryScore, policy: policyScore, level1_readiness: level1Readiness, level2_readiness: level2Readiness, final_package_readiness: finalPkgReadiness },
       gaps, placeholders: placeholderIssues, duplicates, client_mismatches: mismatches,
       control_narratives: controlNarratives, narratives_by_family: narrativesByFamily,

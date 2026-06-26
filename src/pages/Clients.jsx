@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy } from 'lucide-react';
+import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy, Cloud, MapPin } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -22,6 +22,7 @@ export default function Clients() {
     poc_name: '', poc_email: '', executive_sponsor: '',
     initial_user_count: 13, expected_user_count: 13,
     environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
+    cloud_only: false, has_physical_location: true, physical_location_description: '',
     fci_in_scope: true, cui_in_scope: false,
     ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, cortex_xdr_in_scope: false, mac_heavy: true,
     windows_devices_count: 0, macos_devices_count: 10, mobile_devices_count: 3,
@@ -36,6 +37,7 @@ export default function Clients() {
       poc_name: '', poc_email: '', executive_sponsor: '',
       initial_user_count: 13, expected_user_count: 13,
       environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
+      cloud_only: false, has_physical_location: true, physical_location_description: '',
       fci_in_scope: true, cui_in_scope: false,
       ms_license_level: 'Microsoft 365 E5', ninjaone_in_scope: true, cortex_xdr_in_scope: false, mac_heavy: true,
       windows_devices_count: 0, macos_devices_count: 10, mobile_devices_count: 3,
@@ -146,6 +148,8 @@ export default function Clients() {
                 {c.cortex_xdr_in_scope && <span className="flex items-center gap-1 text-orange-600"><Shield className="w-3 h-3" /> Cortex XDR</span>}
               </div>
               <div className="flex gap-2 mt-2">
+                {c.cloud_only && <span className="inline-flex items-center gap-1 text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full"><Cloud className="w-2.5 h-2.5" /> Cloud Only</span>}
+                {c.has_physical_location && <span className="inline-flex items-center gap-1 text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full"><MapPin className="w-2.5 h-2.5" /> Physical Location</span>}
                 {c.fci_in_scope && <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">FCI In Scope</span>}
                 {c.cui_in_scope && <span className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">CUI In Scope</span>}
                 {c.mac_heavy && <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">Mac-Heavy</span>}
@@ -204,6 +208,30 @@ export default function Clients() {
                 <Field label="Mobile Devices"><input type="number" className="form-input" value={form.mobile_devices_count} onChange={e => setForm({...form, mobile_devices_count: +e.target.value})} /></Field>
                 <Field label="Start Date"><input type="date" className="form-input" value={form.start_date} onChange={e => setForm({...form, start_date: e.target.value})} /></Field>
                 <Field label="Target Completion"><input type="date" className="form-input" value={form.target_completion_date} onChange={e => setForm({...form, target_completion_date: e.target.value})} /></Field>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Cloud className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm font-semibold text-slate-700">Environment Scope</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Toggle
+                    label="Cloud Only (no in-scope physical location)"
+                    checked={form.cloud_only}
+                    onChange={v => setForm({ ...form, cloud_only: v, has_physical_location: v ? false : form.has_physical_location })}
+                  />
+                  <Toggle
+                    label="Has Physical Location"
+                    checked={form.has_physical_location}
+                    onChange={v => setForm({ ...form, has_physical_location: v, cloud_only: v ? false : form.cloud_only })}
+                  />
+                </div>
+                {form.has_physical_location && (
+                  <Field label="Physical Location Description"><textarea className="form-input min-h-[60px]" placeholder="e.g. Single office at 123 Main St — server closet, badge access, locked file cabinets" value={form.physical_location_description || ''} onChange={e => setForm({...form, physical_location_description: e.target.value})} /></Field>
+                )}
+                {form.cloud_only && (
+                  <p className="text-xs text-blue-700 bg-blue-50 rounded-lg px-3 py-2">Cloud-only: physical-security tasks, controls, and SSP sections will be marked as not applicable / inherited from the cloud provider.</p>
+                )}
               </div>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                 <Toggle label="FCI In Scope" checked={form.fci_in_scope} onChange={v => setForm({...form, fci_in_scope: v})} />

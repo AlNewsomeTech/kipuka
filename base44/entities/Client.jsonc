@@ -48,6 +48,20 @@
       ],
       "default": "Level 1"
     },
+    "cloud_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Cloud-only environment with no in-scope on-premise/physical infrastructure. Suppresses physical-security tasks, controls, and documentation."
+    },
+    "has_physical_location": {
+      "type": "boolean",
+      "default": true,
+      "description": "Client has an in-scope physical location/facility requiring physical protection controls."
+    },
+    "physical_location_description": {
+      "type": "string",
+      "description": "Description of the in-scope physical location(s) / facility for physical protection controls."
+    },
     "fci_in_scope": {
       "type": "boolean",
       "default": false
