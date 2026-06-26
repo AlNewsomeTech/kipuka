@@ -129,7 +129,7 @@ export default function Documentation() {
           {activeTab === 'evidence' && <EvidenceMappingTab synthesis={synthesis} />}
           {activeTab === 'library' && <DocLibraryTab clientId={selectedClientId} client={selectedClient} synthesis={synthesis} onRegenerate={generate} />}
           {activeTab === 'traceability' && <TraceabilityTab synthesis={synthesis} />}
-          {activeTab === 'package' && <FinalPackageTab synthesis={synthesis} clientId={selectedClientId} />}
+          {activeTab === 'package' && <FinalPackageTab synthesis={synthesis} clientId={selectedClientId} client={selectedClient} />}
         </>
       ) : (
         <EmptyState icon={FileStack} title="Click Regenerate to synthesize the SSP" description="The SSP engine will aggregate all project data across the app for this client." action={<button onClick={generate} disabled={loading} className="text-sm text-blue-600 font-medium hover:underline">Regenerate SSP →</button>} />
