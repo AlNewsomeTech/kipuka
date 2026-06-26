@@ -18,7 +18,7 @@ export function ClientProvider({ children }) {
         let filtered = data;
         if (user.role === 'technician' || user.role === 'client') {
           const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
-          filtered = data.filter((c) => assignedIds.includes(c.id));
+          filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
         }
         setClients(filtered);
         if (filtered.length > 0 && !selectedClientId) {
@@ -35,18 +35,16 @@ export function ClientProvider({ children }) {
 
   const selectedClient = clients.find((c) => c.id === selectedClientId) || null;
 
-  const refreshClients = () => {
-    if (!user) return;
-    base44.entities.Client.list()
-      .then((data) => {
-        let filtered = data;
-        if (user.role === 'technician' || user.role === 'client') {
-          const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
-          filtered = data.filter((c) => assignedIds.includes(c.id));
-        }
-        setClients(filtered);
-      })
-      .catch(() => {});
+  const refreshClients = async () => {
+    if (!user) return [];
+    const data = await base44.entities.Client.list();
+    let filtered = data;
+    if (user.role === 'technician' || user.role === 'client') {
+      const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
+      filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
+    }
+    setClients(filtered);
+    return filtered;
   };
 
   return (

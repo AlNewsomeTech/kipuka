@@ -53,13 +53,15 @@ export default function Clients() {
   const handleSave = async () => {
     setSaving(true);
     try {
+      let savedClient = editingClient;
       if (editingClient) {
-        await base44.entities.Client.update(editingClient.id, form);
+        savedClient = await base44.entities.Client.update(editingClient.id, form);
       } else {
-        await base44.entities.Client.create(form);
+        savedClient = await base44.entities.Client.create(form);
       }
+      await refreshClients();
+      if (savedClient?.id) setSelectedClientId(savedClient.id);
       setShowForm(false);
-      refreshClients();
     } catch (e) {
       alert('Error saving client: ' + e.message);
     }
@@ -69,8 +71,9 @@ export default function Clients() {
   const handleClone = async (client) => {
     try {
       const { id, created_date, updated_date, created_by_id, ...rest } = client;
-      await base44.entities.Client.create({ ...rest, legal_name: `${client.legal_name} (Clone)`, project_status: 'Not Started' });
-      refreshClients();
+      const clonedClient = await base44.entities.Client.create({ ...rest, legal_name: `${client.legal_name} (Clone)`, project_status: 'Not Started' });
+      await refreshClients();
+      if (clonedClient?.id) setSelectedClientId(clonedClient.id);
     } catch (e) {
       alert('Error cloning client: ' + e.message);
     }
@@ -87,7 +90,8 @@ export default function Clients() {
       ]);
       await base44.entities.Client.delete(client.id);
       setConfirmDelete(null);
-      refreshClients();
+      await refreshClients();
+      if (selectedClientId === client.id) setSelectedClientId(null);
     } catch (e) {
       alert('Error deleting client: ' + e.message);
     }
