@@ -1,0 +1,94 @@
+{
+  "name": "PackageExport",
+  "type": "object",
+  "properties": {
+    "client_id": {
+      "type": "string"
+    },
+    "package_name": {
+      "type": "string"
+    },
+    "package_type": {
+      "type": "string"
+    },
+    "cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2 Ready",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "export_mode": {
+      "type": "string",
+      "enum": [
+        "Ready-only",
+        "Draft",
+        "Evidence-only",
+        "Documents-only",
+        "Delta",
+        "Full archive"
+      ],
+      "default": "Ready-only"
+    },
+    "package_version": {
+      "type": "number",
+      "default": 1
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "zip_file_url": {
+      "type": "string"
+    },
+    "root_folder_name": {
+      "type": "string"
+    },
+    "included_file_count": {
+      "type": "number",
+      "default": 0
+    },
+    "included_folder_count": {
+      "type": "number",
+      "default": 0
+    },
+    "readiness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "assessment_ready": {
+      "type": "boolean",
+      "default": false
+    },
+    "hard_blockers": {
+      "type": "string"
+    },
+    "warnings": {
+      "type": "string"
+    },
+    "package_index_url": {
+      "type": "string"
+    },
+    "readme_url": {
+      "type": "string"
+    },
+    "changelog_url": {
+      "type": "string"
+    },
+    "source_snapshot": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "client_id",
+    "package_name"
+  ]
+}
