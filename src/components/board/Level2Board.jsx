@@ -107,7 +107,7 @@ export default function Level2Board({ clientId, client }) {
                           <div key={control.control_id} className="bg-white rounded-lg p-3 shadow-sm border border-slate-200/60">
                             <button
                               type="button"
-                              onClick={() => navigate(`/controls/${encodeURIComponent(control.control_id)}`)}
+                              onClick={() => navigate(`/controls/${control.id}`)}
                               className="flex items-start gap-1.5 mb-2 w-full text-left hover:bg-slate-50 -m-1 p-1 rounded transition-colors group"
                             >
                               <ChevronRight className="w-3.5 h-3.5 text-slate-400 mt-0.5 flex-shrink-0 group-hover:text-slate-600" />
