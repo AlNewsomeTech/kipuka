@@ -5,8 +5,10 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { useAuth } from '@/lib/AuthContext';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
+import ClientProgressBlock from '@/components/clients/ClientProgressBlock';
 
 const REQUIREMENTS = [
   {
@@ -61,6 +63,8 @@ const REQUIREMENTS = [
 
 export default function ClientIntake() {
   const { selectedClient, selectedClientId } = useClient();
+  const { user } = useAuth();
+  const isClientRole = user?.role === 'client';
   const [intake, setIntake] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -152,6 +156,18 @@ export default function ClientIntake() {
     return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
   }
 
+  if (isClientRole) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">{selectedClient.legal_name}</h1>
+          <p className="text-sm text-slate-500 mt-1">Your CMMC deployment progress — read-only view</p>
+        </div>
+        <ClientProgressBlock clientId={selectedClientId} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between">
@@ -184,6 +200,9 @@ export default function ClientIntake() {
           </div>
         )}
       </div>
+
+      {/* Read-only deployment progress summary */}
+      <ClientProgressBlock clientId={selectedClientId} />
 
       {/* Instructions + Form */}
       <div className="grid lg:grid-cols-2 gap-4">
