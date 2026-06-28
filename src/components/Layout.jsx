@@ -13,9 +13,9 @@ import WarningBanner from '@/components/WarningBanner';
 
 const navSections = [
   { label: 'Overview', items: [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
+    { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, clientVisible: true },
     { to: '/clients', label: 'Clients', icon: Building2 },
-    { to: '/intake', label: 'Client Intake', icon: ClipboardCheck },
+    { to: '/intake', label: 'Client Intake', icon: ClipboardCheck, clientVisible: true },
     { to: '/board', label: 'Deployment Board', icon: KanbanSquare },
   ]},
   { label: 'CMMC Controls', items: [
@@ -79,7 +79,13 @@ export default function Layout() {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
-          {navSections.map((section) => (
+          {navSections.map((section) => {
+            const visibleItems = section.items.filter(item =>
+              (!item.adminOnly || user?.role === 'admin') &&
+              (user?.role !== 'client' || item.clientVisible)
+            );
+            if (visibleItems.length === 0) return null;
+            return (
             <div key={section.label}>
               {!collapsed && (
                 <div className="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5">
@@ -87,7 +93,7 @@ export default function Layout() {
                 </div>
               )}
               <div className="space-y-0.5">
-                {section.items.filter(item => !item.adminOnly || user?.role === 'admin').map((item) => {
+                {visibleItems.map((item) => {
                   const Icon = item.icon;
                   return (
                     <NavLink
@@ -110,7 +116,8 @@ export default function Layout() {
                 })}
               </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
         <button

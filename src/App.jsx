@@ -8,6 +8,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import { ClientProvider } from '@/lib/clientContext';
 import { ThemeProvider } from '@/lib/themeContext';
+import RoleRoute from '@/components/RoleRoute';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
@@ -58,27 +59,36 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<ClientProvider><Layout /></ClientProvider>}>
+        {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
-        <Route path="/clients" element={<Clients />} />
         <Route path="/intake" element={<ClientIntake />} />
-        <Route path="/board" element={<DeploymentBoard />} />
-        <Route path="/controls" element={<CMMCControls />} />
-        <Route path="/controls/:id" element={<ControlDetail />} />
-        <Route path="/level2" element={<Level2Readiness />} />
-        <Route path="/m365" element={<Microsoft365Setup />} />
-        <Route path="/google" element={<GoogleMigration />} />
-        <Route path="/sharepoint" element={<SharePointArchive />} />
-        <Route path="/ninjaone" element={<NinjaOneEvidence />} />
-        <Route path="/screenshots" element={<ScreenshotLibrary />} />
-        <Route path="/documents" element={<DocumentLibrary />} />
-        <Route path="/documentation" element={<Documentation />} />
-        <Route path="/evidence" element={<EvidenceIndex />} />
-        <Route path="/package" element={<FinalPackage />} />
-        <Route path="/sharepoint-package" element={<SharePointPackage />} />
-        <Route path="/piee" element={<PIEESelfCert />} />
-        <Route path="/users" element={<UserManagement />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/assistant" element={<AIAssistant />} />
+
+        {/* Full workflow — admin + technician only (client role redirected to dashboard) */}
+        <Route element={<RoleRoute allow={['admin', 'technician']} />}>
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/board" element={<DeploymentBoard />} />
+          <Route path="/controls" element={<CMMCControls />} />
+          <Route path="/controls/:id" element={<ControlDetail />} />
+          <Route path="/level2" element={<Level2Readiness />} />
+          <Route path="/m365" element={<Microsoft365Setup />} />
+          <Route path="/google" element={<GoogleMigration />} />
+          <Route path="/sharepoint" element={<SharePointArchive />} />
+          <Route path="/ninjaone" element={<NinjaOneEvidence />} />
+          <Route path="/screenshots" element={<ScreenshotLibrary />} />
+          <Route path="/documents" element={<DocumentLibrary />} />
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/evidence" element={<EvidenceIndex />} />
+          <Route path="/package" element={<FinalPackage />} />
+          <Route path="/sharepoint-package" element={<SharePointPackage />} />
+          <Route path="/piee" element={<PIEESelfCert />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/assistant" element={<AIAssistant />} />
+        </Route>
+
+        {/* Administration — admin only */}
+        <Route element={<RoleRoute allow={['admin']} />}>
+          <Route path="/users" element={<UserManagement />} />
+        </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
