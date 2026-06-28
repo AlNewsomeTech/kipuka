@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy, Cloud, MapPin } from 'lucide-react';
+import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy, Cloud, MapPin, UserCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
 
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
@@ -17,6 +18,7 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [assignClient, setAssignClient] = useState(null);
   const [form, setForm] = useState({
     legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
     poc_name: '', poc_email: '', executive_sponsor: '',
@@ -169,6 +171,14 @@ export default function Clients() {
                 </button>
                 {isAdmin && (
                   <button
+                    onClick={(e) => { e.stopPropagation(); setAssignClient(c); }}
+                    className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-green-600 hover:bg-green-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
+                  >
+                    <UserCheck className="w-3 h-3" /> Assign
+                  </button>
+                )}
+                {isAdmin && (
+                  <button
                     onClick={(e) => { e.stopPropagation(); setConfirmDelete(c); }}
                     className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200"
                   >
@@ -243,11 +253,24 @@ export default function Clients() {
               <Field label="Notes"><textarea className="form-input min-h-[80px]" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} /></Field>
             </div>
             <div className="flex justify-end gap-2 p-5 border-t border-slate-200 sticky bottom-0 bg-white">
+              {isAdmin && editingClient && (
+                <button onClick={() => setAssignClient(editingClient)} disabled={saving} className="flex items-center gap-1.5 px-4 py-2 text-sm text-slate-600 border border-slate-200 hover:bg-slate-50 rounded-lg disabled:opacity-50 mr-auto">
+                  <UserCheck className="w-4 h-4" /> Assign Team
+                </button>
+              )}
               <button onClick={() => setShowForm(false)} disabled={saving} className="px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg disabled:opacity-50">Cancel</button>
               <button onClick={handleSave} disabled={saving || !form.legal_name} className="px-4 py-2 text-sm bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A] disabled:opacity-50">{saving ? 'Saving...' : editingClient ? 'Save Changes' : 'Create Client'}</button>
             </div>
           </div>
         </div>
+      )}
+
+      {assignClient && (
+        <AssignTechniciansModal
+          client={assignClient}
+          onClose={() => setAssignClient(null)}
+          onAssigned={refreshClients}
+        />
       )}
 
       {confirmDelete && (
