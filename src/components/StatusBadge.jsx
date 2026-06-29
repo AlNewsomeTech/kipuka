@@ -28,10 +28,14 @@ const statusConfig = {
 
 export default function StatusBadge({ status, size = 'sm' }) {
   const config = statusConfig[status] || statusConfig['Not Started'];
-  const sizeClass = size === 'xs' ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-0.5';
+  const sizeClass =
+    size === 'xs' ? 'text-[11px] px-2 py-0.5' :
+    size === 'md' ? 'text-[13px] px-3 py-1' :
+    'text-xs px-2.5 py-0.5';
+  const dotSize = size === 'md' ? 'w-2 h-2' : 'w-1.5 h-1.5';
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full font-medium ${config.bg} ${config.text} ${sizeClass}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${config.dot}`} />
+    <span className={`inline-flex items-center gap-1.5 rounded-full font-semibold ${config.bg} ${config.text} ${sizeClass}`}>
+      <span className={`${dotSize} rounded-full ${config.dot} flex-shrink-0`} />
       {status}
     </span>
   );
