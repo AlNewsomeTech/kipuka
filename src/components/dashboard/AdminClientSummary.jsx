@@ -10,17 +10,17 @@ export default function AdminClientSummary() {
   const { clients, setSelectedClientId } = useClient();
   const navigate = useNavigate();
   const [controls, setControls] = useState({ l1: [], l2: [] });
-  const [screenshots, setScreenshots] = useState([]);
+  const [progress, setProgress] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([
       base44.entities.CMMCControl.filter({ level: 'Level 1' }).catch(() => []),
       base44.entities.CMMCControl.filter({ level: 'Level 2' }).catch(() => []),
-      base44.entities.Screenshot.filter({ validation_status: 'Validated' }).catch(() => []),
-    ]).then(([l1, l2, shots]) => {
+      base44.entities.ControlProgress.list().catch(() => []),
+    ]).then(([l1, l2, prog]) => {
       setControls({ l1, l2 });
-      setScreenshots(shots);
+      setProgress(prog);
       setLoading(false);
     });
   }, []);
@@ -30,12 +30,13 @@ export default function AdminClientSummary() {
     navigate('/');
   };
 
-  // Group validated screenshots by client_id -> Set of control IDs
-  const validatedByClient = {};
-  screenshots.forEach(s => {
-    if (!s.client_id || !s.related_control) return;
-    if (!validatedByClient[s.client_id]) validatedByClient[s.client_id] = new Set();
-    validatedByClient[s.client_id].add(s.related_control);
+  // Group completed controls by client_id -> Set of control IDs
+  const completedByClient = {};
+  progress.forEach(p => {
+    if (!p.client_id || !p.control_id) return;
+    if (p.status !== 'Complete' && !p.ready_for_assessment) return;
+    if (!completedByClient[p.client_id]) completedByClient[p.client_id] = new Set();
+    completedByClient[p.client_id].add(p.control_id);
   });
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
@@ -48,14 +49,14 @@ export default function AdminClientSummary() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-slate-900">Client Overview</h1>
-        <p className="text-sm text-slate-500 mt-1">Summary of all client projects — completion is based on validated screenshots with correct filenames. Select a client to view their dashboard.</p>
+        <p className="text-sm text-slate-500 mt-1">Summary of all client projects — completion reflects controls marked Complete or ready for assessment. Select a client to view their dashboard.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {clients.map((client) => {
-          const validatedControls = validatedByClient[client.id] || new Set();
-          const l1Complete = controls.l1.filter(c => validatedControls.has(c.control_id)).length;
-          const l2Complete = controls.l2.filter(c => validatedControls.has(c.control_id)).length;
+          const completedControls = completedByClient[client.id] || new Set();
+          const l1Complete = controls.l1.filter(c => completedControls.has(c.control_id)).length;
+          const l2Complete = controls.l2.filter(c => completedControls.has(c.control_id)).length;
           const l1Pct = controls.l1.length ? (l1Complete / controls.l1.length) * 100 : 0;
           const l2Pct = controls.l2.length ? (l2Complete / controls.l2.length) * 100 : 0;
 
