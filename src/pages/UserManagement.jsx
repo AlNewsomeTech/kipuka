@@ -17,7 +17,21 @@ export default function UserManagement() {
   useEffect(() => { loadUsers(); }, []);
 
   const loadUsers = async () => {
-    try { setUsers(await base44.entities.User.list()); } catch (e) { console.error(e); }
+    try {
+      let list = await base44.entities.User.list();
+      // Apply any pending custom app role to users who have now accepted their invite.
+      for (const u of list) {
+        const pending = u.email && localStorage.getItem('pending_role_' + u.email.toLowerCase());
+        if (pending && u.role !== pending) {
+          try {
+            await base44.entities.User.update(u.id, { role: pending });
+            u.role = pending;
+          } catch { /* will retry on next load */ }
+          localStorage.removeItem('pending_role_' + u.email.toLowerCase());
+        }
+      }
+      setUsers(list);
+    } catch (e) { console.error(e); }
     setLoading(false);
   };
 
@@ -39,7 +53,14 @@ export default function UserManagement() {
   };
 
   const handleInvite = async (email, role) => {
-    await base44.users.inviteUser(email, role);
+    // Platform invite API only accepts 'admin' or 'user'. Map custom app roles
+    // (technician/client) to 'user' at the platform level, then apply the real
+    // app role to the user record once they accept and appear in the list.
+    const platformRole = role === 'admin' ? 'admin' : 'user';
+    await base44.users.inviteUser(email, platformRole);
+    if (role !== 'admin' && role !== 'user') {
+      localStorage.setItem('pending_role_' + email.toLowerCase(), role);
+    }
     setShowInvite(false);
     loadUsers();
   };
