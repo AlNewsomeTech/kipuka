@@ -192,7 +192,7 @@ export default function Dashboard() {
       <div className="bg-[#0F1E3C] rounded-xl p-5 text-white">
         <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><CheckCircle2 className="w-4 h-4" /> Implementation Order</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs">
-          {['Create Client','Confirm Scope','Confirm E5 License','Evidence Structure','Tenant Baseline','Users & Groups','Admin Accounts','MFA','Conditional Access','SharePoint Archive','FCI Storage','Exchange Security','Defender Security','NinjaOne Evidence','Upload Screenshots','Label Evidence','L1 Validation','SPRS Workpapers','Final L1 Package','Level 2 Readiness'].map((step, i) => (
+          {['Create Client','Confirm Scope','Confirm E5 License','Evidence Structure','Tenant Baseline','Users & Groups','Admin Accounts','MFA','Conditional Access','SharePoint Archive','FCI Storage','Exchange Security','Defender Security','NinjaOne Evidence','Upload Screenshots','Label Evidence','L1 Validation','SPRS Workpapers','Final L1 Package','Level 2'].map((step, i) => (
             <div key={i} className="flex items-center gap-1.5 text-white/70">
               <span className="w-4 h-4 rounded-full bg-white/10 flex items-center justify-center text-[9px] font-bold flex-shrink-0">{i + 1}</span>
               <span className="truncate">{step}</span>
