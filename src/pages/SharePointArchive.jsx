@@ -34,9 +34,7 @@ const topFolders = [
   '12_SPRS_and_Attestation', '13_Final_Assessment_Package', '99_Archive'
 ];
 
-const rootName = 'FulcrumDefense_CMMC_Evidence';
-
-function buildTree() {
+function buildTree(rootName) {
   const lines = [rootName + '/'];
   topFolders.forEach((folder) => {
     lines.push('  ' + folder + '/');
@@ -55,6 +53,11 @@ export default function SharePointArchive() {
   const [folders, setFolders] = useState([]);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState({ '02_Level_1_Control_Evidence': true });
+
+  const clientSlug = selectedClient?.legal_name
+    ? selectedClient.legal_name.replace(/[^a-zA-Z0-9]/g, '')
+    : '{ClientName}';
+  const rootName = `${clientSlug}_CMMC_Evidence`;
 
   useEffect(() => {
     if (!selectedClientId) return;
@@ -82,13 +85,13 @@ export default function SharePointArchive() {
   };
 
   const copyTree = () => {
-    navigator.clipboard.writeText(buildTree());
+    navigator.clipboard.writeText(buildTree(rootName));
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const downloadTree = () => {
-    const blob = new Blob([buildTree()], { type: 'text/plain' });
+    const blob = new Blob([buildTree(rootName)], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'CMMC_Evidence_Folder_Structure.txt'; a.click();
