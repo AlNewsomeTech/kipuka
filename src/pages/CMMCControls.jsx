@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Search, LayoutGrid, Rows3, CheckCircle2, Image, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
-import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
+import { loadProgressMap, mergeControl, saveProgress } from '@/lib/controlProgress';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
 import MetaBadge, { CountBadge } from '@/components/ui/MetaBadge';
+import ControlBulkBar from '@/components/controls/ControlBulkBar';
 
 const VIEW_KEY = 'cmmc_controls_view';
 
@@ -19,6 +20,8 @@ export default function CMMCControls() {
   const [familyFilter, setFamilyFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [view, setView] = useState(() => localStorage.getItem(VIEW_KEY) || 'comfortable');
+  const [selected, setSelected] = useState([]);
+  const [savingBulk, setSavingBulk] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { localStorage.setItem(VIEW_KEY, view); }, [view]);
@@ -54,6 +57,24 @@ export default function CMMCControls() {
     ready: controls.filter(c => c.ready_for_assessment).length,
   };
   const pct = counts.total ? (controls.filter(c => c.status === 'Complete' || c.ready_for_assessment).length / counts.total) * 100 : 0;
+
+  const toggleSelect = (id) => setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const allVisibleSelected = filtered.length > 0 && filtered.every(c => selected.includes(c.id));
+  const toggleSelectAll = () => setSelected(allVisibleSelected ? [] : filtered.map(c => c.id));
+
+  const applyBulkStatus = async (status) => {
+    setSavingBulk(true);
+    const targets = controls.filter(c => selected.includes(c.id));
+    try {
+      await Promise.all(targets.map(c => saveProgress(selectedClientId, c.control_id, c.level, { status })));
+      setControls(controls.map(c => selected.includes(c.id) ? { ...c, status } : c));
+      setSelected([]);
+    } catch (e) {
+      alert('Error updating controls: ' + e.message);
+    } finally {
+      setSavingBulk(false);
+    }
+  };
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
 
@@ -107,6 +128,10 @@ export default function CMMCControls() {
         </div>
       </div>
 
+      {selectedClientId && (
+        <ControlBulkBar count={selected.length} saving={savingBulk} onApply={applyBulkStatus} onClear={() => setSelected([])} />
+      )}
+
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200">
           <EmptyState icon={ShieldCheck} title="No controls found" description="Try adjusting your search or filters." />
@@ -120,6 +145,11 @@ export default function CMMCControls() {
           <table className="w-full">
             <thead className="bg-slate-100 border-b border-slate-200">
               <tr>
+                {selectedClientId && (
+                  <th className="px-4 py-3.5 w-10">
+                    <input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAll} className="w-4 h-4 rounded border-slate-300 accent-[#0F1E3C] cursor-pointer" />
+                  </th>
+                )}
                 <th className="text-left text-[13px] font-bold text-slate-700 px-4 py-3.5">Control ID</th>
                 <th className="text-left text-[13px] font-bold text-slate-700 px-4 py-3.5 hidden md:table-cell">Title</th>
                 <th className="text-left text-[13px] font-bold text-slate-700 px-4 py-3.5 hidden lg:table-cell">Family</th>
@@ -130,7 +160,12 @@ export default function CMMCControls() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filtered.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => navigate(`/controls/${c.id}`)}>
+                <tr key={c.id} className={`hover:bg-slate-50 cursor-pointer ${selected.includes(c.id) ? 'bg-blue-50/60' : ''}`} onClick={() => navigate(`/controls/${c.id}`)}>
+                  {selectedClientId && (
+                    <td className="px-4 py-3.5" onClick={e => e.stopPropagation()}>
+                      <input type="checkbox" checked={selected.includes(c.id)} onChange={() => toggleSelect(c.id)} className="w-4 h-4 rounded border-slate-300 accent-[#0F1E3C] cursor-pointer" />
+                    </td>
+                  )}
                   <td className="px-4 py-3.5"><Link to={`/controls/${c.id}`} className="text-[14px] font-mono font-bold text-blue-600 hover:underline" onClick={e => e.stopPropagation()}>{c.control_id}</Link></td>
                   <td className="px-4 py-3.5 hidden md:table-cell text-[15px] text-slate-800">{c.control_title}</td>
                   <td className="px-4 py-3.5 hidden lg:table-cell text-[14px] text-slate-600">{c.control_family}</td>
