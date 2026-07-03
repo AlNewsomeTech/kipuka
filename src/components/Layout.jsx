@@ -197,7 +197,6 @@ export default function Layout() {
                 </>
               )}
             </div>
-            <span className="hidden md:inline text-xs text-slate-400">Level 1 First</span>
             <div className="w-8 h-8 rounded-full bg-[#0F1E3C] text-white text-xs font-bold flex items-center justify-center">
               CMMC
             </div>

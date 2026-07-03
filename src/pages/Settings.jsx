@@ -51,7 +51,7 @@ export default function Settings() {
       <div className="bg-[#0F1E3C] rounded-xl p-5 text-white">
         <div className="flex items-center gap-2 mb-3"><ShieldAlert className="w-5 h-5" /><h3 className="text-sm font-semibold">About CMMC Deployment Command Center</h3></div>
         <p className="text-xs text-white/70 leading-relaxed">This app supports readiness and evidence management for CMMC 2.0 deployments. It does not replace legal, contractual, or official assessment requirements. It is a planning, implementation, evidence, and readiness tool for MSP consultants.</p>
-        <div className="mt-3 text-xs text-white/50">Version 1.0 • Level 1 First, Level 2 Ready Second</div>
+        <div className="mt-3 text-xs text-white/50">Version 1.0</div>
       </div>
 
       {showForm && (

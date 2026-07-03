@@ -81,7 +81,7 @@ export default function Dashboard() {
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{selectedClient.legal_name}</h1>
-          <p className="text-sm text-slate-500 mt-1">CMMC deployment dashboard — Level 1 first, Level 2 ready second</p>
+          <p className="text-sm text-slate-500 mt-1">CMMC deployment dashboard</p>
         </div>
         <button
           onClick={() => setShowReport(true)}
