@@ -1,0 +1,123 @@
+{
+  "name": "ProjectPOAM",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "poam_title": {
+      "type": "string"
+    },
+    "gap_statement": {
+      "type": "string"
+    },
+    "risk_rating": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Moderate"
+    },
+    "remediation_plan": {
+      "type": "string"
+    },
+    "milestones": {
+      "type": "string"
+    },
+    "responsible_owner": {
+      "type": "string"
+    },
+    "target_completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "actual_completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Blocked",
+        "Pending Validation",
+        "Closed",
+        "Deferred",
+        "Accepted Risk"
+      ],
+      "default": "Open"
+    },
+    "closure_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "closure_notes": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "project_id",
+    "poam_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

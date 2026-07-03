@@ -1,0 +1,96 @@
+{
+  "name": "ReportExport",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "report_type": {
+      "type": "string",
+      "enum": [
+        "Executive Readiness Report",
+        "Gap Assessment Report",
+        "SSP Export",
+        "POA&M Export",
+        "Evidence Index",
+        "Policy Package",
+        "SPRS Package",
+        "C3PAO Handoff Package"
+      ]
+    },
+    "report_title": {
+      "type": "string"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "report_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Generated",
+        "Failed",
+        "Archived"
+      ],
+      "default": "Generated"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "report_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

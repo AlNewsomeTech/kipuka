@@ -29,7 +29,7 @@ export default function AssessmentModule({ project, readOnly, currentUser }) {
       base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.POAMItem.filter({ client_id: project.id }).catch(() => []),
+      base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
     ]);
     setLibrary(lib.filter((c) => targetLevels.includes(c.cmmc_level)));
     setAssessments(asmt);

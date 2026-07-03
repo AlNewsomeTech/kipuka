@@ -8,46 +8,38 @@ import ScopingModule from '@/components/project/scoping/ScopingModule';
 import InventoryModule from '@/components/project/inventory/InventoryModule';
 import AssessmentModule from '@/components/project/assessment/AssessmentModule';
 import EvidenceModule from '@/components/project/evidence/EvidenceModule';
+import SSPModule from '@/components/project/ssp/SSPModule';
+import PoamModule from '@/components/project/poam/PoamModule';
+import PoliciesModule from '@/components/project/policies/PoliciesModule';
+import ReportsModule from '@/components/project/reports/ReportsModule';
 
-// Modules with full in-app workflows (Phase 3).
+// Modules with full in-app workflows (Phase 3 + Phase 4).
 const RICH_MODULES = {
   scoping: ScopingModule,
   inventory: InventoryModule,
   assessment: AssessmentModule,
   evidence: EvidenceModule,
+  ssp: SSPModule,
+  poam: PoamModule,
+  policies: PoliciesModule,
+  reports: ReportsModule,
 };
 
 // Remaining modules link to the existing global feature pages.
 const MODULE_CONTENT = {
-  ssp: {
-    desc: 'Draft and maintain the System Security Plan from your scoping and control data.',
-    links: [{ to: '/documentation', label: 'Open SSP Builder' }],
-  },
-  poam: {
-    desc: 'Track open weaknesses and remediation plans (Plan of Action & Milestones).',
-    links: [{ to: '/level2', label: 'Manage POA&M items' }],
-  },
-  policies: {
-    desc: 'Review and generate the policy set required for your target CMMC level.',
-    links: [{ to: '/documents', label: 'Document & Policy Library' }],
-  },
   sprs: {
     desc: 'Prepare your SPRS score and walk through the PIEE self-certification submission.',
     links: [{ to: '/piee', label: 'PIEE / SPRS Self-Cert' }],
   },
-  reports: {
-    desc: 'Generate readiness reports and the final handoff/assessment package.',
-    links: [{ to: '/package', label: 'Final Package' }, { to: '/sharepoint-package', label: 'SharePoint Package' }],
-  },
 };
 
 export default function ProjectModulePage({ moduleKey }) {
-  const { project, readOnly } = useOutletContext();
+  const { project, readOnly, org } = useOutletContext();
   const { user } = useAuth();
 
   const RichModule = RICH_MODULES[moduleKey];
   if (RichModule) {
-    return <RichModule project={project} readOnly={readOnly} currentUser={user} />;
+    return <RichModule project={project} org={org} readOnly={readOnly} currentUser={user} />;
   }
 
   const def = moduleByKey(moduleKey);

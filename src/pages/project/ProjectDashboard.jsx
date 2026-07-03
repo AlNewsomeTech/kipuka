@@ -31,15 +31,22 @@ export default function ProjectDashboard() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [poams, ssps] = await Promise.all([
-        base44.entities.POAMItem.filter({ client_id: project.id }).catch(() => []),
-        base44.entities.SSPRecord.filter({ client_id: project.id }).catch(() => []),
+      const [poams, ssps, assessments, evidence] = await Promise.all([
+        base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
       ]);
       if (!alive) return;
+      const closed = ['Closed', 'Accepted Risk'];
+      const evByControl = {};
+      evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
       setCounts({
-        openPoam: poams.filter((p) => p.status !== 'Closed').length,
-        highRisk: poams.filter((p) => p.severity === 'High' && p.status !== 'Closed').length,
-        sspStatus: ssps[0]?.status || 'Not Started',
+        openPoam: poams.filter((p) => !closed.includes(p.status)).length,
+        highRisk: poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length,
+        sspStatus: ssps[0]?.approval_status || 'Not Started',
+        controlsComplete: assessments.length ? `${assessments.filter((a) => a.status === 'Implemented').length}/${assessments.length}` : '—',
+        controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
       });
     })();
     return () => { alive = false; };
@@ -89,8 +96,8 @@ export default function ProjectDashboard() {
         <Metric icon={FileStack} label="SSP Status" value={counts?.sspStatus ?? '—'} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={ClipboardCheck} label="Controls Complete" value="—" tone="green" />
-        <Metric icon={ListChecks} label="Controls Needing Evidence" value="—" tone="amber" />
+        <Metric icon={ClipboardCheck} label="Controls Complete" value={counts?.controlsComplete ?? '—'} tone="green" />
+        <Metric icon={ListChecks} label="Controls Needing Evidence" value={counts?.controlsNeedEvidence ?? '—'} tone="amber" />
         <Metric icon={Package} label="Evidence Package" value="Not Started" />
         <Metric icon={BadgeCheck} label="SPRS / PIEE" value="Not Started" />
       </div>

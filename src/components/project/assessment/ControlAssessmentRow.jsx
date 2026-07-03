@@ -35,11 +35,14 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
   const createPoam = async () => {
     if (!poamDraft.trim()) return;
     setSavingPoam(true);
-    await base44.entities.POAMItem.create({
-      client_id: project.id,
+    await base44.entities.ProjectPOAM.create({
+      organization_id: project.organization_id,
+      project_id: project.id,
       control_id: assessment.control_id,
-      weakness_description: poamDraft,
+      poam_title: poamDraft.slice(0, 120),
+      gap_statement: poamDraft,
       remediation_plan: libEntry?.poam_gap_starter || '',
+      risk_rating: assessment.risk_rating || 'Moderate',
       status: 'Open',
     });
     setSavingPoam(false);
@@ -114,7 +117,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
               <ul className="space-y-1">
                 {poams.map((p) => (
                   <li key={p.id} className="flex items-center gap-2 text-xs text-slate-600">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> {p.weakness_description}
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" /> {p.poam_title || p.weakness_description}
                     <StatusBadge status={p.status} size="xs" />
                   </li>
                 ))}

@@ -47,7 +47,8 @@ export default function ProjectWorkspace() {
     return <Navigate to={`/projects/${id}`} replace />;
   }
 
-  const orgName = organizations.find((o) => o.id === project.organization_id)?.organization_name || 'Organization';
+  const org = organizations.find((o) => o.id === project.organization_id) || null;
+  const orgName = org?.organization_name || 'Organization';
 
   return (
     <div className="space-y-4">
@@ -61,7 +62,7 @@ export default function ProjectWorkspace() {
       <div className="flex flex-col lg:flex-row gap-4">
         <ProjectNav projectId={project.id} orgRole={orgRole} />
         <div className="flex-1 min-w-0">
-          <Outlet context={{ project, refreshProject, orgRole, readOnly, hasFeature, orgName }} />
+          <Outlet context={{ project, refreshProject, orgRole, readOnly, hasFeature, orgName, org }} />
         </div>
       </div>
 

@@ -1,0 +1,102 @@
+{
+  "name": "SSPControlStatement",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "ssp_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "implementation_statement": {
+      "type": "string"
+    },
+    "inherited_from": {
+      "type": "string"
+    },
+    "responsible_owner": {
+      "type": "string"
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_poam_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "statement_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Draft",
+        "Needs Review",
+        "Approved"
+      ],
+      "default": "Not Started"
+    },
+    "reviewer_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "control_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
