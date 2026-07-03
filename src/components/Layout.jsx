@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack
+  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -21,6 +21,7 @@ const navSections = [
   { label: 'CMMC Controls', items: [
     { to: '/controls', label: 'Level 1 Controls', icon: ShieldCheck },
     { to: '/level2', label: 'Level 2 Controls', icon: Layers },
+    { to: '/jira-export', label: 'Jira Export', icon: ClipboardList },
   ]},
   { label: 'Implementation', items: [
     { to: '/m365', label: 'Microsoft 365 Setup', icon: Settings2 },

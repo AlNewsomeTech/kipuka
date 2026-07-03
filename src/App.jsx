@@ -17,6 +17,7 @@ import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
 import ControlDetail from '@/pages/ControlDetail';
 import Level2Readiness from '@/pages/Level2Readiness';
+import JiraExport from '@/pages/JiraExport';
 import Microsoft365Setup from '@/pages/Microsoft365Setup';
 import GoogleMigration from '@/pages/GoogleMigration';
 import SharePointArchive from '@/pages/SharePointArchive';
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
           <Route path="/controls" element={<CMMCControls />} />
           <Route path="/controls/:id" element={<ControlDetail />} />
           <Route path="/level2" element={<Level2Readiness />} />
+          <Route path="/jira-export" element={<JiraExport />} />
           <Route path="/m365" element={<Microsoft365Setup />} />
           <Route path="/google" element={<GoogleMigration />} />
           <Route path="/sharepoint" element={<SharePointArchive />} />
