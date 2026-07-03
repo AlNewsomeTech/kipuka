@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { Settings as SettingsIcon, ExternalLink, Plus, X, ShieldAlert } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import WarningBanner from '@/components/WarningBanner';
+import TermsSettingsPanel from '@/components/legal/TermsSettingsPanel';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Settings() {
+  const { user } = useAuth();
   const [links, setLinks] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', url: '', description: '', category: '', is_default: false });
@@ -46,6 +49,9 @@ export default function Settings() {
           {links.length === 0 && <p className="text-xs text-slate-400 py-4">No admin center links configured.</p>}
         </div>
       </div>
+
+      {/* Terms & Conditions management (admin only) */}
+      {user?.role === 'admin' && <TermsSettingsPanel />}
 
       {/* About */}
       <div className="bg-[#0F1E3C] rounded-xl p-5 text-white">

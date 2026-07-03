@@ -32,6 +32,7 @@ import PIEESelfCert from '@/pages/PIEESelfCert';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 import AIAssistant from '@/pages/AIAssistant';
+import TermsAndConditions from '@/pages/TermsAndConditions';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
         {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/intake" element={<ClientIntake />} />
+        <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
 
         {/* Full workflow — admin + technician only (client role redirected to dashboard) */}
         <Route element={<RoleRoute allow={['admin', 'technician']} />}>

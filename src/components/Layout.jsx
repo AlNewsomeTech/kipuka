@@ -10,6 +10,8 @@ import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useTheme } from '@/lib/themeContext';
 import WarningBanner from '@/components/WarningBanner';
+import AcceptanceGate from '@/components/legal/AcceptanceGate';
+import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 const navSections = [
   { label: 'Overview', items: [
@@ -204,11 +206,16 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="max-w-7xl mx-auto">
-            <Outlet key={selectedClientId || 'all-clients'} />
-          </div>
-        </main>
+        <AcceptanceGate>
+          <main className="flex-1 overflow-y-auto flex flex-col">
+            <div className="flex-1 p-4 lg:p-6">
+              <div className="max-w-7xl mx-auto">
+                <Outlet key={selectedClientId || 'all-clients'} />
+              </div>
+            </div>
+            <ConfidentialityFooter />
+          </main>
+        </AcceptanceGate>
       </div>
     </div>
   );

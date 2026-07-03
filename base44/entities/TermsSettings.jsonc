@@ -1,0 +1,47 @@
+{
+  "name": "TermsSettings",
+  "type": "object",
+  "properties": {
+    "terms_version": {
+      "type": "string",
+      "default": "PacSec-CMMCCommandCenter-Terms-v1.0"
+    },
+    "terms_title": {
+      "type": "string",
+      "default": "Terms and Conditions of Use"
+    },
+    "terms_body": {
+      "type": "string"
+    },
+    "login_modal_title": {
+      "type": "string",
+      "default": "Authorized Use and Confidentiality Notice"
+    },
+    "login_modal_body": {
+      "type": "string"
+    },
+    "footer_warning_text": {
+      "type": "string"
+    },
+    "require_acceptance": {
+      "type": "boolean",
+      "default": true
+    },
+    "last_updated_by": {
+      "type": "string"
+    },
+    "last_updated_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

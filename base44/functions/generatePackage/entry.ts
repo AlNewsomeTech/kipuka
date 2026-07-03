@@ -488,8 +488,12 @@ Deno.serve(async (req) => {
   }
 });
 
+const REPORT_COVER_NOTICE = 'This report and all associated data, analysis, templates, workflows, and generated content are confidential and proprietary to Pacific Global Security Group and/or its authorized client. Use is restricted to authorized business, compliance, and cybersecurity purposes only.';
+const REPORT_FOOTER_SHORT = 'Confidential and Proprietary. Prepared by Pacific Global Security Group. Unauthorized access, use, disclosure, copying, or distribution is prohibited.';
+
 function buildReadme({ client, level, date, user, exportMode, includeDrafts, waivedPhCount, evGapCount, draftLabel }) {
   let r = `# CMMC Assessment Package — ${client.legal_name}\n\n`;
+  r += `> **CONFIDENTIAL AND PROPRIETARY** — ${REPORT_COVER_NOTICE}\n\n`;
   if (draftLabel) r += `> ⚠️ **${draftLabel}** — This package is a working draft and is NOT ready for formal assessment submission.\n\n`;
   r += `**Client:** ${client.legal_name}${client.dba_name ? ` (${client.dba_name})` : ''}\n\n`;
   r += `**CMMC Target Level:** ${level}\n\n`;
@@ -503,7 +507,8 @@ function buildReadme({ client, level, date, user, exportMode, includeDrafts, wai
   if (includeDrafts) r += `> ⚠️ **Warning:** This package includes draft documents and/or unreviewed evidence. Review before relying on it for assessment.\n\n`;
   if (waivedPhCount > 0) r += `> ⚠️ **Warning:** ${waivedPhCount} document(s) include waived placeholders. Confirm waivers are appropriate.\n\n`;
   if (evGapCount > 0) r += `> ⚠️ **Warning:** ${evGapCount} applicable control(s) have evidence or validation gaps.\n\n`;
-  r += `---\n\n*This package supports CMMC implementation and assessment preparation. It does not replace an independent assessor's review or a C3PAO assessment.*\n`;
+  r += `---\n\n*This package supports CMMC implementation and assessment preparation. It does not replace an independent assessor's review or a C3PAO assessment.*\n\n`;
+  r += `---\n\n${REPORT_FOOTER_SHORT}\n`;
   return r;
 }
 
@@ -511,6 +516,7 @@ function buildChangelog({ date, version, files, docItems, evItems, ssItems, hard
   const added = files.filter(f => f.kind === 'document' || f.kind === 'table').map(f => f.name);
   const superseded = docItems.filter(d => d.status === 'Superseded' || d.status === 'Archived').map(d => d.title);
   let c = `# Change Log\n\n`;
+  c += `> **CONFIDENTIAL AND PROPRIETARY** — ${REPORT_COVER_NOTICE}\n\n`;
   c += `**Package Generation Date:** ${date}\n\n`;
   c += `**Package Version:** v${version}\n\n`;
   c += `**Readiness Score at Export:** ${readinessScore}%\n\n`;
@@ -518,6 +524,7 @@ function buildChangelog({ date, version, files, docItems, evItems, ssItems, hard
   c += `## Documents Included (${added.length})\n\n${added.length ? added.map(n => `- ${n}`).join('\n') : '- None'}\n\n`;
   c += `## Evidence Added\n\n- ${evItems.length} evidence item(s)\n- ${ssItems.length} screenshot/export item(s)\n\n`;
   c += `## Superseded Documents (${superseded.length})\n\n${superseded.length ? superseded.map(n => `- ${n}`).join('\n') : '- None'}\n\n`;
-  c += `## Blockers at Time of Export (${hardBlockers.length})\n\n${hardBlockers.length ? hardBlockers.map(b => `- ${b}`).join('\n') : '- None'}\n`;
+  c += `## Blockers at Time of Export (${hardBlockers.length})\n\n${hardBlockers.length ? hardBlockers.map(b => `- ${b}`).join('\n') : '- None'}\n\n`;
+  c += `---\n\n${REPORT_FOOTER_SHORT}\n`;
   return c;
 }
