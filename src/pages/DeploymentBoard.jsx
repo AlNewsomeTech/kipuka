@@ -6,6 +6,7 @@ import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkUpdateBar from '@/components/BulkUpdateBar';
 import Level2Board from '@/components/board/Level2Board';
+import ClientProjectLinks from '@/components/board/ClientProjectLinks';
 
 const phases = [
   'Intake', 'Scope', 'Tenant Baseline', 'Google Migration Planning', 'Identity Setup',
@@ -80,6 +81,8 @@ export default function DeploymentBoard() {
           <ListChecks className="w-4 h-4" /> {bulkMode ? 'Exit Bulk Update' : 'Bulk Update'}
         </button>
       </div>
+
+      <ClientProjectLinks client={selectedClient} />
 
       {loading ? (
         <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>

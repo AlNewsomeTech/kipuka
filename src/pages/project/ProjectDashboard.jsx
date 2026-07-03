@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   ShieldCheck, ClipboardCheck, ListChecks, AlertTriangle, FileStack,
-  Package, BadgeCheck, TrendingUp, ArrowRight,
+  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { FEATURES } from '@/lib/subscriptionTiers';
+import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 
@@ -25,8 +26,19 @@ function Metric({ icon: Icon, label, value, tone = 'slate' }) {
 }
 
 export default function ProjectDashboard() {
-  const { project, refreshProject, readOnly, hasFeature, orgName } = useOutletContext();
+  const { project, refreshProject, readOnly, hasFeature, orgName, org } = useOutletContext();
   const [counts, setCounts] = useState(null);
+  const [reporting, setReporting] = useState(false);
+
+  const handleReport = async () => {
+    setReporting(true);
+    try {
+      const genBy = (await base44.auth.me().catch(() => null))?.full_name;
+      await generateProjectStatusReport({ project, org, generatedBy: genBy });
+    } finally {
+      setReporting(false);
+    }
+  };
 
   useEffect(() => {
     let alive = true;
@@ -79,7 +91,17 @@ export default function ProjectDashboard() {
               <p className="text-xs text-slate-400">{orgName}</p>
             </div>
           </div>
-          <StatusBadge status={project.project_status} size="md" />
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={handleReport}
+              disabled={reporting}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#1E2D4A] disabled:opacity-60"
+            >
+              {reporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              CMMC Status Report
+            </button>
+            <StatusBadge status={project.project_status} size="md" />
+          </div>
         </div>
         <div className="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
           <div><span className="text-slate-500">Target level:</span> <span className="font-semibold text-slate-800">{project.target_cmmc_level}</span></div>
