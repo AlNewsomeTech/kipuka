@@ -5,7 +5,7 @@ import {
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
-  Building, ScrollText, Server, FolderKanban, Library
+  Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -18,6 +18,7 @@ import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 const navSections = [
   { label: 'Overview', items: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, clientVisible: true },
+    { to: '/dashboards', label: 'Role Dashboards', icon: BarChart3, clientVisible: true },
     { to: '/projects', label: 'Projects', icon: FolderKanban, clientVisible: true },
     { to: '/clients', label: 'Clients', icon: Building2 },
     { to: '/intake', label: 'Client Intake', icon: ClipboardCheck, clientVisible: true },
@@ -53,8 +54,12 @@ const navSections = [
   { label: 'AI Assistants', items: [
     { to: '/assistant', label: 'AI Assistants', icon: Bot },
   ]},
+  { label: 'Support', items: [
+    { to: '/help', label: 'Help Center', icon: LifeBuoy, clientVisible: true },
+  ]},
   { label: 'Administration', items: [
     { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
+    { to: '/support-inbox', label: 'Support Inbox', icon: Inbox },
     { to: '/control-library', label: 'Control Library', icon: Library, adminOnly: true },
     { to: '/saas-admin', label: 'Pac-Sec SaaS Admin', icon: Server, adminOnly: true },
   ]},

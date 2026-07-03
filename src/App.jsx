@@ -122,6 +122,7 @@ const AuthenticatedApp = () => {
           <Route path="/piee" element={<PIEESelfCert />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/assistant" element={<AIAssistant />} />
+          <Route path="/support-inbox" element={<SupportInbox />} />
         </Route>
 
         {/* Administration — admin only */}
