@@ -1,0 +1,107 @@
+{
+  "name": "SupportRequest",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "requester_name": {
+      "type": "string"
+    },
+    "requester_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "request_type": {
+      "type": "string",
+      "enum": [
+        "Technical Support",
+        "CMMC Question",
+        "Evidence Question",
+        "SSP Question",
+        "POA&M Question",
+        "Account Access",
+        "Billing",
+        "Other"
+      ],
+      "default": "CMMC Question"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Normal",
+        "High",
+        "Urgent"
+      ],
+      "default": "Normal"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Waiting on Customer",
+        "Resolved",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "assigned_to": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "subject"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    }
+  }
+}

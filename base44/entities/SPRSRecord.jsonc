@@ -1,0 +1,152 @@
+{
+  "name": "SPRSRecord",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "uei": {
+      "type": "string"
+    },
+    "cage_code": {
+      "type": "string"
+    },
+    "piee_account_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Account Created",
+        "Role Requested",
+        "Role Approved",
+        "Issue",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "sprs_role": {
+      "type": "string",
+      "enum": [
+        "None",
+        "Contractor Vendor Support Role",
+        "SPRS Cyber Vendor User",
+        "Unknown"
+      ],
+      "default": "None"
+    },
+    "sprs_access_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Pending CAM Approval",
+        "Approved",
+        "Issue",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "assessment_type": {
+      "type": "string",
+      "enum": [
+        "Level 1 Self-Assessment",
+        "Level 2 Self-Assessment",
+        "Level 2 C3PAO",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "assessment_score": {
+      "type": "number"
+    },
+    "cmmc_uid": {
+      "type": "string"
+    },
+    "cmmc_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Pending Affirmation",
+        "Conditional",
+        "Final",
+        "Expired",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "submitted_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "affirmed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "affirming_official_name": {
+      "type": "string"
+    },
+    "affirming_official_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "evidence_item_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

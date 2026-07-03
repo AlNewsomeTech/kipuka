@@ -43,6 +43,9 @@ import SaaSAdmin from '@/pages/SaaSAdmin';
 import ControlLibraryAdmin from '@/pages/ControlLibraryAdmin';
 import OrgSettings from '@/pages/OrgSettings';
 import AuditLogPage from '@/pages/AuditLogPage';
+import RoleDashboards from '@/pages/RoleDashboards';
+import HelpCenter from '@/pages/HelpCenter';
+import SupportInbox from '@/pages/SupportInbox';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -77,6 +80,9 @@ const AuthenticatedApp = () => {
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/org-settings" element={<OrgSettings />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
+        <Route path="/dashboards" element={<RoleDashboards />} />
+        <Route path="/help" element={<HelpCenter />} />
+        <Route path="/help/:slug" element={<HelpCenter />} />
 
         {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
         <Route path="/projects" element={<Projects />} />
@@ -90,6 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="poam" element={<ProjectModulePage moduleKey="poam" />} />
           <Route path="policies" element={<ProjectModulePage moduleKey="policies" />} />
           <Route path="sprs" element={<ProjectModulePage moduleKey="sprs" />} />
+          <Route path="maintenance" element={<ProjectModulePage moduleKey="maintenance" />} />
           <Route path="reports" element={<ProjectModulePage moduleKey="reports" />} />
         </Route>
 

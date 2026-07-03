@@ -1,7 +1,7 @@
 // Left project-navigation module definitions and onboarding checklist steps.
 import {
   LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
-  AlertTriangle, ScrollText, BadgeCheck, BarChart3,
+  AlertTriangle, ScrollText, BadgeCheck, BarChart3, Wrench,
 } from 'lucide-react';
 
 // Modules rendered in the per-project left navigation.
@@ -16,6 +16,7 @@ export const PROJECT_MODULES = [
   { key: 'poam', label: 'POA&M', icon: AlertTriangle, read: true },
   { key: 'policies', label: 'Policies', icon: ScrollText, read: false, darkhorizon: true },
   { key: 'sprs', label: 'SPRS / PIEE', icon: BadgeCheck, read: false },
+  { key: 'maintenance', label: 'Maintenance', icon: Wrench, read: false },
   { key: 'reports', label: 'Reports', icon: BarChart3, read: true, darkhorizon: true },
 ];
 

@@ -1,0 +1,112 @@
+{
+  "name": "MaintenanceTask",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "task_title": {
+      "type": "string"
+    },
+    "task_category": {
+      "type": "string",
+      "enum": [
+        "Monthly Review",
+        "Quarterly Review",
+        "Annual Review",
+        "Evidence Refresh",
+        "SSP Review",
+        "POA&M Review",
+        "Policy Review",
+        "SPRS Affirmation",
+        "User Access Review",
+        "Vulnerability Review",
+        "Incident Response Review"
+      ],
+      "default": "Monthly Review"
+    },
+    "related_control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "assigned_owner": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Complete",
+        "Overdue",
+        "Deferred"
+      ],
+      "default": "Not Started"
+    },
+    "completion_notes": {
+      "type": "string"
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "project_id",
+    "task_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
+import PremiumBadge from '@/components/commercial/PremiumBadge';
 import { tierHasFeature, FEATURES } from '@/lib/subscriptionTiers';
 import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
@@ -14,6 +15,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
   const [busy, setBusy] = useState(null);
+  const [preview, setPreview] = useState(null);
 
   const load = useCallback(async () => {
     const [assessments, evidence, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
@@ -93,11 +95,12 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
                 {r.premium && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold">Premium</span>}
               </div>
               <p className="text-xs text-slate-500 flex-1">{r.desc}</p>
+              {locked && <div className="mt-2"><PremiumBadge locked label="Premium L2 Readiness" /></div>}
               <button
-                onClick={() => !locked && run(r.key, r.run)}
-                disabled={locked || busy === r.key}
-                className={`mt-3 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold ${locked ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'text-white bg-[#0F1E3C] hover:bg-[#152a52]'} disabled:opacity-60`}>
-                {locked ? <><Lock className="w-4 h-4" /> Premium Only</>
+                onClick={() => locked ? setPreview(r) : run(r.key, r.run)}
+                disabled={busy === r.key}
+                className={`mt-3 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold ${locked ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' : 'text-white bg-[#0F1E3C] hover:bg-[#152a52]'} disabled:opacity-60`}>
+                {locked ? <><Lock className="w-4 h-4" /> Preview (Premium)</>
                   : busy === r.key ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
                   : <><FileText className="w-4 h-4" /> Generate</>}
               </button>
@@ -117,6 +120,24 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
                 <span className="ml-auto text-xs text-slate-400">{h.generated_date ? new Date(h.generated_date).toLocaleString() : ''}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {preview && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setPreview(null)}>
+          <div className="bg-white rounded-xl w-full max-w-md p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center mx-auto mb-3">
+              <Lock className="w-6 h-6 text-purple-500" />
+            </div>
+            <PremiumBadge locked label="Premium L2 Readiness" />
+            <h3 className="text-base font-bold text-slate-800 mt-2">{preview.title}</h3>
+            <p className="text-sm text-slate-500 mt-1.5">{preview.desc}</p>
+            <p className="text-xs text-slate-400 mt-3">This is a read-only preview. Upgrade to Premium L2 Readiness or Pac-Sec Managed to generate the full {preview.title}.</p>
+            <div className="flex items-center justify-center gap-2 mt-5">
+              <a href="/help/contact" className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">Contact Pac-Sec to Upgrade</a>
+              <button onClick={() => setPreview(null)} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100">Close</button>
+            </div>
           </div>
         </div>
       )}

@@ -12,8 +12,10 @@ import SSPModule from '@/components/project/ssp/SSPModule';
 import PoamModule from '@/components/project/poam/PoamModule';
 import PoliciesModule from '@/components/project/policies/PoliciesModule';
 import ReportsModule from '@/components/project/reports/ReportsModule';
+import SprsModule from '@/components/project/sprs/SprsModule';
+import MaintenanceModule from '@/components/project/maintenance/MaintenanceModule';
 
-// Modules with full in-app workflows (Phase 3 + Phase 4).
+// Modules with full in-app workflows (Phase 3 + Phase 4 + Phase 5).
 const RICH_MODULES = {
   scoping: ScopingModule,
   inventory: InventoryModule,
@@ -22,16 +24,13 @@ const RICH_MODULES = {
   ssp: SSPModule,
   poam: PoamModule,
   policies: PoliciesModule,
+  sprs: SprsModule,
+  maintenance: MaintenanceModule,
   reports: ReportsModule,
 };
 
 // Remaining modules link to the existing global feature pages.
-const MODULE_CONTENT = {
-  sprs: {
-    desc: 'Prepare your SPRS score and walk through the PIEE self-certification submission.',
-    links: [{ to: '/piee', label: 'PIEE / SPRS Self-Cert' }],
-  },
-};
+const MODULE_CONTENT = {};
 
 export default function ProjectModulePage({ moduleKey }) {
   const { project, readOnly, org } = useOutletContext();
