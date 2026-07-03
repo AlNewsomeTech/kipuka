@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Building2, Users, FolderKanban, HardDrive, Clock, ShieldCheck, Ban, Play, Pencil, ExternalLink, ShieldAlert, ChevronRight } from 'lucide-react';
+import { Plus, Building2, Users, FolderKanban, HardDrive, Clock, ShieldCheck, Ban, Play, Pencil, ExternalLink, ShieldAlert, ChevronRight, FlaskConical } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
@@ -76,9 +76,14 @@ export default function SaaSAdmin() {
           </h1>
           <p className="text-sm text-slate-500 mt-0.5">Manage all customer organizations, subscriptions, and access.</p>
         </div>
-        <button onClick={() => { setEditing(null); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A]">
-          <Plus className="w-4 h-4" /> Add Organization
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/demo-workspace')} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-amber-500 text-slate-900 rounded-lg hover:bg-amber-400">
+            <FlaskConical className="w-4 h-4" /> Launch Demo Workspace
+          </button>
+          <button onClick={() => { setEditing(null); setModalOpen(true); }} className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-[#0F1E3C] text-white rounded-lg hover:bg-[#1E2D4A]">
+            <Plus className="w-4 h-4" /> Add Organization
+          </button>
+        </div>
       </div>
 
       {/* Summary stats */}

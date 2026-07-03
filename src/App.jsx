@@ -46,6 +46,7 @@ import AuditLogPage from '@/pages/AuditLogPage';
 import RoleDashboards from '@/pages/RoleDashboards';
 import HelpCenter from '@/pages/HelpCenter';
 import SupportInbox from '@/pages/SupportInbox';
+import DemoWorkspace from '@/pages/DemoWorkspace';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -129,6 +130,7 @@ const AuthenticatedApp = () => {
         <Route element={<RoleRoute allow={['admin']} />}>
           <Route path="/users" element={<UserManagement />} />
           <Route path="/saas-admin" element={<SaaSAdmin />} />
+          <Route path="/demo-workspace" element={<DemoWorkspace />} />
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
         </Route>
       </Route>
