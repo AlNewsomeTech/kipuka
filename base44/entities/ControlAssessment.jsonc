@@ -1,0 +1,137 @@
+{
+  "name": "ControlAssessment",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2",
+        "Level 3"
+      ],
+      "default": "Level 1"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Implemented",
+        "Partially Implemented",
+        "Not Implemented",
+        "Not Applicable",
+        "Needs Review",
+        "Ready for Assessment"
+      ],
+      "default": "Not Started"
+    },
+    "implementation_summary": {
+      "type": "string"
+    },
+    "ssp_statement": {
+      "type": "string"
+    },
+    "inherited_control_source": {
+      "type": "string"
+    },
+    "responsible_owner": {
+      "type": "string"
+    },
+    "evidence_required": {
+      "type": "string"
+    },
+    "evidence_status": {
+      "type": "string",
+      "enum": [
+        "No Evidence",
+        "Evidence Uploaded",
+        "Needs Better Evidence",
+        "Accepted",
+        "Expired"
+      ],
+      "default": "No Evidence"
+    },
+    "risk_rating": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Moderate"
+    },
+    "assessor_notes": {
+      "type": "string"
+    },
+    "pacsec_internal_notes": {
+      "type": "string"
+    },
+    "last_reviewed_by": {
+      "type": "string"
+    },
+    "last_reviewed_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "project_id",
+    "control_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

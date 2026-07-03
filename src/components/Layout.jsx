@@ -5,7 +5,7 @@ import {
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
-  Building, ScrollText, Server, FolderKanban
+  Building, ScrollText, Server, FolderKanban, Library
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -55,6 +55,7 @@ const navSections = [
   ]},
   { label: 'Administration', items: [
     { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
+    { to: '/control-library', label: 'Control Library', icon: Library, adminOnly: true },
     { to: '/saas-admin', label: 'Pac-Sec SaaS Admin', icon: Server, adminOnly: true },
   ]},
 ];

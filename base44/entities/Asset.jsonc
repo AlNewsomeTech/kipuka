@@ -1,0 +1,141 @@
+{
+  "name": "Asset",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "asset_name": {
+      "type": "string"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "User",
+        "Endpoint",
+        "Server",
+        "Network Device",
+        "Cloud Service",
+        "SaaS Application",
+        "Security Tool",
+        "Facility",
+        "External Provider",
+        "Data Repository",
+        "Other"
+      ],
+      "default": "Endpoint"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "business_purpose": {
+      "type": "string"
+    },
+    "in_scope": {
+      "type": "boolean",
+      "default": true
+    },
+    "scope_category": {
+      "type": "string",
+      "enum": [
+        "CUI Asset",
+        "Security Protection Asset",
+        "Contractor Risk Managed Asset",
+        "Specialized Asset",
+        "Out of Scope",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "handles_fci": {
+      "type": "boolean",
+      "default": false
+    },
+    "handles_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "stores_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "processes_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "transmits_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "location": {
+      "type": "string"
+    },
+    "management_tool": {
+      "type": "string"
+    },
+    "operating_system": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Planned",
+        "Retired",
+        "Unknown"
+      ],
+      "default": "Active"
+    }
+  },
+  "required": [
+    "project_id",
+    "asset_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

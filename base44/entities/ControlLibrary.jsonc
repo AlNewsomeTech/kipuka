@@ -1,0 +1,86 @@
+{
+  "name": "ControlLibrary",
+  "type": "object",
+  "properties": {
+    "framework": {
+      "type": "string",
+      "enum": [
+        "CMMC",
+        "NIST SP 800-171",
+        "FAR 52.204-21"
+      ],
+      "default": "CMMC"
+    },
+    "cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2",
+        "Level 3",
+        "Not Applicable"
+      ],
+      "default": "Level 1"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "requirement_text": {
+      "type": "string"
+    },
+    "plain_english_summary": {
+      "type": "string"
+    },
+    "assessment_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "example_implementation": {
+      "type": "string"
+    },
+    "example_evidence": {
+      "type": "string"
+    },
+    "related_policy_templates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "ssp_statement_starter": {
+      "type": "string"
+    },
+    "poam_gap_starter": {
+      "type": "string"
+    },
+    "sort_order": {
+      "type": "integer",
+      "default": 0
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "control_id",
+    "control_title"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

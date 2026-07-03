@@ -2,24 +2,23 @@ import { useOutletContext } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { moduleByKey } from '@/lib/projectModules';
+import { useAuth } from '@/lib/AuthContext';
 import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
+import ScopingModule from '@/components/project/scoping/ScopingModule';
+import InventoryModule from '@/components/project/inventory/InventoryModule';
+import AssessmentModule from '@/components/project/assessment/AssessmentModule';
+import EvidenceModule from '@/components/project/evidence/EvidenceModule';
 
-// Module content: a concise workspace pane per module that links to the
-// existing global feature pages (which hold the full workflow). This keeps the
-// per-project navigation intact without duplicating existing functionality.
+// Modules with full in-app workflows (Phase 3).
+const RICH_MODULES = {
+  scoping: ScopingModule,
+  inventory: InventoryModule,
+  assessment: AssessmentModule,
+  evidence: EvidenceModule,
+};
+
+// Remaining modules link to the existing global feature pages.
 const MODULE_CONTENT = {
-  scoping: {
-    desc: 'Define the CUI/FCI boundary, in-scope systems, and assessment scope for this project.',
-    links: [{ to: '/documentation', label: 'Open SSP & scoping workspace' }],
-  },
-  assessment: {
-    desc: 'Work through the CMMC control set and record implementation status for each control.',
-    links: [{ to: '/controls', label: 'Level 1 Controls' }, { to: '/level2', label: 'Level 2 Controls' }],
-  },
-  evidence: {
-    desc: 'Collect, review, and index the evidence backing each control response.',
-    links: [{ to: '/screenshots', label: 'Screenshot Library' }, { to: '/evidence', label: 'Evidence Index' }],
-  },
   ssp: {
     desc: 'Draft and maintain the System Security Plan from your scoping and control data.',
     links: [{ to: '/documentation', label: 'Open SSP Builder' }],
@@ -43,7 +42,14 @@ const MODULE_CONTENT = {
 };
 
 export default function ProjectModulePage({ moduleKey }) {
-  const { project } = useOutletContext();
+  const { project, readOnly } = useOutletContext();
+  const { user } = useAuth();
+
+  const RichModule = RICH_MODULES[moduleKey];
+  if (RichModule) {
+    return <RichModule project={project} readOnly={readOnly} currentUser={user} />;
+  }
+
   const def = moduleByKey(moduleKey);
   const content = MODULE_CONTENT[moduleKey] || { desc: '', links: [] };
   const Icon = def.icon;

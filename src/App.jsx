@@ -40,6 +40,7 @@ import Settings from '@/pages/Settings';
 import AIAssistant from '@/pages/AIAssistant';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import SaaSAdmin from '@/pages/SaaSAdmin';
+import ControlLibraryAdmin from '@/pages/ControlLibraryAdmin';
 import OrgSettings from '@/pages/OrgSettings';
 import AuditLogPage from '@/pages/AuditLogPage';
 
@@ -82,6 +83,7 @@ const AuthenticatedApp = () => {
         <Route path="/projects/:id" element={<ProjectWorkspace />}>
           <Route index element={<ProjectDashboard />} />
           <Route path="scoping" element={<ProjectModulePage moduleKey="scoping" />} />
+          <Route path="inventory" element={<ProjectModulePage moduleKey="inventory" />} />
           <Route path="assessment" element={<ProjectModulePage moduleKey="assessment" />} />
           <Route path="evidence" element={<ProjectModulePage moduleKey="evidence" />} />
           <Route path="ssp" element={<ProjectModulePage moduleKey="ssp" />} />
@@ -119,6 +121,7 @@ const AuthenticatedApp = () => {
         <Route element={<RoleRoute allow={['admin']} />}>
           <Route path="/users" element={<UserManagement />} />
           <Route path="/saas-admin" element={<SaaSAdmin />} />
+          <Route path="/control-library" element={<ControlLibraryAdmin />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

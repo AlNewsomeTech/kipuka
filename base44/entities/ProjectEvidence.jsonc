@@ -1,0 +1,132 @@
+{
+  "name": "ProjectEvidence",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "evidence_title": {
+      "type": "string"
+    },
+    "evidence_type": {
+      "type": "string",
+      "enum": [
+        "Screenshot",
+        "Policy",
+        "Procedure",
+        "Configuration Export",
+        "Report",
+        "Ticket",
+        "Interview Note",
+        "Diagram",
+        "Log",
+        "Attestation",
+        "Other"
+      ],
+      "default": "Screenshot"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "evidence_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "uploaded_by": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Needs Review",
+        "Accepted",
+        "Rejected",
+        "Expired"
+      ],
+      "default": "Draft"
+    },
+    "quality_notes": {
+      "type": "string"
+    },
+    "quality_checklist": {
+      "type": "object",
+      "description": "Map of evidence quality checklist keys to booleans.",
+      "default": {}
+    },
+    "hash_value": {
+      "type": "string"
+    },
+    "source_system": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "evidence_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

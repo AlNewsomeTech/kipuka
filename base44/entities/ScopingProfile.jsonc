@@ -1,0 +1,140 @@
+{
+  "name": "ScopingProfile",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "scope_name": {
+      "type": "string"
+    },
+    "handles_fci": {
+      "type": "boolean",
+      "default": false
+    },
+    "handles_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "cui_description": {
+      "type": "string"
+    },
+    "fci_description": {
+      "type": "string"
+    },
+    "environment_type": {
+      "type": "string",
+      "enum": [
+        "Entire Enterprise",
+        "Enclave",
+        "Hybrid",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "boundary_summary": {
+      "type": "string"
+    },
+    "included_locations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "excluded_locations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "included_users_summary": {
+      "type": "string"
+    },
+    "included_systems_summary": {
+      "type": "string"
+    },
+    "excluded_systems_summary": {
+      "type": "string"
+    },
+    "external_service_providers": {
+      "type": "string"
+    },
+    "cloud_services_summary": {
+      "type": "string"
+    },
+    "data_flow_summary": {
+      "type": "string"
+    },
+    "wizard_answers": {
+      "type": "object",
+      "description": "Map of scoping wizard question keys to free-text answers.",
+      "default": {}
+    },
+    "scope_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Draft",
+        "Needs Review",
+        "Approved"
+      ],
+      "default": "Not Started"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

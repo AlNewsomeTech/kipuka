@@ -1,6 +1,6 @@
 // Left project-navigation module definitions and onboarding checklist steps.
 import {
-  LayoutDashboard, Crosshair, ClipboardCheck, ListChecks, FileStack,
+  LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
   AlertTriangle, ScrollText, BadgeCheck, BarChart3,
 } from 'lucide-react';
 
@@ -9,6 +9,7 @@ import {
 export const PROJECT_MODULES = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, read: true },
   { key: 'scoping', label: 'Scoping', icon: Crosshair, read: false },
+  { key: 'inventory', label: 'Asset Inventory', icon: Boxes, read: false },
   { key: 'assessment', label: 'Assessment', icon: ClipboardCheck, read: false },
   { key: 'evidence', label: 'Evidence', icon: ListChecks, read: true },
   { key: 'ssp', label: 'SSP', icon: FileStack, read: true, darkhorizon: true },
