@@ -142,6 +142,10 @@ export default function ClientIntake() {
         const created = await base44.entities.ClientIntake.create(payload);
         setIntake(created);
       }
+      // Move the client's project status forward once intake work begins
+      if (completedChecklist.length > 0 && selectedClient?.project_status === 'Not Started') {
+        await base44.entities.Client.update(selectedClientId, { project_status: 'In Progress' });
+      }
     } catch (e) {
       alert('Error saving intake: ' + e.message);
     }
