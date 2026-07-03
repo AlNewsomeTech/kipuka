@@ -13,6 +13,11 @@ import RoleRoute from '@/components/RoleRoute';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
+import Projects from '@/pages/Projects';
+import NewProjectWizard from '@/pages/NewProjectWizard';
+import ProjectWorkspace from '@/pages/ProjectWorkspace';
+import ProjectDashboard from '@/pages/project/ProjectDashboard';
+import ProjectModulePage from '@/pages/project/ProjectModulePage';
 import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
@@ -72,8 +77,23 @@ const AuthenticatedApp = () => {
         <Route path="/org-settings" element={<OrgSettings />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
 
+        {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:id" element={<ProjectWorkspace />}>
+          <Route index element={<ProjectDashboard />} />
+          <Route path="scoping" element={<ProjectModulePage moduleKey="scoping" />} />
+          <Route path="assessment" element={<ProjectModulePage moduleKey="assessment" />} />
+          <Route path="evidence" element={<ProjectModulePage moduleKey="evidence" />} />
+          <Route path="ssp" element={<ProjectModulePage moduleKey="ssp" />} />
+          <Route path="poam" element={<ProjectModulePage moduleKey="poam" />} />
+          <Route path="policies" element={<ProjectModulePage moduleKey="policies" />} />
+          <Route path="sprs" element={<ProjectModulePage moduleKey="sprs" />} />
+          <Route path="reports" element={<ProjectModulePage moduleKey="reports" />} />
+        </Route>
+
         {/* Full workflow — admin + technician only (client role redirected to dashboard) */}
         <Route element={<RoleRoute allow={['admin', 'technician']} />}>
+          <Route path="/projects/new" element={<NewProjectWizard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/board" element={<DeploymentBoard />} />
           <Route path="/controls" element={<CMMCControls />} />

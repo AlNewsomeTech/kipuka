@@ -1,0 +1,120 @@
+{
+  "name": "CMMCLevelDetermination",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "handles_fci": {
+      "type": "boolean",
+      "default": false
+    },
+    "handles_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_far_52_204_21": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_dfars_252_204_7012": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_dfars_252_204_7020": {
+      "type": "boolean",
+      "default": false
+    },
+    "contract_mentions_cmmc_l1": {
+      "type": "boolean",
+      "default": false
+    },
+    "contract_mentions_cmmc_l2": {
+      "type": "boolean",
+      "default": false
+    },
+    "expected_future_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "performs_dod_work": {
+      "type": "boolean",
+      "default": false
+    },
+    "recommended_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2",
+        "Level 3",
+        "Needs Review",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "recommended_assessment_path": {
+      "type": "string",
+      "enum": [
+        "Level 1 Self-Assessment",
+        "Level 2 Self-Assessment",
+        "Level 2 C3PAO",
+        "Level 3 Government Assessment",
+        "Needs Review"
+      ],
+      "default": "Needs Review"
+    },
+    "user_selected_path": {
+      "type": "string"
+    },
+    "determination_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

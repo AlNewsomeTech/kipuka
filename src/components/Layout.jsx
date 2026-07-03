@@ -5,7 +5,7 @@ import {
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
-  Building, ScrollText, Server
+  Building, ScrollText, Server, FolderKanban
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -18,6 +18,7 @@ import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 const navSections = [
   { label: 'Overview', items: [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, clientVisible: true },
+    { to: '/projects', label: 'Projects', icon: FolderKanban, clientVisible: true },
     { to: '/clients', label: 'Clients', icon: Building2 },
     { to: '/intake', label: 'Client Intake', icon: ClipboardCheck, clientVisible: true },
     { to: '/board', label: 'Deployment Board', icon: KanbanSquare },

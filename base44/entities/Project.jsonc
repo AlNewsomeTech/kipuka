@@ -1,0 +1,164 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_name": {
+      "type": "string"
+    },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "CMMC Level 1",
+        "CMMC Level 2 Self-Assessment",
+        "CMMC Level 2 C3PAO Readiness",
+        "CMMC Maintenance",
+        "Other"
+      ],
+      "default": "CMMC Level 1"
+    },
+    "target_cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2",
+        "Level 3",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "assessment_path": {
+      "type": "string",
+      "enum": [
+        "Level 1 Self-Assessment",
+        "Level 2 Self-Assessment",
+        "Level 2 C3PAO Assessment",
+        "Level 3 Government Assessment",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "project_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Discovery",
+        "Scoping",
+        "Assessment",
+        "Remediation",
+        "Documentation",
+        "Evidence Collection",
+        "Ready for Review",
+        "Submitted",
+        "Complete",
+        "On Hold"
+      ],
+      "default": "Not Started"
+    },
+    "primary_cage_code": {
+      "type": "string"
+    },
+    "related_cage_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "uei": {
+      "type": "string"
+    },
+    "project_owner_name": {
+      "type": "string"
+    },
+    "project_owner_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "affirming_official_name": {
+      "type": "string"
+    },
+    "affirming_official_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "target_completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "actual_completion_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "current_readiness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "notes": {
+      "type": "string"
+    },
+    "assigned_pacsec_support": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Emails of Pac-Sec Support users assigned to this project."
+    },
+    "onboarding_checklist": {
+      "type": "object",
+      "description": "Map of onboarding checklist step keys to completion booleans.",
+      "default": {}
+    }
+  },
+  "required": [
+    "project_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
