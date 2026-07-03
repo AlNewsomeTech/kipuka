@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
+import ClientLevelStatus from '@/components/clients/ClientLevelStatus';
 
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
@@ -134,7 +135,7 @@ export default function Clients() {
                   <h3 className="font-semibold text-slate-900">{c.legal_name}</h3>
                   {c.dba_name && <p className="text-xs text-slate-500">DBA: {c.dba_name}</p>}
                 </div>
-                <StatusBadge status={c.project_status} size="xs" />
+                <ClientLevelStatus clientId={c.id} />
               </div>
               <div className="space-y-1.5 text-xs text-slate-600">
                 <div className="flex items-center gap-2"><span className="text-slate-400 w-20">Domain</span> {c.primary_domain || '—'}</div>
