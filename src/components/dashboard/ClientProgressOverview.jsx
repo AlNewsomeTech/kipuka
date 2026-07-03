@@ -14,9 +14,10 @@ const l1Phases = [
 ];
 const l2Phases = ['Level 2 Readiness'];
 
-export default function ClientProgressOverview() {
+export default function ClientProgressOverview({ onlyClientId = null }) {
   const { clients, setSelectedClientId } = useClient();
   const navigate = useNavigate();
+  const scopedClients = onlyClientId ? clients.filter(c => c.id === onlyClientId) : clients;
   const [allTasks, setAllTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState('completion');
@@ -32,7 +33,7 @@ export default function ClientProgressOverview() {
     return <div className="bg-white rounded-xl border border-slate-200 p-5 animate-pulse h-48" />;
   }
 
-  if (clients.length === 0) {
+  if (scopedClients.length === 0) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <EmptyState icon={Users} title="No clients yet" description="Add clients to see cross-client progress." />
@@ -42,7 +43,7 @@ export default function ClientProgressOverview() {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const rows = clients.map((client) => {
+  const rows = scopedClients.map((client) => {
     const tasks = allTasks.filter(t => t.client_id === client.id);
     const l1Tasks = tasks.filter(t => l1Phases.includes(t.phase));
     const l2Tasks = tasks.filter(t => l2Phases.includes(t.phase));

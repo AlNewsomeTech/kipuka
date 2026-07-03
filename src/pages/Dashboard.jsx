@@ -185,7 +185,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <ClientProgressOverview />
+      <ClientProgressOverview onlyClientId={selectedClientId} />
 
       <WarningBanner indices={[0, 1, 2]} />
 
