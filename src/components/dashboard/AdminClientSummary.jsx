@@ -60,6 +60,14 @@ export default function AdminClientSummary() {
           const l1Pct = controls.l1.length ? (l1Complete / controls.l1.length) * 100 : 0;
           const l2Pct = controls.l2.length ? (l2Complete / controls.l2.length) * 100 : 0;
 
+          const levelStatus = (complete, total) => {
+            if (!total || complete === 0) return { label: 'Not Started', cls: 'bg-slate-100 text-slate-600' };
+            if (complete >= total) return { label: 'Complete', cls: 'bg-green-50 text-green-700' };
+            return { label: 'In Progress', cls: 'bg-blue-50 text-blue-700' };
+          };
+          const l1Status = levelStatus(l1Complete, controls.l1.length);
+          const l2Status = levelStatus(l2Complete, controls.l2.length);
+
           return (
             <div
               key={client.id}
@@ -85,7 +93,10 @@ export default function AdminClientSummary() {
                     <span className="text-xs font-medium text-slate-600 flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-green-600" /> Level 1 Controls
                     </span>
-                    <span className="text-xs font-bold text-slate-700">{l1Complete}/{controls.l1.length}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${l1Status.cls}`}>{l1Status.label}</span>
+                      <span className="text-xs font-bold text-slate-700">{l1Complete}/{controls.l1.length}</span>
+                    </div>
                   </div>
                   <ProgressBar value={l1Pct} color="green" size="sm" />
                 </div>
@@ -94,7 +105,10 @@ export default function AdminClientSummary() {
                     <span className="text-xs font-medium text-slate-600 flex items-center gap-1.5">
                       <Layers className="w-3.5 h-3.5 text-amber-600" /> Level 2 Controls
                     </span>
-                    <span className="text-xs font-bold text-slate-700">{l2Complete}/{controls.l2.length}</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${l2Status.cls}`}>{l2Status.label}</span>
+                      <span className="text-xs font-bold text-slate-700">{l2Complete}/{controls.l2.length}</span>
+                    </div>
                   </div>
                   <ProgressBar value={l2Pct} color="amber" size="sm" />
                 </div>
@@ -102,9 +116,10 @@ export default function AdminClientSummary() {
 
               <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                 <span className="text-[10px] text-slate-400">Evidence-verified completion</span>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${client.project_status === 'Complete' ? 'bg-green-50 text-green-700' : client.project_status === 'In Progress' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>
-                  {client.project_status}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${l1Status.cls}`}>L1 {l1Status.label}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${l2Status.cls}`}>L2 {l2Status.label}</span>
+                </div>
               </div>
             </div>
           );
