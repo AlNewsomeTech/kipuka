@@ -8,6 +8,7 @@ import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
 import ClientLevelStatus from '@/components/clients/ClientLevelStatus';
+import ClientSummaryDashboard from '@/components/clients/ClientSummaryDashboard';
 
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
@@ -22,6 +23,7 @@ export default function Clients() {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [assignClient, setAssignClient] = useState(null);
+  const [expandedSummary, setExpandedSummary] = useState(null);
   const [form, setForm] = useState({
     organization_id: '',
     legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
@@ -191,6 +193,11 @@ export default function Clients() {
                   </button>
                 )}
               </div>
+              <ClientSummaryDashboard
+                clientId={c.id}
+                expanded={expandedSummary === c.id}
+                onToggle={() => setExpandedSummary(expandedSummary === c.id ? null : c.id)}
+              />
             </div>
           ))}
         </div>
