@@ -27,7 +27,7 @@ export default function AdminClientSummary() {
 
   const handleSelectClient = (clientId) => {
     setSelectedClientId(clientId);
-    navigate('/');
+    navigate('/board');
   };
 
   // Group completed controls by client_id -> Set of control IDs
