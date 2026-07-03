@@ -198,20 +198,31 @@
 .dark-green .text-white\/40 { color: rgb(74 222 128 / 0.5); }
 
 /* ===== Light/grey buttons readability in dark & dark-green modes (site-wide) ===== */
-/* slate-100 / slate-50 buttons render as near-white with light text otherwise */
+/* Any slate-100 / slate-50 / white surface gets a legible dark surface + light text,
+   regardless of which text-slate-* class is combined with it or the class order. */
+.dark .bg-slate-100,
+.dark .bg-slate-50,
+.dark button.bg-white,
+.dark select.bg-white { background-color: #243044; }
 .dark .bg-slate-100.text-slate-700,
 .dark .bg-slate-100.text-slate-600,
+.dark .bg-slate-100.text-slate-500,
 .dark .bg-slate-50.text-slate-700,
-.dark .bg-slate-50.text-slate-600 { background-color: #243044; color: #e2e8f0; }
-.dark .bg-slate-100.text-slate-700:hover,
-.dark .bg-slate-50.text-slate-700:hover { background-color: #334155; color: #f1f5f9; }
+.dark .bg-slate-50.text-slate-600,
+.dark .bg-slate-50.text-slate-500 { color: #e2e8f0; }
+.dark .bg-slate-100:hover,
+.dark .bg-slate-50:hover { background-color: #334155; }
 
 .dark-green .bg-slate-100,
-.dark-green .bg-slate-50 { background-color: #14251a; }
+.dark-green .bg-slate-50,
+.dark-green button.bg-white,
+.dark-green select.bg-white { background-color: #14251a; color: #86efac; }
 .dark-green .bg-slate-100.text-slate-700,
 .dark-green .bg-slate-100.text-slate-600,
+.dark-green .bg-slate-100.text-slate-500,
 .dark-green .bg-slate-50.text-slate-700,
-.dark-green .bg-slate-50.text-slate-600 { background-color: #14251a; color: #86efac; }
+.dark-green .bg-slate-50.text-slate-600,
+.dark-green .bg-slate-50.text-slate-500 { background-color: #14251a; color: #86efac; }
 .dark-green .bg-slate-100:hover,
 .dark-green .bg-slate-50:hover { background-color: #1c3324; }
 .dark-green .hover\:bg-slate-200:hover,
