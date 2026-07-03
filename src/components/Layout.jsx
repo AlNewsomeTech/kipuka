@@ -4,10 +4,12 @@ import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList
+  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
+  Building, ScrollText, Server
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
+import OrgSelector from '@/components/org/OrgSelector';
 import { useTheme } from '@/lib/themeContext';
 import WarningBanner from '@/components/WarningBanner';
 import AcceptanceGate from '@/components/legal/AcceptanceGate';
@@ -19,6 +21,10 @@ const navSections = [
     { to: '/clients', label: 'Clients', icon: Building2 },
     { to: '/intake', label: 'Client Intake', icon: ClipboardCheck, clientVisible: true },
     { to: '/board', label: 'Deployment Board', icon: KanbanSquare },
+  ]},
+  { label: 'Organization', items: [
+    { to: '/org-settings', label: 'Organization Settings', icon: Building, clientVisible: true },
+    { to: '/audit-log', label: 'Audit Log', icon: ScrollText, clientVisible: true },
   ]},
   { label: 'CMMC Controls', items: [
     { to: '/controls', label: 'Level 1 Controls', icon: ShieldCheck },
@@ -48,6 +54,7 @@ const navSections = [
   ]},
   { label: 'Administration', items: [
     { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
+    { to: '/saas-admin', label: 'Pac-Sec SaaS Admin', icon: Server, adminOnly: true },
   ]},
 ];
 
@@ -143,6 +150,9 @@ export default function Layout() {
           </button>
 
           <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center pr-3 mr-1 border-r border-slate-200">
+              <OrgSelector />
+            </div>
             <span className="text-sm font-medium text-slate-500 hidden sm:inline">Active Client:</span>
             <select
               value={selectedClientId || ''}

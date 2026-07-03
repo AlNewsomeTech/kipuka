@@ -2,6 +2,10 @@
   "name": "Client",
   "type": "object",
   "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "The SaaS Organization (tenant) this project/client belongs to. Used for multi-tenant data isolation."
+    },
     "legal_name": {
       "type": "string"
     },

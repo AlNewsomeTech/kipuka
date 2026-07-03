@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import { ClientProvider } from '@/lib/clientContext';
+import { OrgProvider } from '@/lib/orgContext';
 import { ThemeProvider } from '@/lib/themeContext';
 import RoleRoute from '@/components/RoleRoute';
 import Layout from '@/components/Layout';
@@ -33,6 +34,9 @@ import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
 import AIAssistant from '@/pages/AIAssistant';
 import TermsAndConditions from '@/pages/TermsAndConditions';
+import SaaSAdmin from '@/pages/SaaSAdmin';
+import OrgSettings from '@/pages/OrgSettings';
+import AuditLogPage from '@/pages/AuditLogPage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -60,11 +64,13 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route element={<ClientProvider><Layout /></ClientProvider>}>
+      <Route element={<OrgProvider><ClientProvider><Layout /></ClientProvider></OrgProvider>}>
         {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/intake" element={<ClientIntake />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+        <Route path="/org-settings" element={<OrgSettings />} />
+        <Route path="/audit-log" element={<AuditLogPage />} />
 
         {/* Full workflow — admin + technician only (client role redirected to dashboard) */}
         <Route element={<RoleRoute allow={['admin', 'technician']} />}>
@@ -92,6 +98,7 @@ const AuthenticatedApp = () => {
         {/* Administration — admin only */}
         <Route element={<RoleRoute allow={['admin']} />}>
           <Route path="/users" element={<UserManagement />} />
+          <Route path="/saas-admin" element={<SaaSAdmin />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />

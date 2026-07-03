@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useTermsSettings } from '@/lib/useTermsSettings';
 import { ACCEPTANCE_CHECKBOX_TEXT } from '@/lib/termsContent';
+import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import AcceptanceModal from './AcceptanceModal';
 
 // Gates app content behind acceptance of the current terms version.
@@ -56,6 +57,7 @@ export default function AcceptanceGate({ children }) {
       user_agent: navigator.userAgent || '',
       acceptance_text: ACCEPTANCE_CHECKBOX_TEXT,
     });
+    await logAudit({ user, actionType: AUDIT_ACTIONS.LOGIN_ACCEPTANCE, summary: `Accepted terms ${settings.terms_version}` });
     setSubmitting(false);
     setStatus('accepted');
   };

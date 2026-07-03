@@ -1,0 +1,81 @@
+{
+  "name": "OrganizationUser",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "user_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "user_name": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Organization Owner",
+        "Organization Admin",
+        "Compliance Manager",
+        "IT Admin",
+        "Evidence Contributor",
+        "Executive Viewer",
+        "Auditor Viewer",
+        "Pac-Sec Support",
+        "Pac-Sec Admin"
+      ],
+      "default": "Evidence Contributor"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Invited",
+        "Active",
+        "Disabled",
+        "Removed"
+      ],
+      "default": "Invited"
+    },
+    "last_login_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "terms_accepted_version": {
+      "type": "string"
+    },
+    "access_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "user_email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

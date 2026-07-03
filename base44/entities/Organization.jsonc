@@ -1,0 +1,136 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "organization_name": {
+      "type": "string"
+    },
+    "legal_name": {
+      "type": "string"
+    },
+    "short_name": {
+      "type": "string"
+    },
+    "primary_contact_name": {
+      "type": "string"
+    },
+    "primary_contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "primary_contact_phone": {
+      "type": "string"
+    },
+    "website": {
+      "type": "string"
+    },
+    "uei": {
+      "type": "string"
+    },
+    "cage_codes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "sam_registration_status": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Active",
+        "Inactive",
+        "Pending",
+        "Not Applicable"
+      ],
+      "default": "Unknown"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "Starter L1",
+        "Professional L2",
+        "Premium L2 Readiness",
+        "Pac-Sec Managed",
+        "Trial"
+      ],
+      "default": "Trial"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "Trial",
+        "Active",
+        "Past Due",
+        "Suspended",
+        "Cancelled"
+      ],
+      "default": "Trial"
+    },
+    "subscription_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "subscription_end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "seat_limit": {
+      "type": "integer",
+      "default": 5
+    },
+    "storage_limit_gb": {
+      "type": "number",
+      "default": 5
+    },
+    "support_level": {
+      "type": "string",
+      "enum": [
+        "Standard",
+        "Priority",
+        "Pac-Sec Managed"
+      ],
+      "default": "Standard"
+    },
+    "customer_logo_url": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "fully_disabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true (set by Pac-Sec Admin), the organization has no access at all \u2014 not even read-only."
+    }
+  },
+  "required": [
+    "organization_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

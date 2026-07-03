@@ -1,0 +1,91 @@
+{
+  "name": "LicenseRecord",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "subscription_tier": {
+      "type": "string",
+      "enum": [
+        "Starter L1",
+        "Professional L2",
+        "Premium L2 Readiness",
+        "Pac-Sec Managed",
+        "Trial"
+      ],
+      "default": "Trial"
+    },
+    "annual_price": {
+      "type": "number",
+      "default": 0
+    },
+    "billing_status": {
+      "type": "string",
+      "enum": [
+        "Trial",
+        "Active",
+        "Past Due",
+        "Suspended",
+        "Cancelled"
+      ],
+      "default": "Trial"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "renewal_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "seat_limit": {
+      "type": "integer",
+      "default": 5
+    },
+    "storage_limit_gb": {
+      "type": "number",
+      "default": 5
+    },
+    "allowed_projects": {
+      "type": "integer",
+      "default": 1
+    },
+    "allowed_exports_per_month": {
+      "type": "integer",
+      "default": 10
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
