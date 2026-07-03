@@ -4,6 +4,7 @@ import { useClient } from '@/lib/clientContext';
 import { EXPORT_MODES } from '@/lib/packageStructure';
 import EmptyState from '@/components/EmptyState';
 import FolderTree from '@/components/package/FolderTree';
+import EmptyFolderExport from '@/components/package/EmptyFolderExport';
 import PackageFileList from '@/components/package/PackageFileList';
 import PackageHistory from '@/components/package/PackageHistory';
 import {
@@ -94,6 +95,8 @@ export default function SharePointPackage() {
           {loadingPreview ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />} Refresh Preview
         </button>
       </div>
+
+      <EmptyFolderExport client={selectedClient} />
 
       {/* Options */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">

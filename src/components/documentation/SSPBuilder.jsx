@@ -67,8 +67,8 @@ export default function SSPBuilder({ sspRecord, clientId, onUpdate }) {
           </div>
           <div>
             <label className="text-xs font-medium text-slate-600">Level</label>
-            <select className="form-input mt-1" value={form.ssp_level || 'Level 1'} onChange={e => update('ssp_level', e.target.value)}>
-              <option>Level 1</option><option>Level 2 Ready</option><option>Level 2</option>
+            <select className="form-input mt-1" value={form.ssp_level === 'Level 2 Ready' ? 'Level 2' : (form.ssp_level || 'Level 1')} onChange={e => update('ssp_level', e.target.value)}>
+              <option>Level 1</option><option>Level 2</option>
             </select>
           </div>
           <div>

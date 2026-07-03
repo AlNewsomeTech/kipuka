@@ -196,3 +196,28 @@
 .dark-green .text-white\/60 { color: rgb(74 222 128 / 0.7); }
 .dark-green .text-white\/50 { color: rgb(74 222 128 / 0.6); }
 .dark-green .text-white\/40 { color: rgb(74 222 128 / 0.5); }
+
+/* ===== Light/grey buttons readability in dark & dark-green modes (site-wide) ===== */
+/* slate-100 / slate-50 buttons render as near-white with light text otherwise */
+.dark .bg-slate-100.text-slate-700,
+.dark .bg-slate-100.text-slate-600,
+.dark .bg-slate-50.text-slate-700,
+.dark .bg-slate-50.text-slate-600 { background-color: #243044; color: #e2e8f0; }
+.dark .bg-slate-100.text-slate-700:hover,
+.dark .bg-slate-50.text-slate-700:hover { background-color: #334155; color: #f1f5f9; }
+
+.dark-green .bg-slate-100,
+.dark-green .bg-slate-50 { background-color: #14251a; }
+.dark-green .bg-slate-100.text-slate-700,
+.dark-green .bg-slate-100.text-slate-600,
+.dark-green .bg-slate-50.text-slate-700,
+.dark-green .bg-slate-50.text-slate-600 { background-color: #14251a; color: #86efac; }
+.dark-green .bg-slate-100:hover,
+.dark-green .bg-slate-50:hover { background-color: #1c3324; }
+.dark-green .hover\:bg-slate-200:hover,
+.dark-green .hover\:bg-slate-100:hover,
+.dark-green .hover\:bg-slate-50:hover { background-color: #1c3324; }
+/* Navy primary buttons: ensure label stays light-green and legible */
+.dark-green .bg-\[\#0F1E3C\] { color: #bbf7d0; }
+.dark-green .bg-\[\#0F1E3C\] .text-white,
+.dark-green .bg-\[\#0F1E3C\].text-white { color: #bbf7d0; }
