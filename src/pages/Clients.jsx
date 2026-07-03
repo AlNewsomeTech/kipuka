@@ -3,6 +3,7 @@ import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, A
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useOrg } from '@/lib/orgContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
@@ -14,6 +15,7 @@ const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 export default function Clients() {
   const { clients, setSelectedClientId, selectedClientId, refreshClients } = useClient();
   const { user } = useAuth();
+  const { organizations, selectedOrgId } = useOrg();
   const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -21,6 +23,7 @@ export default function Clients() {
   const [deleting, setDeleting] = useState(false);
   const [assignClient, setAssignClient] = useState(null);
   const [form, setForm] = useState({
+    organization_id: '',
     legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
     poc_name: '', poc_email: '', executive_sponsor: '',
     initial_user_count: 13, expected_user_count: 13,
@@ -36,6 +39,7 @@ export default function Clients() {
   const openNew = () => {
     setEditingClient(null);
     setForm({
+      organization_id: selectedOrgId || '',
       legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
       poc_name: '', poc_email: '', executive_sponsor: '',
       initial_user_count: 13, expected_user_count: 13,
@@ -202,6 +206,12 @@ export default function Clients() {
             </div>
             <div className="p-5 space-y-4">
               <div className="grid md:grid-cols-2 gap-3">
+                <Field label="Organization">
+                  <select className="form-input" value={form.organization_id || ''} onChange={e => setForm({...form, organization_id: e.target.value})}>
+                    <option value="">— Unassigned —</option>
+                    {organizations.map(o => <option key={o.id} value={o.id}>{o.organization_name}</option>)}
+                  </select>
+                </Field>
                 <Field label="Legal Name *"><input className="form-input" value={form.legal_name} onChange={e => setForm({...form, legal_name: e.target.value})} /></Field>
                 <Field label="DBA Name"><input className="form-input" value={form.dba_name} onChange={e => setForm({...form, dba_name: e.target.value})} /></Field>
                 <Field label="Primary Domain"><input className="form-input" value={form.primary_domain} onChange={e => setForm({...form, primary_domain: e.target.value})} /></Field>

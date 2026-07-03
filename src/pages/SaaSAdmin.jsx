@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Building2, Users, FolderKanban, HardDrive, Clock, ShieldCheck, Ban, Play, Pencil, ExternalLink, ShieldAlert } from 'lucide-react';
+import { Plus, Building2, Users, FolderKanban, HardDrive, Clock, ShieldCheck, Ban, Play, Pencil, ExternalLink, ShieldAlert, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
@@ -18,18 +18,21 @@ export default function SaaSAdmin() {
   const [orgs, setOrgs] = useState([]);
   const [orgUsers, setOrgUsers] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [expandedOrg, setExpandedOrg] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [o, ou, p] = await Promise.all([
+    const [o, ou, p, c] = await Promise.all([
       base44.entities.Organization.list('-created_date', 500).catch(() => []),
       base44.entities.OrganizationUser.list('-created_date', 2000).catch(() => []),
+      base44.entities.Project.list('-created_date', 2000).catch(() => []),
       base44.entities.Client.list('-created_date', 2000).catch(() => []),
     ]);
-    setOrgs(o); setOrgUsers(ou); setProjects(p);
+    setOrgs(o); setOrgUsers(ou); setProjects(p); setClients(c);
     setLoading(false);
   }, []);
 
@@ -45,6 +48,7 @@ export default function SaaSAdmin() {
 
   const usersFor = (orgId) => orgUsers.filter((u) => u.organization_id === orgId && u.status !== 'Removed');
   const projectsFor = (orgId) => projects.filter((p) => p.organization_id === orgId);
+  const clientsFor = (orgId) => clients.filter((c) => c.organization_id === orgId);
 
   const toggleSuspend = async (org) => {
     const suspend = org.subscription_status !== 'Suspended';
@@ -112,16 +116,25 @@ export default function SaaSAdmin() {
                 {orgs.map((org) => {
                   const seats = usersFor(org.id);
                   const cfg = getTierConfig(org.subscription_tier);
-                  const projCount = projectsFor(org.id).length;
+                  const orgProjects = projectsFor(org.id);
+                  const orgClients = clientsFor(org.id);
+                  const projCount = orgProjects.length;
                   const lastLogin = seats
                     .map((s) => s.last_login_date).filter(Boolean)
                     .sort().slice(-1)[0];
                   const accepted = seats.filter((s) => s.terms_accepted_version).length;
+                  const isExpanded = expandedOrg === org.id;
                   return (
-                    <tr key={org.id} className="hover:bg-slate-50">
+                    <Fragment key={org.id}>
+                    <tr className="hover:bg-slate-50">
                       <td className="px-4 py-3">
-                        <div className="font-semibold text-slate-800">{org.organization_name}</div>
-                        {org.short_name && <div className="text-xs text-slate-400">{org.short_name}</div>}
+                        <button onClick={() => setExpandedOrg(isExpanded ? null : org.id)} className="flex items-center gap-1.5 text-left">
+                          <ChevronRight className={`w-4 h-4 text-slate-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                          <span>
+                            <span className="block font-semibold text-slate-800">{org.organization_name}</span>
+                            {org.short_name && <span className="block text-xs text-slate-400">{org.short_name}</span>}
+                          </span>
+                        </button>
                       </td>
                       <td className="px-4 py-3"><TierBadge tier={org.subscription_tier} /></td>
                       <td className="px-4 py-3"><StatusBadge status={mapStatus(org.subscription_status)} /></td>
@@ -142,6 +155,51 @@ export default function SaaSAdmin() {
                         </div>
                       </td>
                     </tr>
+                    {isExpanded && (
+                      <tr className="bg-slate-50/60">
+                        <td colSpan={9} className="px-6 py-4">
+                          <div className="grid md:grid-cols-2 gap-6">
+                            <div>
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                <FolderKanban className="w-3.5 h-3.5" /> Projects ({orgProjects.length})
+                              </div>
+                              {orgProjects.length === 0 ? (
+                                <p className="text-xs text-slate-400">No projects for this organization yet.</p>
+                              ) : (
+                                <div className="space-y-1.5">
+                                  {orgProjects.map((p) => (
+                                    <button key={p.id} onClick={() => navigate(`/projects/${p.id}`)} className="w-full flex items-center gap-2 text-left bg-white border border-slate-200 rounded-lg px-3 py-2 hover:border-blue-300">
+                                      <span className="flex-1 text-sm font-medium text-slate-700 truncate">{p.project_name}</span>
+                                      <span className="text-[11px] text-slate-400">{p.target_cmmc_level}</span>
+                                      <StatusBadge status={mapStatus(p.project_status)} />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                                <Building2 className="w-3.5 h-3.5" /> Clients ({orgClients.length})
+                              </div>
+                              {orgClients.length === 0 ? (
+                                <p className="text-xs text-slate-400">No clients linked to this organization. Link clients on the Clients page.</p>
+                              ) : (
+                                <div className="space-y-1.5">
+                                  {orgClients.map((c) => (
+                                    <div key={c.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
+                                      <span className="flex-1 text-sm font-medium text-slate-700 truncate">{c.legal_name}</span>
+                                      <span className="text-[11px] text-slate-400">{c.target_cmmc_level}</span>
+                                      <StatusBadge status={c.project_status} />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })}
               </tbody>
