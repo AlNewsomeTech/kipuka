@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Library, Plus, Loader2, Search } from 'lucide-react';
+import { Library, Plus, Loader2, Search, DownloadCloud } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { CONTROL_LIBRARY_SEED } from '@/lib/controlLibrarySeed';
+import { CONTROL_LIBRARY_LEVEL2_SEED } from '@/lib/controlLibraryLevel2Seed';
 import ControlLibraryEditor from '@/components/controllibrary/ControlLibraryEditor';
 
 export default function ControlLibraryAdmin() {
@@ -10,6 +12,7 @@ export default function ControlLibraryAdmin() {
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
   const [level, setLevel] = useState('');
+  const [seeding, setSeeding] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -19,6 +22,20 @@ export default function ControlLibraryAdmin() {
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  const seedLibrary = useCallback(async () => {
+    setSeeding(true);
+    const existing = await base44.entities.ControlLibrary.list('sort_order', 500).catch(() => []);
+    const have = new Set(existing.map((c) => c.control_id));
+    const missing = [...CONTROL_LIBRARY_SEED, ...CONTROL_LIBRARY_LEVEL2_SEED]
+      .filter((c) => !have.has(c.control_id))
+      .map((c) => ({ ...c, active: true }));
+    if (missing.length) {
+      await base44.entities.ControlLibrary.bulkCreate(missing);
+    }
+    setSeeding(false);
+    await load();
+  }, [load]);
 
   const filtered = useMemo(() => controls.filter((c) => {
     if (level && c.cmmc_level !== level) return false;
@@ -44,10 +61,16 @@ export default function ControlLibraryAdmin() {
               <p className="text-sm text-slate-500">Maintain the master control content used across all projects.</p>
             </div>
           </div>
-          <button onClick={() => setCreating(true)}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
-            <Plus className="w-4 h-4" /> Add Control
-          </button>
+          <div className="flex items-center gap-2">
+            <button onClick={seedLibrary} disabled={seeding}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 disabled:opacity-60">
+              {seeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <DownloadCloud className="w-4 h-4" />} Seed / Sync Library
+            </button>
+            <button onClick={() => setCreating(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
+              <Plus className="w-4 h-4" /> Add Control
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
