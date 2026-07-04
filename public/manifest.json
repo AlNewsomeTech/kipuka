@@ -1,0 +1,16 @@
+{
+  "name": "CMMC Command Center",
+  "short_name": "CMMC",
+  "description": "CMMC 2.0 Deployment & Evidence Management Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F1E3C",
+  "theme_color": "#0F1E3C",
+  "icons": [
+    {
+      "src": "https://base44.com/logo_v2.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
