@@ -104,7 +104,9 @@ export default function RemediationQueue() {
           </div>
 
           {rows.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">No remediation items in this view.</div>
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
+              {items.length === 0 ? 'No ACOLYTE remediation items have been created yet.' : 'No remediation items in this view.'}
+            </div>
           ) : (
             <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
               {rows.map((i) => {

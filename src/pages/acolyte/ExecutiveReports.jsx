@@ -77,7 +77,9 @@ export default function ExecutiveReports() {
           </div>
 
           {rows.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">No executive reports yet. Create one, or generate a draft from a readiness review.</div>
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
+              {reports.length === 0 ? 'No executive cyber reports have been created yet. Create one, or generate a draft from a readiness review.' : 'No reports match this status.'}
+            </div>
           ) : (
             <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
               {rows.map((r) => (

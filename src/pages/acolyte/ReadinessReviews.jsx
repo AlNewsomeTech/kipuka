@@ -106,7 +106,9 @@ export default function ReadinessReviews() {
           </div>
 
           {rows.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">No readiness reviews in this view.</div>
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
+              {reviews.length === 0 ? 'No readiness reviews have been recorded yet.' : 'No readiness reviews in this view.'}
+            </div>
           ) : (
             <div className="relative pl-6 space-y-3">
               <div className="absolute left-2 top-2 bottom-2 w-px bg-slate-200" />

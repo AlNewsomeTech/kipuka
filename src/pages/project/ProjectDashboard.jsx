@@ -9,6 +9,7 @@ import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
+import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
 
 function Metric({ icon: Icon, label, value, tone = 'slate' }) {
   const tones = {
@@ -123,6 +124,8 @@ export default function ProjectDashboard() {
         <Metric icon={Package} label="Evidence Package" value="Not Started" />
         <Metric icon={BadgeCheck} label="SPRS / PIEE" value="Not Started" />
       </div>
+
+      <AcolyteSummaryCard projectId={project.id} />
 
       <div className="grid lg:grid-cols-2 gap-4">
         <OnboardingChecklist

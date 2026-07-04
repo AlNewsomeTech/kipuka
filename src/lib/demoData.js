@@ -212,6 +212,41 @@ export const DEMO_REPORTS = {
     'Reports turn the workspace into client-ready deliverables for executives, internal reviews, SPRS preparation, and assessor handoff.',
 };
 
+export const DEMO_ACOLYTE = {
+  profile: {
+    service_tier: 'ACOLYTE CMMC Premium',
+    service_status: 'Active',
+    readiness_score: 74,
+    review_cadence: 'Quarterly',
+    pacsec_service_lead: 'Pac-Sec Cyber Operations',
+    last_review_date: '2026-06-15',
+    next_review_target_date: '2026-09-15',
+  },
+  posture: [
+    { label: 'Endpoint Posture', status: 'Needs Attention' },
+    { label: 'Cloud Posture', status: 'Good' },
+    { label: 'Identity and Access', status: 'Needs Attention' },
+    { label: 'Vulnerability Tracking', status: 'High Risk' },
+    { label: 'Incident Readiness', status: 'Needs Attention' },
+    { label: 'Compliance Alignment', status: 'Good' },
+  ],
+  findings: [
+    { title: 'Privileged access review evidence is incomplete', category: 'Identity and Access', severity: 'High', status: 'Open' },
+    { title: 'Critical endpoint patches pending on engineering laptops', category: 'Vulnerability', severity: 'Critical', status: 'In Progress' },
+    { title: 'Audit log retention not fully documented', category: 'Logging and Monitoring', severity: 'Moderate', status: 'Open' },
+    { title: 'Incident response tabletop follow-up actions not closed', category: 'Incident Response', severity: 'Moderate', status: 'Pending Validation' },
+  ],
+  incident: [
+    { label: 'IR Plan', value: 'In Review' },
+    { label: 'Contact List', value: 'Current' },
+    { label: 'Escalation Path', value: 'Draft' },
+    { label: 'Tabletop', value: 'Needs Follow-Up' },
+    { label: 'Backup & Recovery', value: 'Good' },
+  ],
+  valueStatement:
+    'ACOLYTE is Pac-Sec\u2019s managed cyber readiness service — continuous posture review, vulnerability tracking, remediation coordination, incident readiness, and executive cyber reporting alongside CMMC evidence.',
+};
+
 export const DEMO_TOUR_STEPS = [
   'Start with onboarding to determine the CMMC path.',
   'Define the CUI and FCI scope.',

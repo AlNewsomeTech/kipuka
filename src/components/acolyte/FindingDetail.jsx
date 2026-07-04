@@ -11,8 +11,16 @@ function Rich({ label, html }) {
     </div>
   );
 }
-function Chips({ label, items }) {
-  if (!items?.length) return null;
+function Chips({ label, items, empty }) {
+  if (!items?.length) {
+    if (!empty) return null;
+    return (
+      <div>
+        <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</div>
+        <p className="text-xs text-slate-400 italic">{empty}</p>
+      </div>
+    );
+  }
   return (
     <div>
       <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</div>
@@ -47,10 +55,10 @@ export default function FindingDetail({ finding, controlLabels, evidenceLabels, 
           <Rich label="Business Impact" html={finding.business_impact} />
           <Rich label="Recommended Action" html={finding.recommended_action} />
 
-          <Chips label="Related CMMC Controls" items={finding.related_control_ids} />
-          <Chips label="Related Evidence" items={(finding.related_evidence_ids || []).map((id) => evidenceLabels[id] || id)} />
-          <Chips label="Related POA&M Items" items={(finding.related_poam_ids || []).map((id) => poamLabels[id] || id)} />
-          {remediationTitles?.length > 0 && <Chips label="Related Remediation Items" items={remediationTitles} />}
+          <Chips label="Related CMMC Controls" items={finding.related_control_ids} empty="No related CMMC controls linked yet." />
+          <Chips label="Related Evidence" items={(finding.related_evidence_ids || []).map((id) => evidenceLabels[id] || id)} empty="No related evidence linked yet." />
+          <Chips label="Related POA&M Items" items={(finding.related_poam_ids || []).map((id) => poamLabels[id] || id)} empty="No related POA&M item linked yet." />
+          <Chips label="Related Remediation Items" items={remediationTitles} empty="No related remediation items linked yet." />
 
           <Rich label="Closure Notes" html={finding.closure_notes} />
           <Rich label="Validation Notes" html={finding.validation_notes} />

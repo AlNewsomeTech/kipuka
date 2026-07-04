@@ -99,7 +99,9 @@ export default function CyberFindings() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">No findings match this view.</div>
+            <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
+              {findings.length === 0 ? 'No cyber findings have been recorded yet.' : 'No findings match this view.'}
+            </div>
           ) : (
             SEV_ORDER.filter((s) => grouped[s].length > 0).map((sev) => (
               <div key={sev}>

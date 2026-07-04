@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   Building2, LayoutDashboard, ClipboardCheck, Crosshair, Boxes, ShieldCheck,
   FolderArchive, FileStack, ListChecks, BookMarked, BadgeCheck, FileBarChart,
-  PlayCircle, Download, CheckCircle2, Circle, ArrowLeft, ShieldAlert, Sparkles,
+  PlayCircle, Download, CheckCircle2, Circle, ArrowLeft, ShieldAlert, Sparkles, Radar,
 } from 'lucide-react';
+import { postureStyle, severityStyle } from '@/lib/acolyte';
 import { useOrg } from '@/lib/orgContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
@@ -12,7 +13,7 @@ import { DemoBanner, DemoSection, ValueStatement, SampleChip, downloadDemoReport
 import ProductTourModal from '@/components/demo/ProductTourModal';
 import {
   DEMO_ORG, DEMO_EXEC, DEMO_ONBOARDING, DEMO_SCOPING, DEMO_ASSETS, DEMO_ASSESSMENT,
-  DEMO_EVIDENCE, DEMO_SSP, DEMO_POAM, DEMO_POLICIES, DEMO_SPRS, DEMO_REPORTS,
+  DEMO_EVIDENCE, DEMO_SSP, DEMO_POAM, DEMO_POLICIES, DEMO_SPRS, DEMO_REPORTS, DEMO_ACOLYTE,
 } from '@/lib/demoData';
 
 const toneMap = {
@@ -299,6 +300,68 @@ export default function DemoWorkspace() {
           ))}
         </div>
         <ValueStatement>{DEMO_SPRS.valueStatement}</ValueStatement>
+      </DemoSection>
+
+      {/* 10b. ACOLYTE Operations */}
+      <DemoSection id="acolyte" title="ACOLYTE Operations (Managed Cyber Readiness)" icon={Radar}>
+        <div className="flex flex-col sm:flex-row items-center gap-5 mb-4">
+          <div className="relative w-24 h-24 flex-shrink-0">
+            <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">
+              <circle cx="18" cy="18" r="15.9" fill="none" className="stroke-slate-100" strokeWidth="3" />
+              <circle cx="18" cy="18" r="15.9" fill="none" className="stroke-blue-500" strokeWidth="3"
+                strokeDasharray={`${DEMO_ACOLYTE.profile.readiness_score} 100`} strokeLinecap="round" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-xl font-bold text-slate-900">{DEMO_ACOLYTE.profile.readiness_score}%</span>
+              <span className="text-[9px] text-slate-500 uppercase tracking-wide">Readiness</span>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1 w-full">
+            <MetricTile label="Service tier" value={DEMO_ACOLYTE.profile.service_tier} small />
+            <MetricTile label="Service status" value={DEMO_ACOLYTE.profile.service_status} small />
+            <MetricTile label="Review cadence" value={DEMO_ACOLYTE.profile.review_cadence} small />
+            <MetricTile label="Service lead" value={DEMO_ACOLYTE.profile.pacsec_service_lead} small />
+            <MetricTile label="Last review" value={DEMO_ACOLYTE.profile.last_review_date} small />
+            <MetricTile label="Next review" value={DEMO_ACOLYTE.profile.next_review_target_date} small />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4">
+          {DEMO_ACOLYTE.posture.map((p) => (
+            <div key={p.label} className={`border rounded-lg px-3 py-2 flex items-center justify-between ${postureStyle(p.status)}`}>
+              <span className="text-xs font-medium">{p.label}</span>
+              <span className="text-[11px] font-bold">{p.status}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Sample Cyber Findings</div>
+        <div className="space-y-2 mb-4">
+          {DEMO_ACOLYTE.findings.map((f) => (
+            <div key={f.title} className="border border-slate-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="text-sm font-semibold text-slate-800">{f.title}</span>
+                <SampleChip />
+              </div>
+              <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600 items-center">
+                <span>Category: <b className="text-slate-700">{f.category}</b></span>
+                <span className={`px-2 py-0.5 rounded-full border text-[11px] font-semibold ${severityStyle(f.severity)}`}>{f.severity}</span>
+                <StatusBadge status={f.status} size="xs" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Incident Readiness</div>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {DEMO_ACOLYTE.incident.map((r) => (
+            <div key={r.label} className="flex items-center justify-between border-b border-slate-100 py-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">{r.label}</span>
+              <span className="text-sm font-medium text-slate-800">{r.value}</span>
+            </div>
+          ))}
+        </div>
+        <ValueStatement>{DEMO_ACOLYTE.valueStatement}</ValueStatement>
       </DemoSection>
 
       {/* 11. Reports */}
