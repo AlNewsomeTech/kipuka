@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
+import { useOrg } from '@/lib/orgContext';
 
 const ClientContext = createContext(null);
 
@@ -9,6 +10,7 @@ export function ClientProvider({ children }) {
   const [selectedClientId, setSelectedClientId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { selectOrg } = useOrg();
 
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -37,6 +39,14 @@ export function ClientProvider({ children }) {
   }, [user]);
 
   const selectedClient = clients.find((c) => c.id === selectedClientId) || null;
+
+  // Keep the org context in lock-step with the active client so every
+  // org-gated part of the app (tier features, permissions, usage limits)
+  // re-scopes to the selected client's organization — no stale caching.
+  useEffect(() => {
+    selectOrg(selectedClient?.organization_id || null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClientId, selectedClient?.organization_id]);
 
   const refreshClients = async () => {
     if (!user) return [];
