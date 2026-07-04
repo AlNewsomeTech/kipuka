@@ -3,7 +3,6 @@ import { Inbox, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
-import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 const STATUSES = ['Open', 'In Progress', 'Waiting on Customer', 'Resolved', 'Closed'];
 
@@ -78,8 +77,6 @@ export default function SupportInbox() {
           ))}
         </div>
       )}
-
-      <ConfidentialityFooter />
     </div>
   );
 }

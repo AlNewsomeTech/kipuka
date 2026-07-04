@@ -12,7 +12,6 @@ import StepContractData from '@/components/wizard/StepContractData';
 import StepRecommendation from '@/components/wizard/StepRecommendation';
 import StepSelectPath from '@/components/wizard/StepSelectPath';
 import StepGenerate from '@/components/wizard/StepGenerate';
-import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 export default function NewProjectWizard() {
   const navigate = useNavigate();
@@ -156,8 +155,6 @@ export default function NewProjectWizard() {
           )}
         </div>
       </WizardShell>
-
-      <ConfidentialityFooter />
     </div>
   );
 }

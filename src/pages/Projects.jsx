@@ -8,7 +8,6 @@ import { visibleProjects } from '@/lib/projectAccess';
 import { PERMS } from '@/lib/orgRoles';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
-import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -102,8 +101,6 @@ export default function Projects() {
           ))}
         </div>
       )}
-
-      <ConfidentialityFooter />
     </div>
   );
 }

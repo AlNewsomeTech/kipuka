@@ -3,7 +3,6 @@ import ReactMarkdown from 'react-markdown';
 import { LifeBuoy, ChevronRight, ArrowLeft } from 'lucide-react';
 import { HELP_ARTICLES, articleBySlug } from '@/lib/helpContent';
 import SupportRequestForm from '@/components/help/SupportRequestForm';
-import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 export default function HelpCenter() {
   const { slug } = useParams();
@@ -28,7 +27,6 @@ export default function HelpCenter() {
           </div>
         </div>
         {article.isContact && <SupportRequestForm />}
-        <ConfidentialityFooter />
       </div>
     );
   }
@@ -63,8 +61,6 @@ export default function HelpCenter() {
           );
         })}
       </div>
-
-      <ConfidentialityFooter />
     </div>
   );
 }
