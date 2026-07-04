@@ -1,20 +1,29 @@
 import { Building2, ChevronDown } from 'lucide-react';
 import { useOrg } from '@/lib/orgContext';
+import { useClient } from '@/lib/clientContext';
 import TierBadge from './TierBadge';
 
-// Compact org switcher for the top header. Only meaningful when the user
-// can access more than one organization.
+// Compact org switcher for the top header. Follows the active client's
+// organization so the badge always matches the client shown on the page.
 export default function OrgSelector() {
   const { organizations, selectedOrgId, selectOrg, selectedOrg } = useOrg();
+  const { selectedClient } = useClient();
 
   if (organizations.length === 0) return null;
 
-  if (organizations.length === 1) {
+  // When a client is selected, show that client's organization (falling back
+  // to the currently selected org) so the two selectors stay in sync.
+  const clientOrg = selectedClient?.organization_id
+    ? organizations.find((o) => o.id === selectedClient.organization_id)
+    : null;
+  const displayOrg = clientOrg || selectedOrg;
+
+  if (organizations.length === 1 || clientOrg) {
     return (
       <div className="flex items-center gap-2 text-sm">
         <Building2 className="w-4 h-4 text-slate-400" />
-        <span className="font-semibold text-slate-800 truncate max-w-[180px]">{selectedOrg?.organization_name}</span>
-        {selectedOrg && <TierBadge tier={selectedOrg.subscription_tier} />}
+        <span className="font-semibold text-slate-800 truncate max-w-[180px]">{displayOrg?.organization_name || 'No organization'}</span>
+        {displayOrg && <TierBadge tier={displayOrg.subscription_tier} />}
       </div>
     );
   }
