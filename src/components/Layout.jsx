@@ -5,7 +5,8 @@ import {
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
-  Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox
+  Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox,
+  Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -53,6 +54,15 @@ const navSections = [
   ]},
   { label: 'AI Assistants', items: [
     { to: '/assistant', label: 'AI Assistants', icon: Bot },
+  ]},
+  { label: 'ACOLYTE Operations', items: [
+    { to: '/acolyte', label: 'Cyber Overview', icon: Radar, clientVisible: true },
+    { to: '/acolyte/reviews', label: 'Readiness Reviews', icon: ReviewIcon, clientVisible: true },
+    { to: '/acolyte/findings', label: 'Cyber Findings', icon: AlertTriangle, clientVisible: true },
+    { to: '/acolyte/remediation', label: 'Remediation Queue', icon: Wrench, clientVisible: true },
+    { to: '/acolyte/incident-readiness', label: 'Incident Readiness', icon: Siren, clientVisible: true },
+    { to: '/acolyte/reports', label: 'Executive Reports', icon: FileBarChart, clientVisible: true },
+    { to: '/acolyte/settings', label: 'ACOLYTE Settings', icon: SlidersHorizontal, clientVisible: true },
   ]},
   { label: 'Support', items: [
     { to: '/help', label: 'Help Center', icon: LifeBuoy, clientVisible: true },

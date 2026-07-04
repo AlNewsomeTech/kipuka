@@ -92,6 +92,15 @@ const AuthenticatedApp = () => {
         <Route path="/help" element={<HelpCenter />} />
         <Route path="/help/:slug" element={<HelpCenter />} />
 
+        {/* ACOLYTE Operations — all roles (read-only enforced inside via org role) */}
+        <Route path="/acolyte" element={<AcolyteOverview />} />
+        <Route path="/acolyte/reviews" element={<ReadinessReviews />} />
+        <Route path="/acolyte/findings" element={<CyberFindings />} />
+        <Route path="/acolyte/remediation" element={<RemediationQueue />} />
+        <Route path="/acolyte/incident-readiness" element={<IncidentReadiness />} />
+        <Route path="/acolyte/reports" element={<ExecutiveReports />} />
+        <Route path="/acolyte/settings" element={<AcolyteSettings />} />
+
         {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/:id" element={<ProjectWorkspace />}>
