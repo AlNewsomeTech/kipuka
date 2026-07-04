@@ -1,0 +1,194 @@
+{
+  "name": "AcolyteProfile",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "service_tier": {
+      "type": "string",
+      "enum": [
+        "ACOLYTE Watch",
+        "ACOLYTE Ready",
+        "ACOLYTE Shield",
+        "ACOLYTE CMMC",
+        "ACOLYTE CMMC Premium"
+      ],
+      "default": "ACOLYTE Watch"
+    },
+    "service_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Active",
+        "Paused",
+        "Suspended",
+        "Complete"
+      ],
+      "default": "Not Started"
+    },
+    "primary_service_owner": {
+      "type": "string"
+    },
+    "pacsec_service_lead": {
+      "type": "string"
+    },
+    "executive_contact_name": {
+      "type": "string"
+    },
+    "executive_contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "review_cadence": {
+      "type": "string",
+      "enum": [
+        "Monthly",
+        "Quarterly",
+        "Semiannual",
+        "Annual",
+        "On Demand"
+      ],
+      "default": "Quarterly"
+    },
+    "service_start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "service_renewal_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "current_readiness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "endpoint_posture_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "cloud_posture_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "identity_access_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "vulnerability_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "incident_readiness_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "compliance_alignment_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "last_review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_review_target_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "executive_summary": {
+      "type": "string"
+    },
+    "key_risks_summary": {
+      "type": "string"
+    },
+    "next_steps_summary": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

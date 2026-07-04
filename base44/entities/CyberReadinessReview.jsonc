@@ -1,0 +1,191 @@
+{
+  "name": "CyberReadinessReview",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "review_title": {
+      "type": "string"
+    },
+    "review_period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "review_period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "review_type": {
+      "type": "string",
+      "enum": [
+        "Monthly Review",
+        "Quarterly Review",
+        "Annual Review",
+        "On Demand Review"
+      ],
+      "default": "Monthly Review"
+    },
+    "endpoint_posture_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "cloud_posture_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "vulnerability_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "identity_access_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "incident_readiness_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "compliance_alignment_status": {
+      "type": "string",
+      "enum": [
+        "Good",
+        "Needs Attention",
+        "High Risk",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "readiness_score": {
+      "type": "number",
+      "default": 0
+    },
+    "executive_summary": {
+      "type": "string"
+    },
+    "key_risks": {
+      "type": "string"
+    },
+    "completed_actions": {
+      "type": "string"
+    },
+    "recommended_next_steps": {
+      "type": "string"
+    },
+    "leadership_decisions_needed": {
+      "type": "string"
+    },
+    "prepared_by": {
+      "type": "string"
+    },
+    "review_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Delivered",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "linked_finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_remediation_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "project_id",
+    "review_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

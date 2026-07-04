@@ -1,0 +1,147 @@
+{
+  "name": "CyberFinding",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "finding_title": {
+      "type": "string"
+    },
+    "finding_category": {
+      "type": "string",
+      "enum": [
+        "Endpoint Security",
+        "Cloud Security",
+        "Identity and Access",
+        "Vulnerability",
+        "Logging and Monitoring",
+        "Incident Response",
+        "Backup and Recovery",
+        "User Awareness",
+        "Compliance Alignment",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Informational",
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Moderate"
+    },
+    "finding_status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "In Progress",
+        "Pending Validation",
+        "Accepted Risk",
+        "Closed"
+      ],
+      "default": "Open"
+    },
+    "description": {
+      "type": "string"
+    },
+    "affected_systems": {
+      "type": "string"
+    },
+    "business_impact": {
+      "type": "string"
+    },
+    "recommended_action": {
+      "type": "string"
+    },
+    "related_control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "related_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "related_poam_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "owner": {
+      "type": "string"
+    },
+    "target_resolution_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "closure_notes": {
+      "type": "string"
+    },
+    "validation_notes": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "finding_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

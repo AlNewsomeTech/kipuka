@@ -15,6 +15,22 @@ export const AUDIT_ACTIONS = {
   ASSESSMENT_STATUS_CHANGE: 'Assessment Status Change',
   ORG_SUSPEND: 'Organization Suspended',
   ORG_REACTIVATE: 'Organization Reactivated',
+  ACOLYTE_PROFILE_UPDATE: 'ACOLYTE Profile Updated',
+  ACOLYTE_REVIEW_CREATE: 'ACOLYTE Readiness Review Created',
+  ACOLYTE_REVIEW_UPDATE: 'ACOLYTE Readiness Review Updated',
+  ACOLYTE_REVIEW_ARCHIVE: 'ACOLYTE Readiness Review Archived',
+  ACOLYTE_FINDING_CREATE: 'ACOLYTE Cyber Finding Created',
+  ACOLYTE_FINDING_UPDATE: 'ACOLYTE Cyber Finding Updated',
+  ACOLYTE_FINDING_CLOSE: 'ACOLYTE Cyber Finding Closed',
+  ACOLYTE_FINDING_ACCEPT_RISK: 'ACOLYTE Cyber Finding Risk Accepted',
+  ACOLYTE_REMEDIATION_CREATE: 'ACOLYTE Remediation Item Created',
+  ACOLYTE_REMEDIATION_UPDATE: 'ACOLYTE Remediation Item Updated',
+  ACOLYTE_REMEDIATION_COMPLETE: 'ACOLYTE Remediation Item Completed',
+  ACOLYTE_REMEDIATION_DEFER: 'ACOLYTE Remediation Item Deferred',
+  ACOLYTE_INCIDENT_UPDATE: 'ACOLYTE Incident Readiness Updated',
+  ACOLYTE_REPORT_CREATE: 'ACOLYTE Executive Report Created',
+  ACOLYTE_REPORT_EXPORT: 'ACOLYTE Executive Report Exported',
+  ACOLYTE_REPORT_ARCHIVE: 'ACOLYTE Executive Report Archived',
 };
 
 // Fire-and-forget audit entry. Never throws — logging must not break user flows.

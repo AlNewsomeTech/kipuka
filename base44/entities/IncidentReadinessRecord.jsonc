@@ -1,0 +1,154 @@
+{
+  "name": "IncidentReadinessRecord",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "ir_plan_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Draft",
+        "In Review",
+        "Approved",
+        "Needs Update"
+      ],
+      "default": "Not Started"
+    },
+    "incident_contact_list_status": {
+      "type": "string",
+      "enum": [
+        "Missing",
+        "Draft",
+        "Current",
+        "Needs Update"
+      ],
+      "default": "Missing"
+    },
+    "escalation_path_status": {
+      "type": "string",
+      "enum": [
+        "Missing",
+        "Draft",
+        "Current",
+        "Needs Update"
+      ],
+      "default": "Missing"
+    },
+    "tabletop_status": {
+      "type": "string",
+      "enum": [
+        "Not Performed",
+        "Scheduled",
+        "Completed",
+        "Needs Follow-Up"
+      ],
+      "default": "Not Performed"
+    },
+    "last_tabletop_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_tabletop_target_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "backup_recovery_status": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Good",
+        "Needs Attention",
+        "High Risk"
+      ],
+      "default": "Unknown"
+    },
+    "incident_roles_summary": {
+      "type": "string"
+    },
+    "communication_plan_summary": {
+      "type": "string"
+    },
+    "escalation_notes": {
+      "type": "string"
+    },
+    "tabletop_notes": {
+      "type": "string"
+    },
+    "follow_up_actions": {
+      "type": "string"
+    },
+    "evidence_item_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_remediation_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "readiness_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

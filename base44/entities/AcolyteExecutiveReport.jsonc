@@ -1,0 +1,142 @@
+{
+  "name": "AcolyteExecutiveReport",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "report_title": {
+      "type": "string"
+    },
+    "report_period_start": {
+      "type": "string",
+      "format": "date"
+    },
+    "report_period_end": {
+      "type": "string",
+      "format": "date"
+    },
+    "prepared_by": {
+      "type": "string"
+    },
+    "report_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Generated",
+        "Delivered",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "executive_summary": {
+      "type": "string"
+    },
+    "readiness_status_summary": {
+      "type": "string"
+    },
+    "major_risks": {
+      "type": "string"
+    },
+    "open_high_priority_findings": {
+      "type": "string"
+    },
+    "completed_actions": {
+      "type": "string"
+    },
+    "remediation_progress": {
+      "type": "string"
+    },
+    "incident_readiness_summary": {
+      "type": "string"
+    },
+    "compliance_alignment_summary": {
+      "type": "string"
+    },
+    "leadership_decisions_needed": {
+      "type": "string"
+    },
+    "next_recommended_actions": {
+      "type": "string"
+    },
+    "linked_review_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_finding_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_remediation_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "file_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "report_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

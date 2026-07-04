@@ -47,6 +47,13 @@ import RoleDashboards from '@/pages/RoleDashboards';
 import HelpCenter from '@/pages/HelpCenter';
 import SupportInbox from '@/pages/SupportInbox';
 import DemoWorkspace from '@/pages/DemoWorkspace';
+import AcolyteOverview from '@/pages/acolyte/AcolyteOverview';
+import ReadinessReviews from '@/pages/acolyte/ReadinessReviews';
+import CyberFindings from '@/pages/acolyte/CyberFindings';
+import RemediationQueue from '@/pages/acolyte/RemediationQueue';
+import IncidentReadiness from '@/pages/acolyte/IncidentReadiness';
+import ExecutiveReports from '@/pages/acolyte/ExecutiveReports';
+import AcolyteSettings from '@/pages/acolyte/AcolyteSettings';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
