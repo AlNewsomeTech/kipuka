@@ -232,3 +232,49 @@
 .dark-green .bg-\[\#0F1E3C\] { color: #bbf7d0; }
 .dark-green .bg-\[\#0F1E3C\] .text-white,
 .dark-green .bg-\[\#0F1E3C\].text-white { color: #bbf7d0; }
+
+/* ===== ReactQuill rich-text editor in dark & dark-green modes ===== */
+.dark .ql-toolbar,
+.dark-green .ql-toolbar {
+  background-color: #1a2332;
+  border-color: #1e293b;
+}
+.dark .ql-container,
+.dark-green .ql-container {
+  background-color: #161f33;
+  border-color: #1e293b;
+  color: #e2e8f0;
+}
+.dark .ql-editor,
+.dark-green .ql-editor { color: #e2e8f0; }
+.dark .ql-editor.ql-blank::before,
+.dark-green .ql-editor.ql-blank::before { color: #64748b; }
+/* Toolbar icons/labels */
+.dark .ql-snow .ql-stroke,
+.dark-green .ql-snow .ql-stroke { stroke: #94a3b8; }
+.dark .ql-snow .ql-fill,
+.dark-green .ql-snow .ql-fill { fill: #94a3b8; }
+.dark .ql-snow .ql-picker,
+.dark-green .ql-snow .ql-picker { color: #94a3b8; }
+.dark .ql-snow .ql-picker-options,
+.dark-green .ql-snow .ql-picker-options {
+  background-color: #1a2332;
+  border-color: #1e293b;
+}
+.dark .ql-snow.ql-toolbar button:hover .ql-stroke,
+.dark-green .ql-snow.ql-toolbar button:hover .ql-stroke { stroke: #e2e8f0; }
+.dark .ql-snow.ql-toolbar button:hover .ql-fill,
+.dark-green .ql-snow.ql-toolbar button:hover .ql-fill { fill: #e2e8f0; }
+.dark .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.dark-green .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: #60a5fa; }
+.dark-green .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: #4ade80; }
+
+/* RichTextField wrapper uses bg-white — keep it dark so the white strip disappears */
+.dark .rounded-lg.border.border-slate-200.bg-white,
+.dark-green .rounded-lg.border.border-slate-200.bg-white { background-color: #161f33; }
+
+/* ===== Cancel / secondary buttons with faint text in dark & dark-green ===== */
+.dark .text-slate-700.bg-white,
+.dark .text-slate-600.bg-white { background-color: #243044; color: #e2e8f0; }
+.dark-green .text-slate-700.bg-white,
+.dark-green .text-slate-600.bg-white { background-color: #14251a; color: #86efac; }
