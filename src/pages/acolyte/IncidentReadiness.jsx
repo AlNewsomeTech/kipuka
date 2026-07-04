@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ShieldAlert, Save, Loader2, Check } from 'lucide-react';
+import { ShieldAlert, Save, Loader2, Check, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
 import { useAcolyteLinkables } from '@/lib/useAcolyteLinkables';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
+import { canUseAssistant, draftIncidentReadinessSummary } from '@/lib/acolyteAssistant';
 import AcolyteHeader from '@/components/acolyte/AcolyteHeader';
 import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
+import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import RichTextField from '@/components/ui/RichTextField';
 import LinkMultiSelect from '@/components/acolyte/LinkMultiSelect';
 import StatusBadge from '@/components/StatusBadge';
@@ -21,8 +23,11 @@ const CARD_FIELDS = [
 
 export default function IncidentReadiness() {
   const scope = useAcolyteScope();
-  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, user } = scope;
+  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, orgRole, user } = scope;
   const linkables = useAcolyteLinkables(projectId);
+  const [assist, setAssist] = useState(false);
+  const canAssist = canUseAssistant(orgRole, 'draft_incident');
+  const toHtml = (t) => `<p>${(t || '').replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
   const [record, setRecord] = useState(null);
   const [findings, setFindings] = useState([]);
   const [remediations, setRemediations] = useState([]);
@@ -67,7 +72,13 @@ export default function IncidentReadiness() {
 
   return (
     <div className="space-y-4">
-      <AcolyteHeader title="Incident Readiness" subtitle="Track whether the organization is ready to respond to cybersecurity incidents." icon={ShieldAlert} />
+      <AcolyteHeader title="Incident Readiness" subtitle="Track whether the organization is ready to respond to cybersecurity incidents." icon={ShieldAlert}
+        right={!readOnly && project && canAssist ? (
+          <button onClick={() => setAssist(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-purple-700 rounded-lg hover:bg-slate-100">
+            <Sparkles className="w-4 h-4" /> Draft Incident Readiness Summary
+          </button>
+        ) : null}
+      />
       <AcolyteProjectBar projects={projects} projectId={projectId} onSelect={selectProject} orgName={orgNameForProject} />
 
       {!project ? (
@@ -130,6 +141,20 @@ export default function IncidentReadiness() {
           )}
         </>
       )}
+
+      <AssistantPanel
+        open={assist}
+        title="Draft Incident Readiness Summary"
+        actionLabel="Draft Incident Readiness Summary"
+        applyLabel="Apply to Readiness Notes"
+        organizationId={project?.organization_id}
+        user={user}
+        targetEntity="IncidentReadinessRecord"
+        targetRecordId={record?.id || ''}
+        generate={() => draftIncidentReadinessSummary({ project, orgName: orgNameForProject, incident: form, findings })}
+        onApply={async (text) => { set('readiness_notes', toHtml(text)); }}
+        onClose={() => setAssist(false)}
+      />
     </div>
   );
 }

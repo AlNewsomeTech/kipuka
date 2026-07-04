@@ -1,20 +1,25 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CalendarCheck, Plus, Loader2, Archive, Pencil, FileText } from 'lucide-react';
+import { CalendarCheck, Plus, Loader2, Archive, Pencil, FileText, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { REVIEW_TYPES, REVIEW_STATUSES } from '@/lib/acolyte';
+import { canUseAssistant, draftReviewNarrative } from '@/lib/acolyteAssistant';
 import AcolyteHeader from '@/components/acolyte/AcolyteHeader';
 import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
 import ReviewFormModal from '@/components/acolyte/ReviewFormModal';
+import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import StatusBadge from '@/components/StatusBadge';
 
 export default function ReadinessReviews() {
   const scope = useAcolyteScope();
   const navigate = useNavigate();
-  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, user } = scope;
+  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, orgRole, user } = scope;
+  const [narrativeFor, setNarrativeFor] = useState(null);
+  const canAssist = canUseAssistant(orgRole, 'draft_review');
+  const toHtml = (t) => `<p>${(t || '').replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
   const [reviews, setReviews] = useState([]);
   const [findings, setFindings] = useState([]);
   const [remediations, setRemediations] = useState([]);
@@ -131,6 +136,12 @@ export default function ReadinessReviews() {
                     </div>
                     {!readOnly && (
                       <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {canAssist && (
+                          <button onClick={() => setNarrativeFor(r)} title="Draft Review Narrative with ACOLYTE Analyst Assistant"
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">
+                            <Sparkles className="w-3.5 h-3.5" /> Draft Narrative
+                          </button>
+                        )}
                         <button onClick={() => createReportFromReview(r)} title="Create Executive Report from Review"
                           className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
                           <FileText className="w-3.5 h-3.5" /> Report
@@ -152,6 +163,35 @@ export default function ReadinessReviews() {
       {modal && project && (
         <ReviewFormModal project={project} existing={editing} findings={findings} remediations={remediations} evidence={evidence} user={user}
           onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} />
+      )}
+
+      {narrativeFor && (
+        <AssistantPanel
+          open={!!narrativeFor}
+          title="Draft Review Narrative"
+          actionLabel="Draft Review Narrative"
+          applyLabel="Apply to Executive Summary"
+          organizationId={project?.organization_id}
+          user={user}
+          targetEntity="CyberReadinessReview"
+          targetRecordId={narrativeFor.id}
+          generate={async () => {
+            const linkedF = findings.filter((f) => (narrativeFor.linked_finding_ids || []).includes(f.id));
+            const linkedR = remediations.filter((r) => (narrativeFor.linked_remediation_ids || []).includes(r.id));
+            const irRows = await base44.entities.IncidentReadinessRecord.filter({ project_id: projectId }).catch(() => []);
+            return draftReviewNarrative({
+              project, orgName: orgNameForProject, review: narrativeFor,
+              findings: linkedF.length ? linkedF : findings,
+              remediations: linkedR.length ? linkedR : remediations,
+              incident: irRows[0],
+            });
+          }}
+          onApply={async (text) => {
+            await base44.entities.CyberReadinessReview.update(narrativeFor.id, { executive_summary: toHtml(text) });
+            load();
+          }}
+          onClose={() => setNarrativeFor(null)}
+        />
       )}
     </div>
   );

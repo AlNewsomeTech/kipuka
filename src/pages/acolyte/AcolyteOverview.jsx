@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield, Settings, TrendingUp, AlertTriangle, ListChecks, Loader2,
-  Calendar, ArrowRight,
+  Calendar, ArrowRight, Sparkles,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
@@ -11,10 +11,12 @@ import {
   ACOLYTE_BRAND, POSTURE_CARDS, overallStatusFromScore,
   OPEN_FINDING_STATUSES, OPEN_REMEDIATION_STATUSES, isRemediationOverdue,
 } from '@/lib/acolyte';
+import { canUseAssistant, summarizeReadiness } from '@/lib/acolyteAssistant';
 import AcolyteHeader from '@/components/acolyte/AcolyteHeader';
 import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
 import PostureCard from '@/components/acolyte/PostureCard';
+import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import { PostureBadge } from '@/components/acolyte/AcolyteBadges';
 
 function Field({ label, value }) {
@@ -28,9 +30,17 @@ function Field({ label, value }) {
 
 export default function AcolyteOverview() {
   const scope = useAcolyteScope();
-  const { project, projects, projectId, selectProject, orgNameForProject } = scope;
-  const { profile, loading: profileLoading } = useAcolyteProfile(projectId);
+  const { project, projects, projectId, selectProject, orgNameForProject, orgRole, user } = scope;
+  const { profile, loading: profileLoading, refresh: refreshProfile } = useAcolyteProfile(projectId);
   const [stats, setStats] = useState(null);
+  const [assistant, setAssistant] = useState(false);
+
+  const applyReadiness = async (textPlain) => {
+    const html = `<p>${textPlain.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
+    if (profile?.id) await base44.entities.AcolyteProfile.update(profile.id, { executive_summary: html });
+    else await base44.entities.AcolyteProfile.create({ project_id: projectId, organization_id: project.organization_id || '', executive_summary: html });
+    refreshProfile();
+  };
 
   useEffect(() => {
     let alive = true;
@@ -63,9 +73,16 @@ export default function AcolyteOverview() {
       <AcolyteHeader
         showPositioning
         right={
-          <Link to="/acolyte/settings" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
-            <Settings className="w-4 h-4" /> ACOLYTE Settings
-          </Link>
+          <div className="flex items-center gap-2">
+            {project && canUseAssistant(orgRole, 'summarize_readiness') && (
+              <button onClick={() => setAssistant(true)} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-purple-700 rounded-lg hover:bg-slate-100">
+                <Sparkles className="w-4 h-4" /> Summarize Readiness
+              </button>
+            )}
+            <Link to="/acolyte/settings" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
+              <Settings className="w-4 h-4" /> ACOLYTE Settings
+            </Link>
+          </div>
         }
       />
 
@@ -209,6 +226,27 @@ export default function AcolyteOverview() {
           <p className="text-[11px] text-slate-400 pt-1">{ACOLYTE_BRAND.preparedBy}. {ACOLYTE_BRAND.reportDisclaimer}</p>
         </>
       )}
+
+      <AssistantPanel
+        open={assistant}
+        title="Summarize Readiness"
+        actionLabel="Summarize Readiness"
+        applyLabel="Apply to Executive Summary"
+        organizationId={project?.organization_id}
+        user={user}
+        targetEntity="AcolyteProfile"
+        targetRecordId={profile?.id || ''}
+        generate={async () => {
+          const [findings, remediations, irRows] = await Promise.all([
+            base44.entities.CyberFinding.filter({ project_id: projectId }).catch(() => []),
+            base44.entities.AcolyteRemediationItem.filter({ project_id: projectId }).catch(() => []),
+            base44.entities.IncidentReadinessRecord.filter({ project_id: projectId }).catch(() => []),
+          ]);
+          return summarizeReadiness({ project, orgName: orgNameForProject, profile, findings, remediations, incident: irRows[0] });
+        }}
+        onApply={applyReadiness}
+        onClose={() => setAssistant(false)}
+      />
     </div>
   );
 }

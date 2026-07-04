@@ -31,6 +31,7 @@ export const AUDIT_ACTIONS = {
   ACOLYTE_REPORT_CREATE: 'ACOLYTE Executive Report Created',
   ACOLYTE_REPORT_EXPORT: 'ACOLYTE Executive Report Exported',
   ACOLYTE_REPORT_ARCHIVE: 'ACOLYTE Executive Report Archived',
+  ACOLYTE_ASSISTANT_APPLY: 'ACOLYTE Analyst Assistant Content Applied',
 };
 
 // Fire-and-forget audit entry. Never throws — logging must not break user flows.

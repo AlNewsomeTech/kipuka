@@ -1,4 +1,4 @@
-import { X, Wrench, Pencil } from 'lucide-react';
+import { X, Wrench, Pencil, Sparkles } from 'lucide-react';
 import { SeverityBadge } from './AcolyteBadges';
 import StatusBadge from '@/components/StatusBadge';
 
@@ -31,7 +31,7 @@ function Chips({ label, items, empty }) {
   );
 }
 
-export default function FindingDetail({ finding, controlLabels, evidenceLabels, poamLabels, remediationTitles, onClose, onEdit, onCreateRemediation, readOnly }) {
+export default function FindingDetail({ finding, controlLabels, evidenceLabels, poamLabels, remediationTitles, onClose, onEdit, onCreateRemediation, readOnly, canAssist, onExplainImpact, onDraftRemediation, onMapCmmc }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -62,6 +62,28 @@ export default function FindingDetail({ finding, controlLabels, evidenceLabels, 
 
           <Rich label="Closure Notes" html={finding.closure_notes} />
           <Rich label="Validation Notes" html={finding.validation_notes} />
+
+          {canAssist && (
+            <div className="rounded-lg border border-purple-200 bg-purple-50/60 p-3">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+                <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wide">ACOLYTE Analyst Assistant</span>
+                <span className="text-[10px] text-purple-500">· Powered by DarkHorizon.AI</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={onExplainImpact} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">
+                  <Sparkles className="w-3.5 h-3.5" /> Explain Impact
+                </button>
+                <button onClick={onDraftRemediation} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">
+                  <Sparkles className="w-3.5 h-3.5" /> Draft Remediation Recommendation
+                </button>
+                <button onClick={onMapCmmc} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">
+                  <Sparkles className="w-3.5 h-3.5" /> Suggest CMMC Relevance
+                </button>
+              </div>
+              <p className="text-[10px] text-purple-500/90 mt-2">Suggestions are drafts for analyst review. CMMC relevance is review-only and must be confirmed before linking.</p>
+            </div>
+          )}
         </div>
         <div className="sticky bottom-0 bg-white border-t border-slate-200 px-5 py-3 flex justify-end gap-2">
           {!readOnly && (

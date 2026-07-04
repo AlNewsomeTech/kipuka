@@ -3,6 +3,7 @@ import { AlertTriangle, Plus, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
 import { SEVERITIES, FINDING_STATUSES, FINDING_CATEGORIES } from '@/lib/acolyte';
+import { canUseAssistant, explainFindingImpact, draftRemediationRecommendation, mapFindingToCmmc } from '@/lib/acolyteAssistant';
 import AcolyteHeader from '@/components/acolyte/AcolyteHeader';
 import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
@@ -10,13 +11,18 @@ import { SeverityBadge } from '@/components/acolyte/AcolyteBadges';
 import FindingFormModal from '@/components/acolyte/FindingFormModal';
 import FindingDetail from '@/components/acolyte/FindingDetail';
 import RemediationFormModal from '@/components/acolyte/RemediationFormModal';
+import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import StatusBadge from '@/components/StatusBadge';
 
 const SEV_ORDER = ['Critical', 'High', 'Moderate', 'Low', 'Informational'];
 
 export default function CyberFindings() {
   const scope = useAcolyteScope();
-  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, user } = scope;
+  const { project, projects, projectId, selectProject, orgNameForProject, readOnly, orgRole, user } = scope;
+  const [assist, setAssist] = useState(null); // { finding, mode }
+  const canAssist = canUseAssistant(orgRole, 'explain_impact');
+
+  const toHtml = (t) => `<p>${(t || '').replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
   const [findings, setFindings] = useState([]);
   const [remediations, setRemediations] = useState([]);
   const [evLabels, setEvLabels] = useState({});
@@ -137,9 +143,38 @@ export default function CyberFindings() {
           poamLabels={poamLabels}
           remediationTitles={remediations.filter((r) => r.finding_id === detail.id).map((r) => r.remediation_title)}
           readOnly={readOnly}
+          canAssist={canAssist}
+          onExplainImpact={() => setAssist({ finding: detail, mode: 'impact' })}
+          onDraftRemediation={() => setAssist({ finding: detail, mode: 'remediation' })}
+          onMapCmmc={() => setAssist({ finding: detail, mode: 'cmmc' })}
           onClose={() => setDetail(null)}
           onEdit={() => { setEditing(detail); setDetail(null); setModal(true); }}
           onCreateRemediation={() => { setRemedFrom(detail); setDetail(null); }}
+        />
+      )}
+      {assist && (
+        <AssistantPanel
+          open={!!assist}
+          title={assist.mode === 'impact' ? 'Explain Impact' : assist.mode === 'remediation' ? 'Draft Remediation Recommendation' : 'Suggest CMMC Relevance'}
+          actionLabel={assist.mode === 'impact' ? 'Explain Impact' : assist.mode === 'remediation' ? 'Draft Remediation Recommendation' : 'Suggest CMMC Relevance'}
+          applyLabel={assist.mode === 'impact' ? 'Apply to Business Impact' : 'Apply to Recommended Action'}
+          reviewOnly={assist.mode === 'cmmc'}
+          organizationId={project?.organization_id}
+          user={user}
+          targetEntity="CyberFinding"
+          targetRecordId={assist.finding?.id || ''}
+          generate={async () => {
+            const args = { project, orgName: orgNameForProject, finding: assist.finding };
+            if (assist.mode === 'impact') return explainFindingImpact(args);
+            if (assist.mode === 'remediation') return draftRemediationRecommendation(args);
+            return mapFindingToCmmc(args);
+          }}
+          onApply={async (text) => {
+            const field = assist.mode === 'impact' ? 'business_impact' : 'recommended_action';
+            await base44.entities.CyberFinding.update(assist.finding.id, { [field]: toHtml(text) });
+            load();
+          }}
+          onClose={() => setAssist(null)}
         />
       )}
       {remedFrom && project && (

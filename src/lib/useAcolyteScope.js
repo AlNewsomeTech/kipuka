@@ -59,6 +59,7 @@ export function useAcolyteScope() {
     orgName,
     orgNameForProject: project ? orgName(project.organization_id) : (selectedOrg?.organization_name || '\u2014'),
     readOnly,
+    orgRole,
     user,
     refresh: load,
   };

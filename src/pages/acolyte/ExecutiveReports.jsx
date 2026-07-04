@@ -1,20 +1,27 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FileBarChart, Plus, Loader2, Eye, FileDown, Pencil, Archive } from 'lucide-react';
+import { FileBarChart, Plus, Loader2, Eye, FileDown, Pencil, Archive, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { generateAcolyteReportPdf } from '@/lib/acolyteReport';
 import { ACOLYTE_BRAND, REPORT_STATUSES } from '@/lib/acolyte';
+import { canUseAssistant, draftExecutiveSummary } from '@/lib/acolyteAssistant';
+import { useAcolyteProfile } from '@/lib/useAcolyteProfile';
 import AcolyteHeader from '@/components/acolyte/AcolyteHeader';
 import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
 import ReportEditorModal from '@/components/acolyte/ReportEditorModal';
 import ReportPreview from '@/components/acolyte/ReportPreview';
+import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import StatusBadge from '@/components/StatusBadge';
 
 export default function ExecutiveReports() {
   const scope = useAcolyteScope();
-  const { project, projects, projectId, selectProject, orgNameForProject, selectedOrg, readOnly, user } = scope;
+  const { project, projects, projectId, selectProject, orgNameForProject, selectedOrg, readOnly, orgRole, user } = scope;
+  const { profile } = useAcolyteProfile(projectId);
+  const [draftFor, setDraftFor] = useState(null);
+  const canAssist = canUseAssistant(orgRole, 'draft_executive');
+  const toHtml = (t) => `<p>${(t || '').replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`;
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
@@ -94,6 +101,7 @@ export default function ExecutiveReports() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {!readOnly && canAssist && <button onClick={() => setDraftFor(r)} className="p-1.5 rounded-lg text-purple-600 hover:bg-purple-50" title="Draft Executive Report with ACOLYTE Analyst Assistant"><Sparkles className="w-4 h-4" /></button>}
                     <button onClick={() => setPreview(r)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Preview"><Eye className="w-4 h-4" /></button>
                     <button onClick={() => exportPdf(r)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Export PDF"><FileDown className="w-4 h-4" /></button>
                     {!readOnly && <button onClick={() => { setEditing(r); setModal(true); }} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Edit"><Pencil className="w-4 h-4" /></button>}
@@ -112,6 +120,32 @@ export default function ExecutiveReports() {
       )}
       {preview && (
         <ReportPreview report={preview} project={project} orgName={orgNameForProject} onClose={() => setPreview(null)} />
+      )}
+
+      {draftFor && (
+        <AssistantPanel
+          open={!!draftFor}
+          title="Draft Executive Report"
+          actionLabel="Draft Executive Report"
+          applyLabel="Apply to Executive Summary"
+          organizationId={project?.organization_id}
+          user={user}
+          targetEntity="AcolyteExecutiveReport"
+          targetRecordId={draftFor.id}
+          generate={async () => {
+            const [findings, remediations, irRows] = await Promise.all([
+              base44.entities.CyberFinding.filter({ project_id: projectId }).catch(() => []),
+              base44.entities.AcolyteRemediationItem.filter({ project_id: projectId }).catch(() => []),
+              base44.entities.IncidentReadinessRecord.filter({ project_id: projectId }).catch(() => []),
+            ]);
+            return draftExecutiveSummary({ project, orgName: orgNameForProject, profile, findings, remediations, incident: irRows[0] });
+          }}
+          onApply={async (text) => {
+            await base44.entities.AcolyteExecutiveReport.update(draftFor.id, { executive_summary: toHtml(text) });
+            load();
+          }}
+          onClose={() => setDraftFor(null)}
+        />
       )}
     </div>
   );
