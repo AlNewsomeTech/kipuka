@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Wand2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { FINDING_CATEGORIES, SEVERITIES, FINDING_STATUSES } from '@/lib/acolyte';
 import { useAcolyteLinkables } from '@/lib/useAcolyteLinkables';
+import { suggestedControlsForCategory } from '@/lib/acolyteControlMapping';
 import RichTextField from '@/components/ui/RichTextField';
 import LinkMultiSelect from './LinkMultiSelect';
 
@@ -17,6 +18,28 @@ export default function FindingFormModal({ project, existing, user, onClose, onS
   });
   const [saving, setSaving] = useState(false);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Automatic audit mapping: when the category changes, auto-add its
+  // corresponding CMMC Level 2 controls to the finding's related controls.
+  const applyCategoryMapping = (category, existingIds = form.related_control_ids || []) => {
+    const suggested = suggestedControlsForCategory(category);
+    const merged = [...new Set([...existingIds, ...suggested])];
+    return merged;
+  };
+  const onCategoryChange = (category) => {
+    setForm((f) => ({ ...f, finding_category: category, related_control_ids: applyCategoryMapping(category, f.related_control_ids || []) }));
+  };
+  const suggestedForCurrent = suggestedControlsForCategory(form.finding_category);
+
+  // Control chips: project control assessments plus any auto-mapped Level 2
+  // control IDs (and already-selected ones) not yet tracked as assessments.
+  const controlOptions = (() => {
+    const map = new Map(linkables.controls.map((o) => [o.value, o]));
+    [...suggestedForCurrent, ...(form.related_control_ids || [])].forEach((id) => {
+      if (!map.has(id)) map.set(id, { value: id, label: id });
+    });
+    return [...map.values()];
+  })();
 
   const save = async () => {
     if (!form.finding_title?.trim()) return;
@@ -63,7 +86,7 @@ export default function FindingFormModal({ project, existing, user, onClose, onS
           <div className="grid sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-600 mb-1">Category</label>
-              <select className="form-input" value={form.finding_category} onChange={(e) => set('finding_category', e.target.value)}>
+              <select className="form-input" value={form.finding_category} onChange={(e) => onCategoryChange(e.target.value)}>
                 {FINDING_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
@@ -96,7 +119,21 @@ export default function FindingFormModal({ project, existing, user, onClose, onS
           <RichTextField label="Recommended Action" value={form.recommended_action} onChange={(v) => set('recommended_action', v)} />
 
           <div className="grid sm:grid-cols-1 gap-3">
-            <LinkMultiSelect label="Related CMMC Controls" options={linkables.controls} selected={form.related_control_ids || []} onChange={(v) => set('related_control_ids', v)} emptyHint="No control assessments in this project yet." />
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-slate-600">Related CMMC Level 2 Controls</label>
+                <button type="button" onClick={() => set('related_control_ids', applyCategoryMapping(form.finding_category))}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-700 hover:text-purple-900">
+                  <Wand2 className="w-3 h-3" /> Auto-map to Level 2 controls
+                </button>
+              </div>
+              <LinkMultiSelect options={controlOptions} selected={form.related_control_ids || []} onChange={(v) => set('related_control_ids', v)} emptyHint="No controls available to link." />
+              {suggestedForCurrent.length > 0 && (
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Auto-mapped for <span className="font-semibold">{form.finding_category}</span>: {suggestedForCurrent.join(', ')}
+                </p>
+              )}
+            </div>
             <LinkMultiSelect label="Related Evidence" options={linkables.evidence} selected={form.related_evidence_ids || []} onChange={(v) => set('related_evidence_ids', v)} emptyHint="No evidence in this project yet." />
             <LinkMultiSelect label="Related POA&M Items" options={linkables.poams} selected={form.related_poam_ids || []} onChange={(v) => set('related_poam_ids', v)} emptyHint="No POA&M items in this project yet." />
           </div>
