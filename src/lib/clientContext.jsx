@@ -16,7 +16,7 @@ export function ClientProvider({ children }) {
     base44.entities.Client.list()
       .then((data) => {
         let filtered = data;
-        if (user.role === 'technician' || user.role === 'client') {
+        if (user.role === 'client') {
           const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
           filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
         }
@@ -42,7 +42,7 @@ export function ClientProvider({ children }) {
     if (!user) return [];
     const data = await base44.entities.Client.list();
     let filtered = data;
-    if (user.role === 'technician' || user.role === 'client') {
+    if (user.role === 'client') {
       const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
       filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
     }
