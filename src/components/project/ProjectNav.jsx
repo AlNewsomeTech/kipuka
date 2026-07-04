@@ -15,7 +15,7 @@ export default function ProjectNav({ projectId, orgRole }) {
           return (
             <NavLink
               key={m.key}
-              to={`/projects/${projectId}/${m.key}`}
+              to={m.key === 'dashboard' ? `/projects/${projectId}` : `/projects/${projectId}/${m.key}`}
               end={m.key === 'dashboard'}
               className={({ isActive }) =>
                 `flex items-center gap-2 px-2.5 py-2 rounded-lg text-sm transition-colors ${
