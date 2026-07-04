@@ -11,19 +11,28 @@ export default function OrgSelector() {
 
   if (organizations.length === 0) return null;
 
-  // When a client is selected, show that client's organization (falling back
-  // to the currently selected org) so the two selectors stay in sync.
+  // The badge follows the active client's organization. When no specific
+  // client is selected (e.g. "All Clients"), show a neutral label instead of
+  // naming a single organization.
   const clientOrg = selectedClient?.organization_id
     ? organizations.find((o) => o.id === selectedClient.organization_id)
     : null;
-  const displayOrg = clientOrg || selectedOrg;
 
-  if (organizations.length === 1 || clientOrg) {
+  if (selectedClient) {
     return (
       <div className="flex items-center gap-2 text-sm">
         <Building2 className="w-4 h-4 text-slate-400" />
-        <span className="font-semibold text-slate-800 truncate max-w-[180px]">{displayOrg?.organization_name || 'No organization'}</span>
-        {displayOrg && <TierBadge tier={displayOrg.subscription_tier} />}
+        <span className="font-semibold text-slate-800 truncate max-w-[180px]">{clientOrg?.organization_name || 'No organization'}</span>
+        {clientOrg && <TierBadge tier={clientOrg.subscription_tier} />}
+      </div>
+    );
+  }
+
+  if (organizations.length === 1) {
+    return (
+      <div className="flex items-center gap-2 text-sm">
+        <Building2 className="w-4 h-4 text-slate-400" />
+        <span className="font-semibold text-slate-800 truncate max-w-[180px]">All Organizations</span>
       </div>
     );
   }
