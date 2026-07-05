@@ -1,0 +1,132 @@
+{
+  "name": "ToolEvidenceChecklist",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "tool_name": {
+      "type": "string",
+      "enum": [
+        "NinjaOne",
+        "Palo Alto Cortex XDR",
+        "Microsoft Defender",
+        "Microsoft Intune",
+        "Microsoft Entra ID",
+        "Microsoft Purview",
+        "Other"
+      ],
+      "default": "NinjaOne"
+    },
+    "checklist_item_title": {
+      "type": "string"
+    },
+    "related_control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "evidence_type": {
+      "type": "string",
+      "enum": [
+        "Screenshot",
+        "Report Export",
+        "Configuration Export",
+        "Policy",
+        "Procedure",
+        "Log",
+        "Dashboard View",
+        "Other"
+      ],
+      "default": "Screenshot"
+    },
+    "collection_steps": {
+      "type": "string"
+    },
+    "expected_result": {
+      "type": "string"
+    },
+    "required_file_name_pattern": {
+      "type": "string"
+    },
+    "upload_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Uploaded",
+        "Needs Review",
+        "Accepted",
+        "Rejected"
+      ],
+      "default": "Not Started"
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "owner": {
+      "type": "string"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "tool_name",
+    "checklist_item_title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "name": "ProjectSecurityTool",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "tool_name": {
+      "type": "string",
+      "enum": [
+        "NinjaOne",
+        "Palo Alto Cortex XDR",
+        "Microsoft Defender",
+        "Microsoft Intune",
+        "Microsoft Entra ID",
+        "Microsoft Purview",
+        "Other"
+      ],
+      "default": "NinjaOne"
+    },
+    "tool_status": {
+      "type": "string",
+      "enum": [
+        "Not Used",
+        "Planned",
+        "Enabled",
+        "In Review",
+        "Disabled"
+      ],
+      "default": "Not Used"
+    },
+    "enabled_by": {
+      "type": "string"
+    },
+    "enabled_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "admin_contact_name": {
+      "type": "string"
+    },
+    "admin_contact_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "tool_name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

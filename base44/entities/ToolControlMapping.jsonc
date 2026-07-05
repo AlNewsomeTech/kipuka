@@ -1,0 +1,105 @@
+{
+  "name": "ToolControlMapping",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "tool_name": {
+      "type": "string",
+      "enum": [
+        "NinjaOne",
+        "Palo Alto Cortex XDR",
+        "Microsoft Defender",
+        "Microsoft Intune",
+        "Microsoft Entra ID",
+        "Microsoft Purview",
+        "Other"
+      ],
+      "default": "NinjaOne"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "support_type": {
+      "type": "string",
+      "enum": [
+        "Primary Evidence Source",
+        "Supporting Evidence Source",
+        "Implementation Aid",
+        "Monitoring Aid",
+        "Remediation Aid",
+        "Not Applicable"
+      ],
+      "default": "Supporting Evidence Source"
+    },
+    "evidence_examples": {
+      "type": "string"
+    },
+    "setup_instructions": {
+      "type": "string"
+    },
+    "screenshot_instructions": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "project_id",
+    "tool_name",
+    "control_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
