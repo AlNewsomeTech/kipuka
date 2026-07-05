@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
-  Package, Settings, ChevronLeft, ChevronRight, ShieldAlert, BadgeCheck, UserCog,
+  Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox,
   Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal
@@ -75,6 +75,21 @@ const navSections = [
   ]},
 ];
 
+// Which section (by label) contains the currently active route.
+function findActiveSection(pathname) {
+  let best = null;
+  let bestLen = -1;
+  for (const section of navSections) {
+    for (const item of section.items) {
+      const isActive = item.end ? pathname === item.to : (pathname === item.to || pathname.startsWith(item.to + '/'));
+      if (isActive && item.to.length > bestLen) { best = section.label; bestLen = item.to.length; }
+    }
+  }
+  return best;
+}
+
+const SESSION_KEY = 'cmmc.sidebar.expanded';
+
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -83,6 +98,31 @@ export default function Layout() {
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
   const [themeOpen, setThemeOpen] = useState(false);
+
+  // Expanded/collapsed state per section. Restore from session, default: Overview open.
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(SESSION_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch { /* ignore */ }
+    return { Overview: true };
+  });
+
+  const activeSection = findActiveSection(location.pathname);
+
+  // Persist session state.
+  useEffect(() => {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(expanded)); } catch { /* ignore */ }
+  }, [expanded]);
+
+  // Auto-expand the section that contains the active page.
+  useEffect(() => {
+    if (activeSection) {
+      setExpanded((prev) => (prev[activeSection] ? prev : { ...prev, [activeSection]: true }));
+    }
+  }, [activeSection]);
+
+  const toggleSection = (label) => setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
 
   return (
     <div className="flex h-screen bg-[#F1F4F8] overflow-hidden">
@@ -105,44 +145,79 @@ export default function Layout() {
           )}
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4">
+        <nav className={`flex-1 overflow-y-auto py-3 px-2 ${collapsed ? 'space-y-4' : 'space-y-1'}`}>
           {navSections.map((section) => {
             const visibleItems = section.items.filter(item =>
               (!item.adminOnly || user?.role === 'admin') &&
               (user?.role !== 'client' || item.clientVisible)
             );
             if (visibleItems.length === 0) return null;
-            return (
-            <div key={section.label}>
-              {!collapsed && (
-                <div className="text-[10px] font-semibold text-white/40 uppercase tracking-wider px-3 mb-1.5">
-                  {section.label}
+
+            // Icon-only (collapsed sidebar): keep all icons visible, no headers — preserves prior behavior.
+            if (collapsed) {
+              return (
+                <div key={section.label} className="space-y-0.5">
+                  {visibleItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        end={item.end}
+                        title={item.label}
+                        onClick={() => setMobileOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center justify-center px-3 py-2 rounded-lg text-sm transition-colors ${
+                            isActive ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/5'
+                          }`
+                        }
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                      </NavLink>
+                    );
+                  })}
                 </div>
-              )}
-              <div className="space-y-0.5">
-                {visibleItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      end={item.end}
-                      onClick={() => setMobileOpen(false)}
-                      className={({ isActive }) =>
-                        `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isActive
-                            ? 'bg-white/15 text-white font-medium'
-                            : 'text-white/60 hover:text-white hover:bg-white/5'
-                        }`
-                      }
-                    >
-                      <Icon className="w-4 h-4 flex-shrink-0" />
-                      {!collapsed && <span className="truncate">{item.label}</span>}
-                    </NavLink>
-                  );
-                })}
+              );
+            }
+
+            const isOpen = !!expanded[section.label];
+            return (
+              <div key={section.label}>
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.label)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-[10px] font-semibold text-white/40 hover:text-white/70 hover:bg-white/5 uppercase tracking-wider transition-colors"
+                >
+                  <span className="truncate">{section.label}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
+                </button>
+                {isOpen && (
+                  <div className="space-y-0.5 mt-0.5">
+                    {visibleItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <NavLink
+                          key={item.to}
+                          to={item.to}
+                          end={item.end}
+                          onClick={() => setMobileOpen(false)}
+                          className={({ isActive }) =>
+                            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                              isActive
+                                ? 'bg-white/15 text-white font-medium'
+                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                            }`
+                          }
+                        >
+                          <Icon className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate">{item.label}</span>
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
             );
           })}
         </nav>
