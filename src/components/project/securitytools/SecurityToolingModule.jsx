@@ -121,7 +121,8 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
           <h1 className="text-lg font-bold text-slate-900">Security Tooling</h1>
         </div>
         <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-          Optional security tools that support CMMC readiness. {TOOL_SUPPORT_DISCLAIMER}
+          Optional security tools that support CMMC readiness. Enable and configure these as part of the
+          Implementation phase, and collect their evidence before generating the Final SSP. {TOOL_SUPPORT_DISCLAIMER}
         </p>
         <div className="flex flex-wrap gap-2 mt-4">
           {TABS.map((t) => (

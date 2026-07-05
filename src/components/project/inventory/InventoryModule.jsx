@@ -47,14 +47,28 @@ export default function InventoryModule({ project, readOnly, currentUser, refres
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2.5">
             <Boxes className="w-5 h-5 text-[#0F1E3C]" />
-            <h1 className="text-lg font-bold text-slate-900">Asset Inventory</h1>
+            <h1 className="text-lg font-bold text-slate-900">Final Inventory &amp; Scope Validation</h1>
           </div>
-          {!readOnly && (
-            <button onClick={() => { setEditing(null); setModal(true); }}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
-              <Plus className="w-4 h-4" /> Add {page.label.replace(/s$/, '')}
-            </button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            <label className="text-xs font-semibold text-slate-500">Inventory status:</label>
+            <select className="form-input w-auto text-xs" value={invStatus} disabled={readOnly}
+              onChange={(e) => saveInvStatus(e.target.value)}>
+              {INVENTORY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {!readOnly && (
+              <button onClick={() => { setEditing(null); setModal(true); }}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
+                <Plus className="w-4 h-4" /> Add {page.label.replace(/s$/, '')}
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 bg-blue-50 border border-blue-200 rounded-lg p-3 text-[13px] text-blue-800 leading-relaxed">
+          Complete preliminary scope early, then perform final inventory <span className="font-semibold">after</span> major
+          tenant and endpoint controls are implemented so documentation reflects the actual configured environment.
+          Late-stage inventory includes Intune inventory, hardware/endpoint inventory, device compliance, ownership
+          validation, in/out-of-scope validation, and CUI / Security Protection asset confirmation.
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">

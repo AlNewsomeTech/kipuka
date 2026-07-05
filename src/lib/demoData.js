@@ -249,15 +249,15 @@ export const DEMO_ACOLYTE = {
 
 export const DEMO_TOUR_STEPS = [
   'Start with onboarding to determine the CMMC path.',
-  'Define the CUI and FCI scope.',
-  'Build an asset inventory tied to the boundary.',
-  'Assess each CMMC control.',
-  'Upload and map evidence.',
-  'Generate SSP content from project data.',
+  'Define the preliminary CUI and FCI scope.',
+  'Implement controls and enable supporting security tooling.',
+  'Collect and map evidence to each control.',
+  'Validate control implementation and close gaps.',
+  'Finalize the asset inventory and scope after implementation.',
+  'Generate the final SSP once readiness checks pass.',
   'Track remediation in the POA&M.',
   'Prepare PIEE and SPRS self-certification.',
   'Export executive and assessment-ready reports.',
-  'Use Pac-Sec support to review and guide readiness.',
 ];
 
 export const DEMO_CTA =

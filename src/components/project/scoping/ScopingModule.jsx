@@ -71,12 +71,13 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
         <div className="flex items-center justify-between flex-wrap gap-3 mb-1">
           <div className="flex items-center gap-2.5">
             <Crosshair className="w-5 h-5 text-[#0F1E3C]" />
-            <h1 className="text-lg font-bold text-slate-900">Scoping</h1>
+            <h1 className="text-lg font-bold text-slate-900">Preliminary Scope</h1>
           </div>
           <StatusBadge status={profile.scope_status} size="md" />
         </div>
         <p className="text-sm text-slate-500 max-w-2xl">
-          Define the CUI/FCI boundary, in-scope systems, and assessment scope for this project.
+          Establish an early working CUI/FCI boundary, in-scope systems, and assessment scope. This is refined as
+          controls are implemented — final asset validation happens later in the Final Inventory &amp; Scope phase.
         </p>
 
         <div className="grid sm:grid-cols-2 gap-4 mt-5">
