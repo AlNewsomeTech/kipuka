@@ -15,6 +15,10 @@ import ReportsModule from '@/components/project/reports/ReportsModule';
 import SprsModule from '@/components/project/sprs/SprsModule';
 import MaintenanceModule from '@/components/project/maintenance/MaintenanceModule';
 import SecurityToolingModule from '@/components/project/securitytools/SecurityToolingModule';
+import DiagramModule from '@/components/project/diagram/DiagramModule';
+import SrmModule from '@/components/project/srm/SrmModule';
+import IncidentModule from '@/components/project/incident/IncidentModule';
+import EvidenceReadinessModule from '@/components/project/readiness/EvidenceReadinessModule';
 
 // Modules with full in-app workflows (Phase 3 + Phase 4 + Phase 5).
 const RICH_MODULES = {
@@ -22,7 +26,11 @@ const RICH_MODULES = {
   inventory: InventoryModule,
   assessment: AssessmentModule,
   evidence: EvidenceModule,
+  readiness: EvidenceReadinessModule,
   'security-tooling': SecurityToolingModule,
+  diagrams: DiagramModule,
+  srm: SrmModule,
+  incident: IncidentModule,
   ssp: SSPModule,
   poam: PoamModule,
   policies: PoliciesModule,

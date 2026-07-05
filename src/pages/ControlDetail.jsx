@@ -37,15 +37,12 @@ export default function ControlDetail() {
     setLoading(true);
     base44.entities.CMMCControl.get(id)
       .then(async (def) => {
-        let progressRow = null;
-        if (selectedClientId && def?.control_id) {
-          const rows = await base44.entities.ControlProgress.filter({ client_id: selectedClientId, control_id: def.control_id }).catch(() => []);
-          progressRow = rows[0] || null;
-        }
-        const merged = mergeControl(def, progressRow);
+        // ControlAssessment is now the ONLY status source. ControlProgress is a
+        // dormant backup (kept, not read). Start from the control definition.
+        const merged = mergeControl(def, null);
 
-        // ControlAssessment is PRIMARY. Resolve the client's project and, if an
-        // assessment exists for this control, let it drive status/narrative/owner.
+        // Resolve the client's project and, if an assessment exists for this
+        // control, let it drive status/narrative/owner.
         let asmt = null;
         const pid = await resolveProjectIdForClient(selectedClientId);
         setProjectId(pid);

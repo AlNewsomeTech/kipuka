@@ -92,6 +92,16 @@ export function createReportPdf({ title, project, org, generatedBy, poweredBy = 
     },
     space(h = 8) { state.y += h; },
     ensure,
+    // Embed a PNG/JPEG image (e.g. an exported diagram). Scales to page width.
+    image(dataUrl, opts = {}) {
+      if (!dataUrl) return;
+      const maxW = pageW - M * 2;
+      const w = Math.min(opts.width || maxW, maxW);
+      const h = opts.height || w * 0.6;
+      ensure(h + 10);
+      try { doc.addImage(dataUrl, 'PNG', M, state.y, w, h); state.y += h + 10; }
+      catch { /* skip unrenderable image */ }
+    },
     save(filename) { footer(); doc.save(filename); },
     disclaimerNote(text) {
       ensure(30); state.y += 6;

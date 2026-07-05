@@ -233,8 +233,17 @@ export async function generatePoamPdf({ project, org, poams, generatedBy }) {
   await logExport(project, 'POA&M Export', 'POA&M PDF Export', generatedBy);
 }
 
-// SSP PDF export
-export async function generateSspPdf({ project, org, ssp, statements, generatedBy }) {
+// Load an image URL into a data URL so jsPDF can embed it.
+async function toDataUrl(url) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.readAsDataURL(blob); });
+  } catch { return null; }
+}
+
+// SSP PDF export — C3PAO assembly with embedded diagrams + POA&M cross-refs.
+export async function generateSspPdf({ project, org, ssp, statements, generatedBy, diagrams = [], poams = [], assessments = [] }) {
   const r = createReportPdf({ title: ssp?.ssp_title || 'System Security Plan', project, org, generatedBy });
   const sections = [
     ['System Name', ssp?.system_name], ['System Description', ssp?.system_description],
@@ -249,11 +258,32 @@ export async function generateSspPdf({ project, org, ssp, statements, generatedB
   ];
   sections.forEach(([label, val]) => { r.heading(label); r.text(val || '<em>Not documented.</em>'); });
 
+  // Embed exported network + data flow diagram images into the scoping section.
+  const withImg = diagrams.filter((d) => d.image_url);
+  if (withImg.length) {
+    r.heading('Network & Data Flow Diagrams');
+    for (const d of withImg) {
+      r.text(d.title || d.diagram_type, { bold: true });
+      const data = await toDataUrl(d.image_url);
+      if (data) r.image(data); else r.text('(Diagram image could not be embedded — see the Diagrams module.)');
+    }
+  }
+
+  // POA&M cross-reference map for NOT MET controls.
+  const poamByControl = {};
+  poams.forEach((p) => { if (p.control_id) (poamByControl[p.control_id] ||= []).push(p); });
+  const notMet = new Set(assessments.filter((a) => ['Not Implemented', 'Partially Implemented', 'Gap Identified'].includes(a.status)).map((a) => a.control_id));
+
   r.heading('Control Implementation Statements');
   statements.forEach((s) => {
     r.ensure(50);
     r.text(`${s.control_id} — ${s.control_title || ''}`, { bold: true });
     r.text(s.implementation_statement || '—');
+    if (notMet.has(s.control_id) && poamByControl[s.control_id]) {
+      r.text(`POA&M cross-reference: ${poamByControl[s.control_id].map((p) => p.poam_title).join('; ')}`, { size: 9 });
+    } else if (notMet.has(s.control_id)) {
+      r.text('Control is NOT fully met — a POA&M item should be linked in the POA&M module.', { size: 9 });
+    }
     r.space(4);
   });
 

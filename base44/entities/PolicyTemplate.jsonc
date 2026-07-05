@@ -61,6 +61,20 @@
       "type": "boolean",
       "default": false,
       "description": "True for the seeded library master templates (no project_id). Users clone these into a project."
+    },
+    "family_code": {
+      "type": "string",
+      "description": "Two-letter NIST 800-171 family code (AC, AT, AU, ...) for family coverage auditing."
+    },
+    "doc_kind": {
+      "type": "string",
+      "enum": [
+        "Policy",
+        "Procedure",
+        ""
+      ],
+      "default": "",
+      "description": "Whether this document is a Policy or a Procedure, for full-family coverage."
     }
   },
   "required": [

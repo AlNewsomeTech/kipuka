@@ -112,7 +112,11 @@ const AuthenticatedApp = () => {
           <Route path="inventory" element={<ProjectModulePage moduleKey="inventory" />} />
           <Route path="assessment" element={<ProjectModulePage moduleKey="assessment" />} />
           <Route path="evidence" element={<ProjectModulePage moduleKey="evidence" />} />
+          <Route path="readiness" element={<ProjectModulePage moduleKey="readiness" />} />
           <Route path="security-tooling" element={<ProjectModulePage moduleKey="security-tooling" />} />
+          <Route path="diagrams" element={<ProjectModulePage moduleKey="diagrams" />} />
+          <Route path="srm" element={<ProjectModulePage moduleKey="srm" />} />
+          <Route path="incident" element={<ProjectModulePage moduleKey="incident" />} />
           <Route path="ssp" element={<ProjectModulePage moduleKey="ssp" />} />
           <Route path="poam" element={<ProjectModulePage moduleKey="poam" />} />
           <Route path="policies" element={<ProjectModulePage moduleKey="policies" />} />

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ScrollText, Loader2, Plus, FileDown, Package, Library } from 'lucide-react';
+import { ScrollText, Loader2, Plus, FileDown, Package, Library, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import StatusBadge from '@/components/StatusBadge';
 import { buildPolicySeed, mergePolicyBody } from '@/lib/policyTemplates';
+import { buildFamilyDocSeed, auditFamilyCoverage } from '@/lib/policyFamilyCoverage';
 import { generatePolicyPackage } from '@/lib/reportGenerators';
 import { createReportPdf, safeFileName, BRAND } from '@/lib/reportBranding';
 import PolicyEditorModal from './PolicyEditorModal';
@@ -33,6 +34,44 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
   const seedTemplates = async () => {
     setSeeding(true);
     await base44.entities.PolicyTemplate.bulkCreate(buildPolicySeed());
+    await load();
+    setSeeding(false);
+  };
+
+  const level = project.target_cmmc_level === 'Level 1' ? 'Level 1' : 'Level 2';
+  const coverage = useMemo(() => auditFamilyCoverage(policies, level), [policies, level]);
+  const missingFamilies = coverage.filter((c) => !c.hasPolicy || !c.hasProcedure);
+
+  // Clone the family-complete Policy + Procedure set for every family that's
+  // missing one, so all 14 families (or 6 for L1) have both documents.
+  const generateFamilyDocs = async () => {
+    setSeeding(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const merge = {
+      organization_name: org?.organization_name || '', environment: project.assessment_path || '',
+      owner: currentUser?.full_name || currentUser?.email || '', effective_date: today, version: '1.0',
+    };
+    const seed = buildFamilyDocSeed(level);
+    const toCreate = [];
+    coverage.forEach((c) => {
+      const need = [];
+      if (!c.hasPolicy) need.push('Policy');
+      if (!c.hasProcedure) need.push('Procedure');
+      need.forEach((kind) => {
+        const tpl = seed.find((s) => s.family_code === c.code && s.doc_kind === kind);
+        if (!tpl) return;
+        toCreate.push({
+          organization_id: project.organization_id, project_id: project.id,
+          policy_name: tpl.policy_name, policy_category: tpl.policy_category,
+          mapped_control_ids: tpl.mapped_control_ids || [],
+          policy_body: mergePolicyBody(tpl.policy_body, merge),
+          version: '1.0', owner: merge.owner, effective_date: today,
+          approval_status: 'Draft', is_master_template: false,
+          family_code: tpl.family_code, doc_kind: tpl.doc_kind,
+        });
+      });
+    });
+    if (toCreate.length) await base44.entities.PolicyTemplate.bulkCreate(toCreate);
     await load();
     setSeeding(false);
   };
@@ -107,9 +146,37 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
         )}
       </div>
 
+      {/* Full-family coverage audit (14 families for L2, 6 for L1) */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+          <div className="flex items-center gap-2 text-sm font-bold text-slate-800">
+            <ShieldCheck className="w-4 h-4" /> {level} Policy &amp; Procedure Coverage
+            <span className="text-xs font-normal text-slate-500">({coverage.filter((c) => c.hasPolicy && c.hasProcedure).length}/{coverage.length} families complete)</span>
+          </div>
+          {!readOnly && missingFamilies.length > 0 && (
+            <button onClick={generateFamilyDocs} disabled={seeding}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52] disabled:opacity-60">
+              {seeding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Plus className="w-3.5 h-3.5" />}
+              Generate {missingFamilies.length} missing document set(s)
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          {coverage.map((c) => (
+            <div key={c.code} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs">
+              <span className="font-mono font-bold text-slate-500 w-6">{c.code}</span>
+              <span className="flex-1 truncate text-slate-600">{c.name}</span>
+              <span title="Policy">{c.hasPolicy ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <XCircle className="w-3.5 h-3.5 text-slate-300" />}</span>
+              <span title="Procedure">{c.hasProcedure ? <CheckCircle2 className="w-3.5 h-3.5 text-blue-500" /> : <XCircle className="w-3.5 h-3.5 text-slate-300" />}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[11px] text-slate-400 mt-2">Green = Policy present · Blue = Procedure present. Each generated document lists which controls it satisfies.</p>
+      </div>
+
       {policies.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
-          No policies created yet. {!readOnly && 'Use "New from Template" to create one.'}
+          No policies created yet. {!readOnly && 'Use "New from Template" or "Generate missing document set(s)" above.'}
         </div>
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">

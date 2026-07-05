@@ -14,14 +14,14 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [statements, setStatements] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [evidence, setEvidence] = useState([]);
-  const [ctx, setCtx] = useState({ scoping: null, assets: [], poams: [] });
+  const [ctx, setCtx] = useState({ scoping: null, assets: [], poams: [], providers: [], diagrams: [] });
   const [loading, setLoading] = useState(true);
   const [building, setBuilding] = useState(false);
   const [savingKey, setSavingKey] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [sspList, stmts, asmt, ev, scope, assets, poams] = await Promise.all([
+    const [sspList, stmts, asmt, ev, scope, assets, poams, providers, diagrams] = await Promise.all([
       base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
       base44.entities.SSPControlStatement.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
@@ -29,12 +29,14 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
       base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
       base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
+      base44.entities.ServiceProvider.filter({ project_id: project.id }).catch(() => []),
+      base44.entities.ProjectDiagram.filter({ project_id: project.id }).catch(() => []),
     ]);
     setSsp(sspList[0] || null);
     setStatements(stmts);
     setAssessments(asmt);
     setEvidence(ev);
-    setCtx({ scoping: scope[0] || null, assets, poams });
+    setCtx({ scoping: scope[0] || null, assets, poams, providers, diagrams });
     setLoading(false);
   }, [project.id]);
 
@@ -64,13 +66,13 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   // but never hard-blocked — user may continue anyway.
   const exportFinal = async () => {
     if (ssp?.approval_status === 'Draft') await updateApproval({ approval_status: 'In Review' });
-    generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email });
+    generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
     setShowFinalGate(false);
   };
 
   const buildDraft = async () => {
     setBuilding(true);
-    const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams });
+    const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams });
     const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0', approval_status: ssp?.approval_status || 'Draft' };
     let saved;
     if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);
@@ -124,7 +126,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </button>
             )}
             {ssp && (
-              <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email })}
+              <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
                 <FileDown className="w-4 h-4" /> Draft SSP PDF
               </button>
@@ -157,7 +159,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
         <div className="space-y-3">
           <ReadinessPrecheck title="Final SSP — Readiness Pre-Check" checks={checks} warning={FINAL_DOC_WARNING} />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email })}
+            <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Generate Draft SSP</button>
             <button onClick={exportFinal}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700">Continue Anyway</button>
