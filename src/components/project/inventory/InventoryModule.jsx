@@ -5,12 +5,21 @@ import { INVENTORY_PAGES } from '@/lib/assetInventory';
 import AssetRow from './AssetRow';
 import AssetFormModal from './AssetFormModal';
 
-export default function InventoryModule({ project, readOnly, currentUser }) {
+const INVENTORY_STATUSES = ['Not Started', 'Preliminary', 'In Progress', 'Needs Validation', 'Finalized', 'Needs Update'];
+
+export default function InventoryModule({ project, readOnly, currentUser, refreshProject }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('users');
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [invStatus, setInvStatus] = useState(project.inventory_status || 'Not Started');
+
+  const saveInvStatus = async (v) => {
+    setInvStatus(v);
+    await base44.entities.Project.update(project.id, { inventory_status: v });
+    refreshProject && refreshProject();
+  };
 
   const load = useCallback(async () => {
     setLoading(true);

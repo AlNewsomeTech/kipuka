@@ -44,18 +44,40 @@
       "type": "string",
       "enum": [
         "Not Started",
+        "Project Setup",
+        "Preliminary Scope",
+        "Implementation Planning",
+        "Control Implementation",
+        "Evidence Collection",
+        "Control Validation",
+        "Final Inventory",
+        "Documentation Generation",
+        "SPRS/PIEE Preparation",
+        "Maintenance",
+        "Complete",
         "Discovery",
         "Scoping",
         "Assessment",
         "Remediation",
         "Documentation",
-        "Evidence Collection",
         "Ready for Review",
         "Submitted",
-        "Complete",
         "On Hold"
       ],
       "default": "Not Started"
+    },
+    "inventory_status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Preliminary",
+        "In Progress",
+        "Needs Validation",
+        "Finalized",
+        "Needs Update"
+      ],
+      "default": "Not Started",
+      "description": "Tracks the maturity of asset/endpoint inventory. Preliminary early, Finalized after major tenant and endpoint controls are implemented."
     },
     "primary_cage_code": {
       "type": "string"

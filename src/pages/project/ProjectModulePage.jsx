@@ -35,12 +35,12 @@ const RICH_MODULES = {
 const MODULE_CONTENT = {};
 
 export default function ProjectModulePage({ moduleKey }) {
-  const { project, readOnly, org } = useOutletContext();
+  const { project, readOnly, org, refreshProject } = useOutletContext();
   const { user } = useAuth();
 
   const RichModule = RICH_MODULES[moduleKey];
   if (RichModule) {
-    return <RichModule project={project} org={org} readOnly={readOnly} currentUser={user} />;
+    return <RichModule project={project} org={org} readOnly={readOnly} currentUser={user} refreshProject={refreshProject} />;
   }
 
   const def = moduleByKey(moduleKey);

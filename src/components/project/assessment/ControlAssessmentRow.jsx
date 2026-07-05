@@ -151,7 +151,8 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
             <div className="flex flex-wrap gap-2 pt-1">
               <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Implemented')}>Mark Implemented</ActionBtn>
               <ActionBtn icon={CircleDashed} tone="amber" onClick={() => mark('Partially Implemented')}>Mark Partial</ActionBtn>
-              <ActionBtn icon={XCircle} tone="red" onClick={() => mark('Not Implemented')}>Mark Not Implemented</ActionBtn>
+              <ActionBtn icon={XCircle} tone="red" onClick={() => mark('Gap Identified')}>Mark Gap Identified</ActionBtn>
+              <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Ready for Documentation')}>Ready for Documentation</ActionBtn>
               <ActionBtn icon={FileUp} tone="slate" onClick={() => setEvidenceModal(true)}>Add Evidence</ActionBtn>
               <ActionBtn icon={AlertTriangle} tone="slate" onClick={() => setPoamOpen(!poamOpen)}>Create POA&M Item</ActionBtn>
               <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(assessment.ssp_statement || libEntry?.ssp_statement_starter || ''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>

@@ -71,11 +71,14 @@ export default function ProjectDashboard() {
     refreshProject();
   };
 
+  // Corrected order: scope → implementation → evidence → validation → final inventory → docs.
   const nextSteps = [
-    { key: 'cui_fci_scoping', label: 'Complete CUI/FCI scoping' },
-    { key: 'control_assessment', label: 'Run the control assessment' },
-    { key: 'upload_evidence', label: 'Upload supporting evidence' },
-    { key: 'build_ssp', label: 'Build the System Security Plan' },
+    { key: 'confirm_fci_cui', label: 'Confirm FCI/CUI handling (preliminary scope)' },
+    { key: 'config_identity', label: 'Configure identity/access controls' },
+    { key: 'upload_evidence', label: 'Upload and review evidence' },
+    { key: 'mark_ready_for_docs', label: 'Validate controls — mark Ready for Documentation' },
+    { key: 'intune_inventory', label: 'Complete final inventory & scope validation' },
+    { key: 'gen_final_ssp', label: 'Generate final documentation' },
   ].filter((s) => !(project.onboarding_checklist || {})[s.key]).slice(0, 3);
 
   return (

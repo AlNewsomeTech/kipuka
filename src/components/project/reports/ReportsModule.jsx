@@ -10,12 +10,15 @@ import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
   generatePolicyPackage, generateC3PAOHandoff,
 } from '@/lib/reportGenerators';
+import { computeReadiness, handoffPrechecks, allPass, FINAL_DOC_WARNING } from '@/lib/readinessGate';
+import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
 
 export default function ReportsModule({ project, org, readOnly, currentUser }) {
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
   const [busy, setBusy] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [gate, setGate] = useState(null); // { report, checks, title }
 
   const load = useCallback(async () => {
     const [assessments, evidence, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
@@ -39,24 +42,45 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
 
   const run = async (key, fn) => {
     setBusy(key);
-    try { await fn(); } finally { setBusy(null); load(); }
+    try { await fn(); } finally { setBusy(null); setGate(null); load(); }
   };
 
   if (!data) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
 
+  const readiness = computeReadiness({ ...data, project });
+  const handoffChecks = handoffPrechecks(readiness, {
+    sspApproved: data.ssp?.approval_status === 'Approved',
+    policiesApproved: data.policies.length > 0,
+    evidenceIndexReviewed: readiness.evReviewed >= readiness.evTotal && readiness.evTotal > 0,
+    sprsUploaded: false,
+  });
+  const finalReadyChecks = handoffPrechecks(readiness, {
+    sspApproved: data.ssp?.approval_status === 'Approved',
+    policiesApproved: data.policies.length > 0,
+    evidenceIndexReviewed: readiness.evReviewed >= readiness.evTotal && readiness.evTotal > 0,
+    sprsUploaded: true,
+  }).slice(0, 6);
+
+  // gated=true reports require passing pre-checks (advisory) before final generation.
   const REPORTS = [
     {
-      key: 'exec', icon: Sparkles, title: 'Executive Readiness Report',
-      desc: 'Target level, overall status, blockers, readiness %, POA&M and evidence summary, next steps.',
+      key: 'exec', icon: Sparkles, title: 'Executive Progress Report', badge: 'Progress',
+      desc: 'Generate during implementation — target level, overall status, blockers, readiness %, POA&M and evidence summary.',
       run: () => generateExecutiveReadiness({ project, org, ...data, generatedBy: genBy }),
     },
     {
-      key: 'gap', icon: BarChart3, title: 'Gap Assessment Report',
+      key: 'gap', icon: BarChart3, title: 'Draft Gap Assessment', badge: 'Draft',
       desc: 'Implemented / partial / not-implemented controls, evidence gaps, high-risk findings, remediation.',
       run: () => generateGapAssessment({ project, org, ...data, generatedBy: genBy }),
     },
     {
-      key: 'evidence', icon: ListChecks, title: 'Evidence Index',
+      key: 'final_readiness', icon: Sparkles, title: 'Final Readiness Report', badge: 'Final', gated: true,
+      checks: finalReadyChecks,
+      desc: 'Gated until controls & evidence are validated — control %, evidence acceptance %, open high-risk POA&M, missing inventory & scope.',
+      run: () => generateExecutiveReadiness({ project, org, ...data, isFinal: true, generatedBy: genBy }),
+    },
+    {
+      key: 'evidence', icon: ListChecks, title: 'Evidence Index (CSV)', badge: 'Draft',
       desc: 'CSV of evidence title, type, linked controls, owner, dates, and review status.',
       run: () => generateEvidenceIndex({ project, evidence: data.evidence, generatedBy: genBy }),
     },
@@ -66,11 +90,18 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
       run: () => generatePolicyPackage({ project, org, policies: data.policies, generatedBy: genBy }),
     },
     {
-      key: 'c3pao', icon: Package, title: 'C3PAO Handoff Package', premium: true,
+      key: 'c3pao', icon: Package, title: 'C3PAO Handoff Package', premium: true, gated: true,
+      checks: handoffChecks, badge: 'Final',
       desc: 'Full assessor package: exec summary, scope, assets, SSP, POA&M, evidence, control matrix, policies, SPRS, risks, contacts.',
       run: () => generateC3PAOHandoff({ project, org, ...data, generatedBy: genBy }),
     },
   ];
+
+  const clickReport = (r, locked) => {
+    if (locked) { setPreview(r); return; }
+    if (r.gated && !allPass(r.checks)) { setGate(r); return; }
+    run(r.key, r.run);
+  };
 
   return (
     <div className="space-y-4">
@@ -81,7 +112,23 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
           <DarkHorizonBadge />
         </div>
         <p className="text-sm text-slate-500 mt-1">All exports include Pac-Sec branding, generated date, confidentiality footer, and validation disclaimer.</p>
+        <p className="text-[13px] text-slate-500 mt-2 leading-relaxed">
+          Progress reports can be generated during implementation. Final readiness documents should be generated
+          after controls and evidence have been validated.
+        </p>
       </div>
+
+      {gate && (
+        <div className="space-y-3">
+          <ReadinessPrecheck title={`${gate.title} — Readiness Pre-Check`} checks={gate.checks} warning={FINAL_DOC_WARNING} />
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => run(gate.key, gate.run)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700">Continue Anyway</button>
+            <button onClick={() => setGate(null)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Return to Implementation Checklist</button>
+          </div>
+        </div>
+      )}
 
       <div className="grid sm:grid-cols-2 gap-3">
         {REPORTS.map((r) => {
@@ -89,15 +136,16 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
           const locked = r.premium && !hasC3PAO;
           return (
             <div key={r.key} className="bg-white rounded-xl border border-slate-200 p-5 flex flex-col">
-              <div className="flex items-center gap-2 mb-1.5">
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                 <Icon className="w-4.5 h-4.5 text-[#0F1E3C]" />
                 <h3 className="text-sm font-bold text-slate-800">{r.title}</h3>
+                {r.badge && <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${r.badge === 'Final' ? 'bg-green-100 text-green-700' : r.badge === 'Progress' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{r.badge}</span>}
                 {r.premium && <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 font-semibold">Premium</span>}
               </div>
               <p className="text-xs text-slate-500 flex-1">{r.desc}</p>
               {locked && <div className="mt-2"><PremiumBadge locked label="Premium L2 Readiness" /></div>}
               <button
-                onClick={() => locked ? setPreview(r) : run(r.key, r.run)}
+                onClick={() => clickReport(r, locked)}
                 disabled={busy === r.key}
                 className={`mt-3 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold ${locked ? 'bg-purple-50 text-purple-700 hover:bg-purple-100' : 'text-white bg-[#0F1E3C] hover:bg-[#152a52]'} disabled:opacity-60`}>
                 {locked ? <><Lock className="w-4 h-4" /> Preview (Premium)</>

@@ -3,7 +3,7 @@ import { ClipboardCheck, Loader2, RefreshCw, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import ControlAssessmentRow from './ControlAssessmentRow';
 
-const STATUSES = ['Not Started', 'Implemented', 'Partially Implemented', 'Not Implemented', 'Not Applicable', 'Needs Review', 'Ready for Assessment'];
+const STATUSES = ['Not Started', 'Implementation Planned', 'Implementation In Progress', 'Implemented Pending Evidence', 'Gap Identified', 'POA&M Linked', 'Ready for Documentation', 'Implemented', 'Partially Implemented', 'Not Implemented', 'Not Applicable', 'Needs Review', 'Ready for Assessment'];
 const EVIDENCE_STATUSES = ['No Evidence', 'Evidence Uploaded', 'Needs Better Evidence', 'Accepted', 'Expired'];
 const RISKS = ['Low', 'Moderate', 'High', 'Critical'];
 
