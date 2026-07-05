@@ -1,0 +1,103 @@
+{
+  "name": "ProjectDiagram",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "diagram_type": {
+      "type": "string",
+      "enum": [
+        "Network Topology Diagram",
+        "CUI Data Flow Diagram"
+      ],
+      "default": "Network Topology Diagram"
+    },
+    "title": {
+      "type": "string"
+    },
+    "nodes": {
+      "type": "array",
+      "description": "Diagram nodes. Each: { id, label, node_type, x, y, external, asset_id }",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "connections": {
+      "type": "array",
+      "description": "Edges between nodes. Each: { id, from, to, label }",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "zones": {
+      "type": "array",
+      "description": "Boundary boxes. Each: { id, label, zone_type, x, y, w, h }",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "image_url": {
+      "type": "string",
+      "description": "Exported PNG of the diagram, embedded into the SSP."
+    },
+    "last_exported_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "diagram_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

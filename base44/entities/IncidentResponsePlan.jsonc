@@ -1,0 +1,97 @@
+{
+  "name": "IncidentResponsePlan",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "plan_status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "In Review",
+        "Approved",
+        "Needs Update"
+      ],
+      "default": "Draft"
+    },
+    "team_members": {
+      "type": "array",
+      "description": "IR team. Each: { name, role, phone, email, escalation_order }",
+      "items": {
+        "type": "object"
+      },
+      "default": []
+    },
+    "detection_sources": {
+      "type": "string",
+      "description": "Where incidents are detected (SIEM, EDR, user reports, etc.)."
+    },
+    "containment_notes": {
+      "type": "string"
+    },
+    "recovery_notes": {
+      "type": "string"
+    },
+    "communications_notes": {
+      "type": "string"
+    },
+    "external_reporting_notes": {
+      "type": "string"
+    },
+    "generated_document_id": {
+      "type": "string"
+    },
+    "last_generated_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

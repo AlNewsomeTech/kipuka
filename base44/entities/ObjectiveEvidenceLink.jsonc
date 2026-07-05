@@ -1,0 +1,82 @@
+{
+  "name": "ObjectiveEvidenceLink",
+  "type": "object",
+  "description": "Links a specific NIST SP 800-171A assessment objective (e.g. 3.1.1[a]) to an uploaded evidence item, and records MET/GAP status.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "objective_id": {
+      "type": "string",
+      "description": "e.g. 3.1.1[a]"
+    },
+    "evidence_id": {
+      "type": "string",
+      "description": "Linked ProjectEvidence id (optional \u2014 link may exist as a status marker only)."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Assessed",
+        "Met",
+        "Gap"
+      ],
+      "default": "Not Assessed"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "control_id",
+    "objective_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

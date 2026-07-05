@@ -1,0 +1,124 @@
+{
+  "name": "IncidentLog",
+  "type": "object",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "incident_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Malware",
+        "Unauthorized Access",
+        "Phishing",
+        "Data Loss",
+        "Denial of Service",
+        "Insider Threat",
+        "Lost/Stolen Device",
+        "Policy Violation",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Moderate"
+    },
+    "affected_assets": {
+      "type": "string"
+    },
+    "actions_taken": {
+      "type": "string"
+    },
+    "reported_to_dibnet": {
+      "type": "boolean",
+      "default": false
+    },
+    "dibnet_report_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "icf_number": {
+      "type": "string",
+      "description": "Incident Collection Format (ICF) report number from DIBNet."
+    },
+    "involved_cui": {
+      "type": "boolean",
+      "default": false
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Contained",
+        "Recovering",
+        "Closed"
+      ],
+      "default": "Open"
+    }
+  },
+  "required": [
+    "project_id",
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
