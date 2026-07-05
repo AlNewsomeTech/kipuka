@@ -35,6 +35,21 @@
       ],
       "default": "Screenshot"
     },
+    "source_tool": {
+      "type": "string",
+      "enum": [
+        "None",
+        "NinjaOne",
+        "Palo Alto Cortex XDR",
+        "Microsoft Defender",
+        "Microsoft Intune",
+        "Microsoft Entra ID",
+        "Microsoft Purview",
+        "Other"
+      ],
+      "default": "None",
+      "description": "Optional security tool this evidence was captured from."
+    },
     "file_url": {
       "type": "string"
     },

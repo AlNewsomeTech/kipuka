@@ -1,23 +1,42 @@
 import { useState, useEffect } from 'react';
-import { X, Upload, Loader2, Save } from 'lucide-react';
+import { X, Upload, Loader2, Save, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { EVIDENCE_TYPES } from '@/lib/evidenceQuality';
+import { isToolActive } from '@/lib/securityTools';
 import RichTextField from '@/components/ui/RichTextField';
 
+// Tools that carry a naming standard.
+const TOOL_NAMING = {
+  'NinjaOne': { toolName: 'NinjaOne', example: 'SI.L2-3.14.1_NinjaOne_OS_Patch_Policy_2026-07-05.png' },
+  'Palo Alto Cortex XDR': { toolName: 'CortexXDR', example: 'SI.L2-3.14.2_CortexXDR_Malware_Prevention_Policy_2026-07-05.png' },
+};
+
+// A filename "looks like" it starts with a control ID: e.g. AC.L2-3.1.2_...
+const CONTROL_ID_PREFIX = /^[A-Z]{2}\.L\d-\d/;
+
 // Create/edit a ProjectEvidence item. `existing` edits; otherwise creates.
-export default function EvidenceUploadModal({ project, currentUser, controls = [], presetControlIds = [], existing = null, onClose, onSaved }) {
+export default function EvidenceUploadModal({ project, currentUser, controls = [], presetControlIds = [], presetSourceTool = null, existing = null, onClose, onSaved }) {
   const [form, setForm] = useState({
     evidence_title: '', evidence_type: 'Screenshot', control_ids: presetControlIds,
     description: '', evidence_date: new Date().toISOString().slice(0, 10),
-    expiration_date: '', owner: '', source_system: '', review_status: 'Draft',
+    expiration_date: '', owner: '', source_system: '', source_tool: presetSourceTool || 'None',
+    review_status: presetSourceTool ? 'Needs Review' : 'Draft',
     file_url: '', file_name: '',
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activeTools, setActiveTools] = useState([]); // enabled/planned tool names
 
   useEffect(() => {
-    if (existing) setForm({ ...existing, control_ids: existing.control_ids || [] });
+    if (existing) setForm({ ...existing, control_ids: existing.control_ids || [], source_tool: existing.source_tool || 'None' });
   }, [existing]);
+
+  // Load which tools are enabled/planned so only those appear as source options.
+  useEffect(() => {
+    base44.entities.ProjectSecurityTool.filter({ project_id: project.id })
+      .then((tools) => setActiveTools(tools.filter((t) => isToolActive(t.tool_status)).map((t) => t.tool_name)))
+      .catch(() => setActiveTools([]));
+  }, [project.id]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -49,10 +68,18 @@ export default function EvidenceUploadModal({ project, currentUser, controls = [
     onSaved();
   };
 
+  // Source tool options: None + active tools + Other.
+  const sourceToolOptions = ['None', ...activeTools.filter((t) => t !== 'Other'), 'Other'];
+  // Ensure the current/preset value is always selectable even if not active.
+  if (form.source_tool && !sourceToolOptions.includes(form.source_tool)) sourceToolOptions.splice(1, 0, form.source_tool);
+
+  const naming = TOOL_NAMING[form.source_tool];
+  const filenameWarn = naming && form.file_name && !CONTROL_ID_PREFIX.test(form.file_name);
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 sticky top-0 bg-white">
+        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 sticky top-0 bg-white z-10">
           <h3 className="text-sm font-bold text-slate-800">{existing ? 'Edit Evidence' : 'Add Evidence'}</h3>
           <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
         </div>
@@ -65,6 +92,29 @@ export default function EvidenceUploadModal({ project, currentUser, controls = [
               <input type="file" className="hidden" onChange={handleFile} />
             </label>
           </div>
+
+          {/* Source tool + naming guidance */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Source Tool</label>
+            <select className="form-input" value={form.source_tool} onChange={(e) => set('source_tool', e.target.value)}>
+              {sourceToolOptions.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          {naming && (
+            <div className="bg-slate-900 rounded-lg p-3 space-y-1">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide">Required naming format</div>
+              <div className="text-green-400 font-mono text-[12px] break-all">CONTROLID_{naming.toolName}_EvidenceDescription_YYYY-MM-DD.png</div>
+              <div className="text-green-400 font-mono text-[11px] break-all opacity-80">e.g. {naming.example}</div>
+            </div>
+          )}
+          {filenameWarn && (
+            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-[13px] text-amber-800 leading-[1.5]">
+                Evidence file name should start with the primary CMMC control ID. Example: <span className="font-mono">{naming.example}</span>
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Evidence Title *</label>

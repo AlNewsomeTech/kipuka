@@ -8,29 +8,19 @@ const basePortals = [
   { key: 'physical_evidence', label: 'Physical Security (On-Site)', url: null },
 ];
 
-const optionalPortals = {
-  ninjaone: { key: 'ninjaone_evidence', label: 'NinjaOne Dashboard', url: 'https://app.ninjaone.com' },
-  cortex_xdr: { key: 'cortex_xdr_evidence', label: 'Palo Alto Cortex XDR', url: 'https://xdr.paloaltonetworks.com' },
-};
-
 const splitSteps = (text) => {
   if (!text) return [];
   return text.split('\n').map(s => s.trim()).filter(Boolean);
 };
 
-export default function TechnicianInstructions({ control, clientName, ninjaoneInScope = true, cortexXdrInScope = false }) {
+export default function TechnicianInstructions({ control, clientName }) {
   const sanitize = (str) => (str || '').replace(/[^a-zA-Z0-9]/g, '');
   const company = sanitize(clientName) || 'CompanyName';
   const levelCode = control.level === 'Level 1' ? 'L1' : control.level === 'Level 2' ? 'L2' : 'L3';
   const controlNumber = (control.control_id || '').split('-').pop() || 'Control';
   const namingPrefix = `${company}-CMMC-2.0-${levelCode}-${controlNumber}`;
 
-  const adminPortals = [
-    ...basePortals,
-    ...(ninjaoneInScope ? [optionalPortals.ninjaone] : []),
-    ...(cortexXdrInScope ? [optionalPortals.cortex_xdr] : []),
-  ];
-  const activePortals = adminPortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
+  const activePortals = basePortals.filter(p => control[p.key] && control[p.key].trim() !== '' && control[p.key].trim() !== 'N/A for Level 1');
   const implSteps = splitSteps(control.implementation_guidance);
   const screenshotList = splitSteps(control.required_screenshots);
   const exportList = splitSteps(control.required_exports);

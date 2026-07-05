@@ -7,6 +7,7 @@ import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import RichTextField from '@/components/ui/RichTextField';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
+import RelatedSecurityTools from '@/components/securitytools/RelatedSecurityTools';
 
 const RISK_TONE = {
   Low: 'bg-green-50 text-green-700', Moderate: 'bg-amber-50 text-amber-700',
@@ -124,6 +125,9 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
               </ul>
             )}
           </Field>
+
+          {/* Compact Related Security Tools — only shows when an active tool maps to this control */}
+          <RelatedSecurityTools projectId={project.id} controlId={assessment.control_id} />
 
           {/* SSP statement */}
           <Field label="SSP Statement">

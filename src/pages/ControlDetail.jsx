@@ -116,7 +116,7 @@ export default function ControlDetail() {
       </CollapsibleSection>
 
       {/* ===== Technician step-by-step ===== */}
-      <TechnicianInstructions control={control} clientName={selectedClient?.legal_name} ninjaoneInScope={selectedClient?.ninjaone_in_scope} cortexXdrInScope={selectedClient?.cortex_xdr_in_scope} />
+      <TechnicianInstructions control={control} clientName={selectedClient?.legal_name} />
 
       {/* ===== Evidence by system (collapsible) ===== */}
       <CollapsibleSection title="Evidence by System" icon={ShieldCheck} defaultOpen>
@@ -125,8 +125,6 @@ export default function ControlDetail() {
           <EvidenceSection title="SharePoint" content={current.sharepoint_evidence} />
           <EvidenceSection title="Entra ID" content={current.entra_evidence} />
           <EvidenceSection title="Exchange" content={current.exchange_evidence} />
-          {selectedClient?.ninjaone_in_scope && <EvidenceSection title="NinjaOne" content={current.ninjaone_evidence} />}
-          {selectedClient?.cortex_xdr_in_scope && <EvidenceSection title="Cortex XDR" content={current.cortex_xdr_evidence} />}
           {selectedClient?.has_physical_location && <EvidenceSection title="Physical Security" content={current.physical_evidence} />}
         </div>
       </CollapsibleSection>
