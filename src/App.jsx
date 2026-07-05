@@ -10,6 +10,7 @@ import { ClientProvider } from '@/lib/clientContext';
 import { OrgProvider } from '@/lib/orgContext';
 import { ThemeProvider } from '@/lib/themeContext';
 import RoleRoute from '@/components/RoleRoute';
+import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
 import Clients from '@/pages/Clients';
@@ -81,7 +82,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route element={<OrgProvider><ClientProvider><Layout /></ClientProvider></OrgProvider>}>
+      <Route element={<OrgProvider><OnboardingGate><ClientProvider><Layout /></ClientProvider></OnboardingGate></OrgProvider>}>
         {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
         <Route path="/intake" element={<ClientIntake />} />

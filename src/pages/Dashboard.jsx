@@ -8,6 +8,8 @@ import { base44 } from '@/api/base44Client';
 import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
+import { useOrg } from '@/lib/orgContext';
+import OrgDashboard from '@/components/dashboard/OrgDashboard';
 import AdminClientSummary from '@/components/dashboard/AdminClientSummary';
 import StatCard from '@/components/StatCard';
 import ProgressBar from '@/components/ProgressBar';
@@ -21,6 +23,7 @@ import WeeklyReportModal from '@/components/dashboard/WeeklyReportModal';
 export default function Dashboard() {
   const { selectedClient, selectedClientId } = useClient();
   const { user } = useAuth();
+  const { isPlatformAdmin, isPacSec, selectedOrgId, selectedOrg } = useOrg();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ controls: [], l2Controls: [], tasks: [], screenshots: [], documents: [], evidence: [], validations: [] });
   const [loading, setLoading] = useState(true);
@@ -47,6 +50,13 @@ export default function Dashboard() {
       setLoading(false);
     });
   }, [selectedClientId]);
+
+  // Self-service organization members see the org-level readiness dashboard,
+  // which reads from the active project's ControlAssessment records. Platform
+  // super-admins and Pac-Sec staff keep the consultant/client dashboard below.
+  if (!isPlatformAdmin && !isPacSec && selectedOrgId) {
+    return <OrgDashboard organizationId={selectedOrgId} orgName={selectedOrg?.organization_name} />;
+  }
 
   if (!selectedClient) {
     if (user?.role === 'admin' || user?.role === 'technician') {
