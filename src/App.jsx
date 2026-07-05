@@ -43,6 +43,7 @@ import TermsAndConditions from '@/pages/TermsAndConditions';
 import SaaSAdmin from '@/pages/SaaSAdmin';
 import ControlLibraryAdmin from '@/pages/ControlLibraryAdmin';
 import OrgSettings from '@/pages/OrgSettings';
+import OrgAssets from '@/pages/OrgAssets';
 import AuditLogPage from '@/pages/AuditLogPage';
 import RoleDashboards from '@/pages/RoleDashboards';
 import HelpCenter from '@/pages/HelpCenter';
@@ -88,6 +89,7 @@ const AuthenticatedApp = () => {
         <Route path="/intake" element={<ClientIntake />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/org-settings" element={<OrgSettings />} />
+        <Route path="/org-assets" element={<OrgAssets />} />
         <Route path="/audit-log" element={<AuditLogPage />} />
         <Route path="/dashboards" element={<RoleDashboards />} />
         <Route path="/help" element={<HelpCenter />} />

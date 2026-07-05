@@ -3,7 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Image, FileText, Download, CheckCircle2, Save, BookOpen, ClipboardList, FolderArchive, Pencil } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
-import { mergeControl, saveProgress } from '@/lib/controlProgress';
+import { mergeControl } from '@/lib/controlProgress';
+import { resolveProjectIdForClient, assessmentToConsultantStatus, consultantToAssessmentStatus } from '@/lib/clientProject';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
@@ -23,6 +24,8 @@ export default function ControlDetail() {
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
+  const [projectId, setProjectId] = useState(null);
+  const [assessment, setAssessment] = useState(null);
 
   const loadScreenshots = useCallback(() => {
     if (selectedClientId && control?.control_id) {
@@ -40,6 +43,24 @@ export default function ControlDetail() {
           progressRow = rows[0] || null;
         }
         const merged = mergeControl(def, progressRow);
+
+        // ControlAssessment is PRIMARY. Resolve the client's project and, if an
+        // assessment exists for this control, let it drive status/narrative/owner.
+        let asmt = null;
+        const pid = await resolveProjectIdForClient(selectedClientId);
+        setProjectId(pid);
+        if (pid && def?.control_id) {
+          const arows = await base44.entities.ControlAssessment.filter({ project_id: pid, control_id: def.control_id }).catch(() => []);
+          asmt = arows[0] || null;
+        }
+        setAssessment(asmt);
+        if (asmt) {
+          merged.status = assessmentToConsultantStatus(asmt.status);
+          merged.ready_for_assessment = asmt.status === 'Ready for Assessment' || merged.ready_for_assessment;
+          if (asmt.ssp_statement) merged.control_narrative = asmt.ssp_statement;
+          if (asmt.assessor_notes) merged.reviewer_notes = asmt.assessor_notes;
+          if (asmt.responsible_owner) merged.assigned_owner = asmt.responsible_owner;
+        }
         setControl(merged);
         setForm(merged);
       })
@@ -51,9 +72,34 @@ export default function ControlDetail() {
     }
   }, [id, selectedClientId, control?.control_id]);
 
+  // Upsert the ControlAssessment (single source of truth) for this control.
+  const saveAssessment = async (data) => {
+    if (!projectId) throw new Error('This client has no linked organization project yet. Create a project for the client’s organization before saving control progress.');
+    const payload = {
+      status: consultantToAssessmentStatus(data.status, data.ready_for_assessment),
+      ssp_statement: data.control_narrative || '',
+      assessor_notes: data.reviewer_notes || '',
+      responsible_owner: data.assigned_owner || '',
+    };
+    if (assessment?.id) {
+      const updated = await base44.entities.ControlAssessment.update(assessment.id, payload);
+      setAssessment(updated);
+    } else {
+      const created = await base44.entities.ControlAssessment.create({
+        project_id: projectId,
+        control_id: control.control_id,
+        control_title: control.control_title,
+        domain: control.control_family || '',
+        cmmc_level: control.level || 'Level 1',
+        ...payload,
+      });
+      setAssessment(created);
+    }
+  };
+
   const handleSave = () => {
     if (!selectedClientId) { alert('Select a client before saving control progress.'); return; }
-    saveProgress(selectedClientId, control.control_id, control.level, form)
+    saveAssessment(form)
       .then(() => { setControl(form); setEditing(false); })
       .catch(e => alert(e.message));
   };
@@ -195,7 +241,7 @@ export default function ControlDetail() {
           {editing ? <textarea className="form-input text-[15px] leading-relaxed" value={form.reviewer_notes || ''} onChange={e => setForm({...form, reviewer_notes: e.target.value})} /> : (control.reviewer_notes ? <ProseBlock content={control.reviewer_notes} clampLines={6} /> : <p className="text-[15px] text-slate-400 italic">No reviewer notes yet.</p>)}
         </div>
         <label className="flex items-center gap-2.5 cursor-pointer pt-1">
-          <input type="checkbox" checked={form.ready_for_assessment || false} onChange={e => { const updated = {...form, ready_for_assessment: e.target.checked}; setForm(updated); setControl(updated); if (!editing && selectedClientId) saveProgress(selectedClientId, control.control_id, control.level, updated); }} className="w-5 h-5 rounded border-slate-300" />
+          <input type="checkbox" checked={form.ready_for_assessment || false} onChange={e => { const updated = {...form, ready_for_assessment: e.target.checked}; setForm(updated); setControl(updated); if (!editing && selectedClientId) saveAssessment(updated).catch(err => alert(err.message)); }} className="w-5 h-5 rounded border-slate-300" />
           <span className="text-[15px] font-semibold text-slate-800">Ready for Assessment</span>
         </label>
       </div>

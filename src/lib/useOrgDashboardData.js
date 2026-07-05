@@ -11,6 +11,7 @@ export function useOrgDashboardData(organizationId) {
   const [assessments, setAssessments] = useState([]);
   const [evidence, setEvidence] = useState([]);
   const [poams, setPoams] = useState([]);
+  const [assets, setAssets] = useState([]);
 
   const load = useCallback(async () => {
     if (!organizationId) { setLoading(false); return; }
@@ -35,16 +36,18 @@ export function useOrgDashboardData(organizationId) {
       setProject(proj);
 
       if (proj) {
-        const [asmt, ev, pm] = await Promise.all([
+        const [asmt, ev, pm, as] = await Promise.all([
           base44.entities.ControlAssessment.filter({ project_id: proj.id }).catch(() => []),
           base44.entities.ProjectEvidence.filter({ project_id: proj.id }).catch(() => []),
           base44.entities.ProjectPOAM.filter({ project_id: proj.id }).catch(() => []),
+          base44.entities.Asset.filter({ project_id: proj.id }, '-created_date', 1000).catch(() => []),
         ]);
         setAssessments(asmt);
         setEvidence(ev);
         setPoams(pm);
+        setAssets(as);
       } else {
-        setAssessments([]); setEvidence([]); setPoams([]);
+        setAssessments([]); setEvidence([]); setPoams([]); setAssets([]);
       }
     } finally {
       setLoading(false);
@@ -53,5 +56,5 @@ export function useOrgDashboardData(organizationId) {
 
   useEffect(() => { load(); }, [load]);
 
-  return { loading, company, project, assessments, evidence, poams, reload: load };
+  return { loading, company, project, assessments, evidence, poams, assets, reload: load };
 }

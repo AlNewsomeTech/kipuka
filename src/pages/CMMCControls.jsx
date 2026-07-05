@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ShieldCheck, Search, LayoutGrid, Rows3, CheckCircle2, Image, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
-import { loadProgressMap, mergeControl, saveProgress } from '@/lib/controlProgress';
+import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
+import { resolveProjectIdForClient, assessmentToConsultantStatus, consultantToAssessmentStatus } from '@/lib/clientProject';
 import StatusBadge from '@/components/StatusBadge';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
@@ -22,22 +23,42 @@ export default function CMMCControls() {
   const [view, setView] = useState(() => localStorage.getItem(VIEW_KEY) || 'comfortable');
   const [selected, setSelected] = useState([]);
   const [savingBulk, setSavingBulk] = useState(false);
+  const [projectId, setProjectId] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => { localStorage.setItem(VIEW_KEY, view); }, [view]);
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      base44.entities.CMMCControl.filter({ level: 'Level 1' }),
-      loadProgressMap(selectedClientId),
-    ])
-      .then(([defs, progress]) => setControls(defs.map(c => mergeControl(c, progress[c.control_id]))))
-      .catch((e) => {
+    (async () => {
+      try {
+        const pid = await resolveProjectIdForClient(selectedClientId);
+        setProjectId(pid);
+        const [defs, progress, assessments] = await Promise.all([
+          base44.entities.CMMCControl.filter({ level: 'Level 1' }),
+          loadProgressMap(selectedClientId),
+          pid ? base44.entities.ControlAssessment.filter({ project_id: pid }).catch(() => []) : Promise.resolve([]),
+        ]);
+        // ControlAssessment is the PRIMARY source. Fall back to legacy
+        // ControlProgress (read-only) only where no assessment exists.
+        const asmtByControl = Object.fromEntries(assessments.map(a => [a.control_id, a]));
+        setControls(defs.map((c) => {
+          const merged = mergeControl(c, progress[c.control_id]);
+          const asmt = asmtByControl[c.control_id];
+          if (asmt) {
+            merged.status = assessmentToConsultantStatus(asmt.status);
+            merged._assessmentId = asmt.id;
+            merged.ready_for_assessment = asmt.status === 'Ready for Assessment' || merged.ready_for_assessment;
+          }
+          return merged;
+        }));
+      } catch (e) {
         setControls([]);
         alert('Error loading Level 1 controls: ' + e.message);
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [selectedClientId]);
 
   const families = [...new Set(controls.map(c => c.control_family))];
@@ -62,11 +83,29 @@ export default function CMMCControls() {
   const allVisibleSelected = filtered.length > 0 && filtered.every(c => selected.includes(c.id));
   const toggleSelectAll = () => setSelected(allVisibleSelected ? [] : filtered.map(c => c.id));
 
+  // Writes go exclusively to ControlAssessment (the single source of truth),
+  // upserting by project_id + control_id.
   const applyBulkStatus = async (status) => {
+    if (!projectId) { alert('This client has no linked organization project yet. Create a project for the client’s organization before updating controls.'); return; }
     setSavingBulk(true);
     const targets = controls.filter(c => selected.includes(c.id));
+    const asmtStatus = consultantToAssessmentStatus(status);
     try {
-      await Promise.all(targets.map(c => saveProgress(selectedClientId, c.control_id, c.level, { status })));
+      await Promise.all(targets.map(async (c) => {
+        if (c._assessmentId) {
+          await base44.entities.ControlAssessment.update(c._assessmentId, { status: asmtStatus });
+        } else {
+          const created = await base44.entities.ControlAssessment.create({
+            project_id: projectId,
+            control_id: c.control_id,
+            control_title: c.control_title,
+            domain: c.control_family || '',
+            cmmc_level: c.level || 'Level 1',
+            status: asmtStatus,
+          });
+          c._assessmentId = created.id;
+        }
+      }));
       setControls(controls.map(c => selected.includes(c.id) ? { ...c, status } : c));
       setSelected([]);
     } catch (e) {

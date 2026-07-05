@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Image, FileWarning, Layers, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Image, FileWarning, Layers, ArrowRight, HardDrive } from 'lucide-react';
 import { computeSprs } from '@/lib/sprsScoring';
 import { readinessPct } from '@/lib/controlStatus';
 import { useOrgDashboardData } from '@/lib/useOrgDashboardData';
@@ -14,7 +14,7 @@ import EmptyState from '@/components/EmptyState';
 // Self-service organization dashboard. Reads exclusively from the active
 // project's ControlAssessment records (single source of truth).
 export default function OrgDashboard({ organizationId, orgName }) {
-  const { loading, company, project, assessments, evidence, poams } = useOrgDashboardData(organizationId);
+  const { loading, company, project, assessments, evidence, poams, assets } = useOrgDashboardData(organizationId);
 
   const sprs = useMemo(() => computeSprs(assessments), [assessments]);
   const readiness = useMemo(() => readinessPct(assessments), [assessments]);
@@ -23,6 +23,9 @@ export default function OrgDashboard({ organizationId, orgName }) {
   const openPoams = poams.filter((p) => p.status !== 'Closed' && p.status !== 'Resolved' && p.status !== 'Complete').length;
   const closedPoams = poams.length - openPoams;
   const acceptedEvidence = evidence.filter((e) => e.review_status === 'Accepted').length;
+  const totalAssets = (assets || []).length;
+  const categorizedAssets = (assets || []).filter((a) => a.scope_category && a.scope_category !== 'Unknown').length;
+  const assetPct = totalAssets ? Math.round((categorizedAssets / totalAssets) * 100) : 0;
 
   if (loading) {
     return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" /></div>;
@@ -78,8 +81,8 @@ export default function OrgDashboard({ organizationId, orgName }) {
         <FamilyProgressBars assessments={assessments} />
       </div>
 
-      {/* Evidence + POA&M + Next actions */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      {/* Evidence + POA&M + Assets + Track */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Link to={`/projects/${project.id}/evidence`} className="bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300">
           <div className="flex items-center gap-2 mb-2"><Image className="w-5 h-5 text-blue-600" /><h3 className="text-sm font-semibold text-slate-800">Evidence Collected</h3></div>
           <div className="text-3xl font-bold text-slate-900">{evidence.length}</div>
@@ -89,6 +92,11 @@ export default function OrgDashboard({ organizationId, orgName }) {
           <div className="flex items-center gap-2 mb-2"><FileWarning className="w-5 h-5 text-amber-600" /><h3 className="text-sm font-semibold text-slate-800">POA&amp;M Items</h3></div>
           <div className="text-3xl font-bold text-slate-900">{openPoams}<span className="text-base text-slate-400 font-medium"> open</span></div>
           <p className="text-xs text-slate-500 mt-1">{closedPoams} closed · {poams.length} total</p>
+        </Link>
+        <Link to="/org-assets" className="bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300">
+          <div className="flex items-center gap-2 mb-2"><HardDrive className="w-5 h-5 text-purple-600" /><h3 className="text-sm font-semibold text-slate-800">Assets Categorized</h3></div>
+          <div className="text-3xl font-bold text-slate-900">{categorizedAssets}<span className="text-base text-slate-400 font-medium"> / {totalAssets}</span></div>
+          <p className="text-xs text-slate-500 mt-1">{totalAssets === 0 ? 'No assets inventoried yet' : `${assetPct}% of assets scoped`}</p>
         </Link>
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-2"><Layers className="w-5 h-5 text-slate-600" /><h3 className="text-sm font-semibold text-slate-800">Track</h3></div>

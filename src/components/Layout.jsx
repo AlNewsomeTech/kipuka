@@ -5,7 +5,7 @@ import {
   Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
-  Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox,
+  Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
   Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
@@ -27,6 +27,7 @@ const navSections = [
   ]},
   { label: 'Organization', items: [
     { to: '/org-settings', label: 'Organization Settings', icon: Building, clientVisible: true },
+    { to: '/org-assets', label: 'Asset Inventory', icon: HardDrive, clientVisible: true },
     { to: '/audit-log', label: 'Audit Log', icon: ScrollText, clientVisible: true },
   ]},
   { label: 'CMMC Controls', items: [
