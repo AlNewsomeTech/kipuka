@@ -1,18 +1,22 @@
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { REPORT_STATUSES } from '@/lib/acolyte';
 import { REPORT_SECTIONS } from '@/lib/acolyteReportSections';
+import { defaultReportHeader } from '@/lib/executiveReportGenerator';
 import RichTextField from '@/components/ui/RichTextField';
+import ReportDraftPanel from '@/components/acolyte/ReportDraftPanel';
 
-export default function ReportEditorModal({ project, existing, user, onClose, onSaved }) {
+export default function ReportEditorModal({ project, existing, user, orgName, canAssist = true, autoDraft = false, onClose, onSaved }) {
   const [form, setForm] = useState(existing || {
-    report_title: '', report_period_start: '', report_period_end: '', report_status: 'Draft',
-    prepared_by: 'Pacific Global Security Group',
+    ...defaultReportHeader({ orgName, user }),
+    report_status: 'Draft',
   });
   const [saving, setSaving] = useState(false);
+  const [drafting, setDrafting] = useState(autoDraft && canAssist);
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const applyFields = (patch) => setForm((f) => ({ ...f, ...patch }));
 
   const save = async () => {
     if (!form.report_title?.trim()) return;
@@ -37,6 +41,18 @@ export default function ReportEditorModal({ project, existing, user, onClose, on
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
         <div className="p-5 space-y-4">
+          {canAssist && (
+            <div className="flex items-center justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2.5">
+              <p className="text-xs text-purple-700">Draft report fields from current project data with the ACOLYTE Analyst Assistant.</p>
+              <button
+                type="button"
+                onClick={() => setDrafting(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold text-white bg-gradient-to-br from-purple-600 to-blue-600 hover:opacity-90 flex-shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Generate Draft from Current Data
+              </button>
+            </div>
+          )}
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Report Title *</label>
             <input className="form-input" value={form.report_title} onChange={(e) => set('report_title', e.target.value)} />
@@ -73,6 +89,17 @@ export default function ReportEditorModal({ project, existing, user, onClose, on
           </button>
         </div>
       </div>
+
+      {drafting && (
+        <ReportDraftPanel
+          project={project}
+          orgName={orgName}
+          user={user}
+          currentValues={form}
+          onApplyFields={applyFields}
+          onClose={() => setDrafting(false)}
+        />
+      )}
     </div>
   );
 }

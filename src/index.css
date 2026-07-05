@@ -246,9 +246,13 @@
   color: #e2e8f0;
 }
 .dark .ql-editor,
-.dark-green .ql-editor { color: #e2e8f0; }
+.dark-green .ql-editor { color: #e2e8f0; background-color: #161f33; }
+.dark-green .ql-editor { color: #86efac; }
 .dark .ql-editor.ql-blank::before,
-.dark-green .ql-editor.ql-blank::before { color: #64748b; }
+.dark-green .ql-editor.ql-blank::before { color: #64748b; font-style: italic; }
+/* Quill content children (paragraphs, lists) must not carry a white background */
+.dark .ql-editor p, .dark .ql-editor li, .dark .ql-editor span,
+.dark-green .ql-editor p, .dark-green .ql-editor li, .dark-green .ql-editor span { background-color: transparent !important; }
 /* Toolbar icons/labels */
 .dark .ql-snow .ql-stroke,
 .dark-green .ql-snow .ql-stroke { stroke: #94a3b8; }

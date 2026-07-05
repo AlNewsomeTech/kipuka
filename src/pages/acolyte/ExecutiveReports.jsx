@@ -25,6 +25,7 @@ export default function ExecutiveReports() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [autoDraft, setAutoDraft] = useState(false);
   const [editing, setEditing] = useState(null);
   const [preview, setPreview] = useState(null);
   const [fStatus, setFStatus] = useState('All');
@@ -62,9 +63,16 @@ export default function ExecutiveReports() {
         subtitle="Create user-triggered executive reports summarizing operational cyber readiness."
         icon={FileBarChart}
         right={!readOnly && project ? (
-          <button onClick={() => { setEditing(null); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
-            <Plus className="w-4 h-4" /> New Report
-          </button>
+          <div className="flex items-center gap-2">
+            {canAssist && (
+              <button onClick={() => { setEditing(null); setAutoDraft(true); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-lg hover:opacity-90">
+                <Sparkles className="w-4 h-4" /> Generate Draft from Current Data
+              </button>
+            )}
+            <button onClick={() => { setEditing(null); setAutoDraft(false); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
+              <Plus className="w-4 h-4" /> New Report
+            </button>
+          </div>
         ) : null}
       />
       <AcolyteProjectBar projects={projects} projectId={projectId} onSelect={selectProject} orgName={orgNameForProject} />
@@ -116,6 +124,7 @@ export default function ExecutiveReports() {
 
       {modal && project && (
         <ReportEditorModal project={project} existing={editing} user={user}
+          orgName={orgNameForProject} canAssist={!readOnly && canAssist} autoDraft={autoDraft}
           onClose={() => setModal(false)} onSaved={() => { setModal(false); load(); }} />
       )}
       {preview && (
