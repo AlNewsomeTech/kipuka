@@ -50,6 +50,12 @@ function PolicyRow({ p, renderActions }) {
           Review applicability for cloud-first environments before adopting this policy.
         </div>
       )}
+      {p.unresolved_placeholders_count > 0 && (
+        <div className="mt-2 flex items-start gap-1.5 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+          <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+          {p.unresolved_placeholders_count} unresolved merge variable(s): {p.unresolved_placeholders}. Fill in the company profile or edit before finalizing.
+        </div>
+      )}
     </div>
   );
 }

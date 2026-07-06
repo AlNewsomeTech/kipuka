@@ -75,6 +75,15 @@
       ],
       "default": "",
       "description": "Whether this document is a Policy or a Procedure, for full-family coverage."
+    },
+    "unresolved_placeholders": {
+      "type": "string",
+      "description": "Comma-separated list of {{merge}} variables left unresolved when this policy was cloned/imported (e.g. from a missing CompanyProfile field)."
+    },
+    "unresolved_placeholders_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of unresolved {{merge}} placeholders \u2014 surfaced so nothing ships blank."
     }
   },
   "required": [

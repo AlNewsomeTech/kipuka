@@ -74,6 +74,8 @@ const navSections = [
     { to: '/users', label: 'User Management', icon: UserCog, adminOnly: true },
     { to: '/support-inbox', label: 'Support Inbox', icon: Inbox },
     { to: '/control-library', label: 'Control Library', icon: Library, adminOnly: true },
+    { to: '/policy-library', label: 'Policy Library', icon: ScrollText, adminOnly: true },
+    { to: '/branding', label: 'Branding', icon: SlidersHorizontal, adminOnly: true },
     { to: '/saas-admin', label: 'Pac-Sec SaaS Admin', icon: Server, adminOnly: true },
   ]},
 ];

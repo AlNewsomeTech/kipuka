@@ -1,32 +1,41 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ScrollText, Loader2, Plus, FileDown, Package, Library, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
+import { ScrollText, Loader2, Plus, FileDown, Package, Library, CheckCircle2, XCircle, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import { buildPolicySeed, mergePolicyBody } from '@/lib/policyTemplates';
 import { buildFamilyDocSeed, auditFamilyCoverage } from '@/lib/policyFamilyCoverage';
 import { generatePolicyPackage } from '@/lib/reportGenerators';
 import { createReportPdf, safeFileName, BRAND } from '@/lib/reportBranding';
+import { buildMergeMap, resolveMergeVariables } from '@/lib/mergeVariables';
 import PolicyEditorModal from './PolicyEditorModal';
 import TemplatePickerModal from './TemplatePickerModal';
+import PolicyImportModal from '@/components/policies/PolicyImportModal';
+import PolicyLibraryGroups from '@/components/policies/PolicyLibraryGroups';
 
 export default function PoliciesModule({ project, org, readOnly, currentUser }) {
   const [templates, setTemplates] = useState([]);
   const [policies, setPolicies] = useState([]);
+  const [companyProfile, setCompanyProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
   const [picker, setPicker] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [editing, setEditing] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [tpl, pol] = await Promise.all([
+    const [tpl, pol, cp] = await Promise.all([
       base44.entities.PolicyTemplate.filter({ is_master_template: true }).catch(() => []),
       base44.entities.PolicyTemplate.filter({ project_id: project.id }).catch(() => []),
+      project.organization_id
+        ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }).catch(() => [])
+        : Promise.resolve([]),
     ]);
     setTemplates(tpl);
     setPolicies(pol.filter((p) => !p.is_master_template));
+    setCompanyProfile(cp[0] || null);
     setLoading(false);
-  }, [project.id]);
+  }, [project.id, project.organization_id]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -77,18 +86,21 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
 
   const cloneTemplate = async (tpl) => {
     const today = new Date().toISOString().slice(0, 10);
-    const merge = {
-      organization_name: org?.organization_name || '', project_name: project.project_name,
-      owner: currentUser?.full_name || currentUser?.email || '', effective_date: today,
-      review_date: '', version: '1.0',
-    };
+    const mergeMap = buildMergeMap({
+      companyProfile, org, project,
+      owner: currentUser?.full_name || currentUser?.email || '',
+    });
+    const { body, unresolved } = resolveMergeVariables(tpl.policy_body, mergeMap);
     await base44.entities.PolicyTemplate.create({
       organization_id: project.organization_id, project_id: project.id,
       policy_name: tpl.policy_name, policy_category: tpl.policy_category,
       mapped_control_ids: tpl.mapped_control_ids || [],
-      policy_body: mergePolicyBody(tpl.policy_body, merge),
-      version: '1.0', owner: merge.owner, effective_date: today,
+      policy_body: body,
+      version: '1.0', owner: mergeMap.owner || '', effective_date: today,
       approval_status: 'Draft', is_master_template: false,
+      family_code: tpl.family_code || '', doc_kind: tpl.doc_kind || '',
+      unresolved_placeholders: unresolved.join(', '),
+      unresolved_placeholders_count: unresolved.length,
     });
     setPicker(false);
     load();
@@ -117,13 +129,18 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
           <div className="flex items-center gap-2.5">
             <ScrollText className="w-5 h-5 text-[#0F1E3C]" />
             <h1 className="text-lg font-bold text-slate-900">Policy Library</h1>
-            <DarkHorizonBadge />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             {policies.length > 0 && (
               <button onClick={() => generatePolicyPackage({ project, org, policies, generatedBy: currentUser?.full_name || currentUser?.email })}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
                 <Package className="w-4 h-4" /> Export Package
+              </button>
+            )}
+            {!readOnly && (
+              <button onClick={() => setImporting(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
+                <Upload className="w-4 h-4" /> Import Policies
               </button>
             )}
             {!readOnly && (
@@ -175,26 +192,26 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
 
       {policies.length === 0 ? (
         <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
-          No policies created yet. {!readOnly && 'Use "New from Template" or "Generate missing document set(s)" above.'}
+          No policies created yet. {!readOnly && 'Use "New from Template", "Import Policies", or "Generate missing document set(s)" above.'}
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
-          {policies.map((p) => (
-            <div key={p.id} className="flex items-center gap-3 px-4 py-3">
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-slate-800 truncate">{p.policy_name}</div>
-                <div className="text-[11px] text-slate-400">{p.policy_category}{p.review_date ? ` · Review ${p.review_date}` : ''} · {(p.mapped_control_ids || []).length} controls</div>
-              </div>
-              <StatusBadge status={p.approval_status} size="xs" />
+        <PolicyLibraryGroups
+          policies={policies}
+          renderActions={(p) => (
+            <div className="flex items-center gap-2">
               <button onClick={() => exportPolicy(p)} className="text-slate-400 hover:text-slate-700" title="Export policy"><FileDown className="w-4 h-4" /></button>
               {!readOnly && <button onClick={() => setEditing(p)} className="text-xs font-semibold text-[#0F1E3C] hover:underline">Edit</button>}
             </div>
-          ))}
-        </div>
+          )}
+        />
       )}
 
       {picker && (
         <TemplatePickerModal templates={templates} onClone={cloneTemplate} onClose={() => setPicker(false)} />
+      )}
+      {importing && (
+        <PolicyImportModal mode="project" project={project} org={org} currentUser={currentUser}
+          onClose={() => setImporting(false)} onImported={() => { setImporting(false); load(); }} />
       )}
       {editing && (
         <PolicyEditorModal policy={editing} onClose={() => setEditing(null)}

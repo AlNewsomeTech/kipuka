@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Library, Upload, Loader2, ShieldAlert, Trash2, FileText, Layers } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Library, Upload, Loader2, ShieldAlert, Trash2, FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useOrg } from '@/lib/orgContext';
 import EmptyState from '@/components/EmptyState';
