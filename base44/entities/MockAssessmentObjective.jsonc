@@ -1,6 +1,7 @@
 {
-  "name": "AcolyteRemediationItem",
+  "name": "MockAssessmentObjective",
   "type": "object",
+  "description": "One assessment-objective verdict within a mock assessment session (NIST SP 800-171A objective-level).",
   "properties": {
     "organization_id": {
       "type": "string"
@@ -8,83 +9,59 @@
     "project_id": {
       "type": "string"
     },
-    "finding_id": {
+    "session_id": {
       "type": "string"
     },
-    "control_assessment_id": {
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "objective_id": {
       "type": "string",
-      "description": "Optional linked ControlAssessment. Closing this item can produce evidence attached to this control."
+      "description": "e.g. 3.1.1[a]"
     },
-    "remediation_title": {
+    "objective_text": {
       "type": "string"
     },
-    "remediation_description": {
-      "type": "string"
-    },
-    "priority": {
-      "type": "string",
-      "enum": [
-        "Low",
-        "Medium",
-        "High",
-        "Urgent"
-      ],
-      "default": "Medium"
-    },
-    "owner": {
-      "type": "string"
-    },
-    "due_date": {
-      "type": "string",
-      "format": "date"
-    },
-    "status": {
+    "verdict": {
       "type": "string",
       "enum": [
-        "Not Started",
-        "In Progress",
-        "Blocked",
-        "Pending Validation",
-        "Complete",
-        "Deferred"
+        "Not Assessed",
+        "Met",
+        "Not Met",
+        "Not Applicable"
       ],
-      "default": "Not Started"
+      "default": "Not Assessed"
     },
-    "related_control_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "default": []
-    },
-    "related_poam_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "default": []
-    },
-    "related_evidence_ids": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "default": []
-    },
-    "progress_notes": {
-      "type": "string"
-    },
-    "validation_notes": {
-      "type": "string"
-    },
-    "completed_date": {
+    "justification": {
       "type": "string",
-      "format": "date"
+      "description": "Required justification for NOT MET / NOT APPLICABLE verdicts."
+    },
+    "assessor_notes": {
+      "type": "string"
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "poam_created": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a POA&M item was created from this failed objective."
     }
   },
   "required": [
     "project_id",
-    "remediation_title"
+    "session_id",
+    "objective_id"
   ],
   "rls": {
     "read": {

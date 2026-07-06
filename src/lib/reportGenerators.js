@@ -199,6 +199,54 @@ export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp,
   await logExport(project, 'C3PAO Handoff Package', 'C3PAO Handoff Package', generatedBy);
 }
 
+// Mock Assessment Report (PDF) — C3PAO-style verdict summary.
+export async function generateMockAssessmentReport({ project, org, session, objectives, generatedBy }) {
+  const met = objectives.filter((o) => o.verdict === 'Met');
+  const notMet = objectives.filter((o) => o.verdict === 'Not Met');
+  const na = objectives.filter((o) => o.verdict === 'Not Applicable');
+
+  const r = createReportPdf({ title: 'Mock Assessment Report', project, org, generatedBy });
+  r.heading('Assessment Session');
+  r.label('Session', session.session_name || 'Mock Assessment');
+  r.label('Scope', session.scope_level);
+  r.label('Run By', session.run_by || generatedBy || '—');
+  r.label('Date', session.session_date || new Date().toLocaleDateString());
+  r.label('Overall Verdict', session.overall_verdict);
+  r.label('Completion', `${session.completion_pct || 0}%`);
+
+  r.heading('Objective Results');
+  r.label('Objectives Assessed', met.length + notMet.length + na.length + ' of ' + objectives.length);
+  r.label('Met', met.length);
+  r.label('Not Met', notMet.length);
+  r.label('Not Applicable', na.length);
+
+  // Failed objectives grouped by control with remediation hints.
+  const byControl = {};
+  notMet.forEach((o) => (byControl[o.control_id] ||= { title: o.control_title, items: [] }).items.push(o));
+  r.heading('Failed Objectives & Remediation Hints');
+  const controls = Object.keys(byControl).sort();
+  if (!controls.length) r.text('No failed objectives recorded. This does not by itself indicate a passing assessment.');
+  controls.forEach((cid) => {
+    r.ensure(50);
+    r.text(`${cid} — ${byControl[cid].title || ''}`, { bold: true, size: 11 });
+    byControl[cid].items.forEach((o) => {
+      r.text(`• ${o.objective_id}: ${o.objective_text}`);
+      if (o.justification) r.text(`   Justification: ${stripHtml(o.justification)}`, { size: 9 });
+      if (o.assessor_notes) r.text(`   Assessor notes: ${stripHtml(o.assessor_notes)}`, { size: 9 });
+    });
+    r.text('   Remediation hint: implement the objective above, capture supporting evidence, and create a POA&M item to track closure.', { size: 9 });
+    r.space(4);
+  });
+
+  r.heading('Not Applicable Objectives');
+  if (!na.length) r.text('None.');
+  na.forEach((o) => r.text(`• ${o.objective_id} (${o.control_id}) — ${stripHtml(o.justification) || 'No justification recorded.'}`));
+
+  r.disclaimerNote('This is a self-run mock assessment for readiness planning only. It is not an official C3PAO assessment. ' + BRAND.disclaimer);
+  r.save(`${safeFileName(project.project_name)}_Mock_Assessment_Report.pdf`);
+  await logExport(project, 'Mock Assessment Report', 'Mock Assessment Report', generatedBy);
+}
+
 // POA&M CSV export
 export async function generatePoamCsv({ project, poams, generatedBy }) {
   const rows = [['Title', 'Control', 'Risk', 'Status', 'Owner', 'Target Date', 'Actual Date', 'Gap', 'Remediation']];

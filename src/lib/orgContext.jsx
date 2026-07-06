@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { isPacSec, roleHasPerm, isReadOnly } from '@/lib/orgRoles';
 import { tierHasFeature, tierLimit } from '@/lib/subscriptionTiers';
+import { planHasFeature, planConfig, trialActive } from '@/lib/planTiers';
 
 const OrgContext = createContext(null);
 
@@ -88,6 +89,14 @@ export function OrgProvider({ children }) {
     new Date(selectedOrg.subscription_end_date) < new Date();
 
   const hasFeature = (feature) => tierHasFeature(tier, feature);
+
+  // ---- Platform capability plan tier (Part 3) ----
+  const planTier = selectedOrg?.plan_tier || 'L1_Essentials';
+  const isTrial = trialActive(selectedOrg);
+  const planHas = (feature) => planHasFeature(selectedOrg, feature);
+  const acolyteTier = selectedOrg?.acolyte_tier || 'none';
+  const acolyteEnabled = acolyteTier && acolyteTier !== 'none';
+
   const can = (perm) => (orgRole ? roleHasPerm(orgRole, perm) : false);
   const readOnly = isReadOnly(orgRole) || suspended || expired;
   const limit = (key) => tierLimit(tier, key);
@@ -108,6 +117,12 @@ export function OrgProvider({ children }) {
     expired,
     fullyDisabled,
     hasFeature,
+    planTier,
+    planLabel: planConfig(planTier).label,
+    isTrial,
+    planHas,
+    acolyteTier,
+    acolyteEnabled,
     can,
     readOnly,
     limit,

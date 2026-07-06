@@ -56,6 +56,40 @@
       ],
       "default": "Trial"
     },
+    "plan_tier": {
+      "type": "string",
+      "enum": [
+        "L1_Essentials",
+        "L1_Complete",
+        "L2_Professional",
+        "L2_Premium",
+        "Enterprise"
+      ],
+      "default": "L1_Essentials",
+      "description": "Platform capability tier. Set ONLY by the platform super-admin from the consultant console. Gates which platform features are available. Not a description of any managed service or labor."
+    },
+    "trial_full_access": {
+      "type": "boolean",
+      "default": false,
+      "description": "When true, the org gets full-featured access regardless of plan_tier (14-day self-service trial). Super-admin sets the real tier once the trial ends."
+    },
+    "trial_ends_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date the 14-day full-featured trial ends. After this date the plan_tier gate applies even if trial_full_access is still true."
+    },
+    "acolyte_tier": {
+      "type": "string",
+      "enum": [
+        "none",
+        "watch",
+        "ready",
+        "shield",
+        "cmmc_premium"
+      ],
+      "default": "none",
+      "description": "ACOLYTE Operations managed-service entitlement. Super-admin set. 'none' shows a locked preview of the service."
+    },
     "subscription_status": {
       "type": "string",
       "enum": [

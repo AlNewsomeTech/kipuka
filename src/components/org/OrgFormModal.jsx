@@ -3,11 +3,14 @@ import { X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { TIERS, getTierConfig } from '@/lib/subscriptionTiers';
+import { PLAN_TIERS, PLAN_CONFIG } from '@/lib/planTiers';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 
 const SAM_STATUSES = ['Unknown', 'Active', 'Inactive', 'Pending', 'Not Applicable'];
 const SUB_STATUSES = ['Trial', 'Active', 'Past Due', 'Suspended', 'Cancelled'];
 const SUPPORT_LEVELS = ['Standard', 'Priority', 'Pac-Sec Managed'];
+const ACOLYTE_TIERS = ['none', 'watch', 'ready', 'shield', 'cmmc_premium'];
+const ACOLYTE_LABELS = { none: 'None (locked preview)', watch: 'ACOLYTE Watch', ready: 'ACOLYTE Ready', shield: 'ACOLYTE Shield', cmmc_premium: 'ACOLYTE CMMC Premium' };
 
 const empty = {
   organization_name: '', legal_name: '', short_name: '', primary_contact_name: '',
@@ -15,6 +18,7 @@ const empty = {
   cage_codes: [], sam_registration_status: 'Unknown', subscription_tier: 'Trial',
   subscription_status: 'Trial', subscription_start_date: '', subscription_end_date: '',
   seat_limit: 5, storage_limit_gb: 5, support_level: 'Standard', customer_logo_url: '', notes: '',
+  plan_tier: 'L1_Essentials', trial_full_access: false, trial_ends_date: '', acolyte_tier: 'none',
 };
 
 export default function OrgFormModal({ open, onClose, org, onSaved }) {
@@ -57,6 +61,9 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
         seat_limit: Number(form.seat_limit) || 0,
         storage_limit_gb: Number(form.storage_limit_gb) || 0,
       };
+      if (!payload.trial_ends_date) delete payload.trial_ends_date;
+      if (!payload.subscription_start_date) delete payload.subscription_start_date;
+      if (!payload.subscription_end_date) delete payload.subscription_end_date;
       let saved;
       if (org?.id) {
         saved = await base44.entities.Organization.update(org.id, payload);
@@ -130,6 +137,34 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
                 {SUPPORT_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
             </Field>
+          </div>
+
+          {/* Platform capability entitlements — super-admin only */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <h4 className="text-sm font-bold text-slate-800 mb-1">Platform Entitlements</h4>
+            <p className="text-xs text-slate-500 mb-3">Sets which platform capabilities this organization can use. No self-serve billing — you set these manually.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Field label="Plan tier (platform capabilities)">
+                <select className="form-input" value={form.plan_tier} onChange={(e) => set('plan_tier', e.target.value)}>
+                  {PLAN_TIERS.map((t) => <option key={t} value={t}>{PLAN_CONFIG[t].label}</option>)}
+                </select>
+              </Field>
+              <Field label="ACOLYTE Operations tier">
+                <select className="form-input" value={form.acolyte_tier} onChange={(e) => set('acolyte_tier', e.target.value)}>
+                  {ACOLYTE_TIERS.map((t) => <option key={t} value={t}>{ACOLYTE_LABELS[t]}</option>)}
+                </select>
+              </Field>
+              <Field label="14-day full-access trial">
+                <label className="flex items-center gap-2 text-sm text-slate-700 h-[38px]">
+                  <input type="checkbox" checked={!!form.trial_full_access} onChange={(e) => set('trial_full_access', e.target.checked)} />
+                  Unlock all features during trial
+                </label>
+              </Field>
+              <Field label="Trial ends">
+                <input type="date" className="form-input" value={form.trial_ends_date || ''} onChange={(e) => set('trial_ends_date', e.target.value)} />
+              </Field>
+            </div>
+            <p className="text-[11px] text-slate-400 mt-2">{PLAN_CONFIG[form.plan_tier]?.blurb}</p>
           </div>
 
           <Field label="Notes"><textarea rows={3} className="form-input" value={form.notes} onChange={(e) => set('notes', e.target.value)} /></Field>

@@ -1,0 +1,119 @@
+{
+  "name": "MockAssessmentSession",
+  "type": "object",
+  "description": "A guided C3PAO-style self-assessment session for a project. Tracks objective-by-objective verdicts under NIST SP 800-171A.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "session_name": {
+      "type": "string",
+      "default": "Mock Assessment"
+    },
+    "scope_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2"
+      ],
+      "default": "Level 1"
+    },
+    "run_by": {
+      "type": "string",
+      "description": "Name/email of the person who ran the mock assessment."
+    },
+    "session_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "In Progress",
+        "Complete"
+      ],
+      "default": "In Progress"
+    },
+    "completion_pct": {
+      "type": "number",
+      "default": 0,
+      "description": "Percent of objectives with a recorded verdict."
+    },
+    "objectives_total": {
+      "type": "number",
+      "default": 0
+    },
+    "objectives_met": {
+      "type": "number",
+      "default": 0
+    },
+    "objectives_not_met": {
+      "type": "number",
+      "default": 0
+    },
+    "objectives_na": {
+      "type": "number",
+      "default": 0
+    },
+    "overall_verdict": {
+      "type": "string",
+      "enum": [
+        "Not Determined",
+        "Likely Pass",
+        "Not Ready",
+        "Conditional"
+      ],
+      "default": "Not Determined"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
