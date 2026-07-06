@@ -18,7 +18,8 @@
         "Evidence Index",
         "Policy Package",
         "SPRS Package",
-        "C3PAO Handoff Package"
+        "C3PAO Handoff Package",
+        "C3PAO Evidence Package"
       ]
     },
     "report_title": {

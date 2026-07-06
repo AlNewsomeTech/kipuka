@@ -199,6 +199,30 @@ export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp,
   await logExport(project, 'C3PAO Handoff Package', 'C3PAO Handoff Package', generatedBy);
 }
 
+// C3PAO Evidence Package (ZIP) — invokes the backend generator, then downloads
+// the produced ZIP and returns the completeness result for display.
+// The backend logs its own ReportExport record; no client-side logExport here.
+export async function generateEvidencePackageZip({ project }) {
+  const res = await base44.functions.invoke('generateEvidencePackage', { project_id: project.id });
+  const data = res?.data || {};
+  if (data.error) throw new Error(data.error);
+  if (data.zip_file_url) {
+    const a = document.createElement('a');
+    a.href = data.zip_file_url;
+    a.download = `${data.root_folder_name || safeFileName(project.project_name) + '_Evidence_Package'}.zip`;
+    a.click();
+  }
+  return data;
+}
+
+// Preview the C3PAO Evidence Package contents & completeness without building the ZIP.
+export async function previewEvidencePackage({ project }) {
+  const res = await base44.functions.invoke('generateEvidencePackage', { project_id: project.id, preview_only: true });
+  const data = res?.data || {};
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
 // Mock Assessment Report (PDF) — C3PAO-style verdict summary.
 export async function generateMockAssessmentReport({ project, org, session, objectives, generatedBy }) {
   const met = objectives.filter((o) => o.verdict === 'Met');

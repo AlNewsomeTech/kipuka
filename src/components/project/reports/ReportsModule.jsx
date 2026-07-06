@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart3, Loader2, FileText, ListChecks, ScrollText, Package, Lock, Sparkles, Clock,
+  FolderArchive, CheckCircle2, AlertTriangle, Download,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import PremiumBadge from '@/components/commercial/PremiumBadge';
 import { tierHasFeature, FEATURES } from '@/lib/subscriptionTiers';
 import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
-  generatePolicyPackage, generateC3PAOHandoff,
+  generatePolicyPackage, generateC3PAOHandoff, generateEvidencePackageZip,
 } from '@/lib/reportGenerators';
 import { computeReadiness, handoffPrechecks, allPass, FINAL_DOC_WARNING } from '@/lib/readinessGate';
 import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
@@ -18,6 +19,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
   const [busy, setBusy] = useState(null);
   const [preview, setPreview] = useState(null);
   const [gate, setGate] = useState(null); // { report, checks, title }
+  const [pkgResult, setPkgResult] = useState(null); // completeness result after building the ZIP
 
   const load = useCallback(async () => {
     const [assessments, evidence, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
@@ -94,6 +96,12 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
       desc: 'Full assessor package: exec summary, scope, assets, SSP, POA&M, evidence, control matrix, policies, SPRS, risks, contacts.',
       run: () => generateC3PAOHandoff({ project, org, ...data, generatedBy: genBy }),
     },
+    {
+      key: 'evidence_zip', icon: FolderArchive, title: 'C3PAO Evidence Package (ZIP)', premium: true, gated: true,
+      checks: handoffChecks, badge: 'Final',
+      desc: 'Downloadable ZIP with the actual evidence files organized by NIST control family, plus SSP, policies, an evidence index, and a completeness report.',
+      run: async () => { const r = await generateEvidencePackageZip({ project }); setPkgResult(r); },
+    },
   ];
 
   const clickReport = (r, locked) => {
@@ -166,6 +174,66 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
                 <span className="ml-auto text-xs text-slate-400">{h.generated_date ? new Date(h.generated_date).toLocaleString() : ''}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {pkgResult && (
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setPkgResult(null)}>
+          <div className="bg-white rounded-xl w-full max-w-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2.5 mb-1">
+              <FolderArchive className="w-5 h-5 text-[#0F1E3C]" />
+              <h3 className="text-base font-bold text-slate-800">Evidence Package Generated</h3>
+            </div>
+            <p className="text-sm text-slate-500">
+              {pkgResult.placed_file_count ?? 0} file(s) packed into <span className="font-medium text-slate-700">{pkgResult.root_folder_name}</span>. The ZIP download has started.
+            </p>
+
+            {pkgResult.completeness && (
+              <div className="grid grid-cols-2 gap-2 mt-4 text-sm">
+                <div className="bg-slate-50 rounded-lg px-3 py-2">
+                  <div className="text-xs text-slate-500">Controls with evidence</div>
+                  <div className="font-semibold text-slate-800">{pkgResult.completeness.controls_with_evidence} / {pkgResult.completeness.controls_total}</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg px-3 py-2">
+                  <div className="text-xs text-slate-500">Evidence accepted</div>
+                  <div className="font-semibold text-slate-800">{pkgResult.completeness.evidence_accepted} / {pkgResult.completeness.evidence_total}</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg px-3 py-2">
+                  <div className="text-xs text-slate-500">Policies included</div>
+                  <div className="font-semibold text-slate-800">{pkgResult.completeness.policies_included}</div>
+                </div>
+                <div className="bg-slate-50 rounded-lg px-3 py-2">
+                  <div className="text-xs text-slate-500">SSP approved</div>
+                  <div className="font-semibold text-slate-800">{pkgResult.completeness.ssp_approved ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+            )}
+
+            {pkgResult.warnings?.length > 0 ? (
+              <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-amber-700 mb-1.5">
+                  <AlertTriangle className="w-4 h-4" /> {pkgResult.warnings.length} completeness warning(s)
+                </div>
+                <ul className="text-xs text-amber-700 space-y-1 list-disc pl-4">
+                  {pkgResult.warnings.map((w, i) => <li key={i}>{w}</li>)}
+                </ul>
+                <p className="text-[11px] text-amber-600 mt-2">The package was still generated. Review these items and regenerate before formal submission. Generated content must be reviewed by Pac-Sec staff.</p>
+              </div>
+            ) : (
+              <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 flex items-center gap-1.5 text-sm font-semibold text-green-700">
+                <CheckCircle2 className="w-4 h-4" /> No completeness warnings.
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mt-5">
+              {pkgResult.zip_file_url && (
+                <a href={pkgResult.zip_file_url} download className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
+                  <Download className="w-4 h-4" /> Download Again
+                </a>
+              )}
+              <button onClick={() => setPkgResult(null)} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Close</button>
+            </div>
           </div>
         </div>
       )}
