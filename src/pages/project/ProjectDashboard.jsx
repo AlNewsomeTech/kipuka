@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import {
   ShieldCheck, ClipboardCheck, ListChecks, AlertTriangle, FileStack,
-  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2,
+  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { FEATURES } from '@/lib/subscriptionTiers';
@@ -44,11 +44,12 @@ export default function ProjectDashboard() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [poams, ssps, assessments, evidence] = await Promise.all([
+      const [poams, ssps, assessments, evidence, mockSessions] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.MockAssessmentSession.filter({ project_id: project.id }, '-created_date', 1).catch(() => []),
       ]);
       if (!alive) return;
       const closed = ['Closed', 'Accepted Risk'];
@@ -60,6 +61,7 @@ export default function ProjectDashboard() {
         sspStatus: ssps[0]?.approval_status || 'Not Started',
         controlsComplete: assessments.length ? `${assessments.filter((a) => a.status === 'Implemented').length}/${assessments.length}` : '—',
         controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
+        mockVerdict: mockSessions[0]?.overall_verdict || null,
       });
     })();
     return () => { alive = false; };
@@ -124,7 +126,11 @@ export default function ProjectDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Metric icon={ClipboardCheck} label="Controls Complete" value={counts?.controlsComplete ?? '—'} tone="green" />
         <Metric icon={ListChecks} label="Controls Needing Evidence" value={counts?.controlsNeedEvidence ?? '—'} tone="amber" />
-        <Metric icon={Package} label="Evidence Package" value="Not Started" />
+        <Link to={`/projects/${project.id}/mock`} className="block">
+          <Metric icon={Gavel} label="Mock Assessment"
+            value={counts?.mockVerdict || 'Not Run'}
+            tone={counts?.mockVerdict === 'Likely Pass' ? 'green' : counts?.mockVerdict === 'Not Ready' ? 'red' : counts?.mockVerdict === 'Conditional' ? 'amber' : 'slate'} />
+        </Link>
         <Metric icon={BadgeCheck} label="SPRS / PIEE" value="Not Started" />
       </div>
 

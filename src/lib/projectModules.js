@@ -2,7 +2,7 @@
 import {
   LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
   AlertTriangle, ScrollText, BadgeCheck, BarChart3, Wrench, ShieldHalf,
-  Network, Share2, Siren,
+  Network, Share2, Siren, Gavel,
 } from 'lucide-react';
 
 // Modules rendered in the per-project left navigation.
@@ -16,6 +16,7 @@ export const PROJECT_MODULES = [
   { key: 'security-tooling', label: 'Security Tooling', icon: ShieldHalf, read: false },
   { key: 'evidence', label: 'Evidence', icon: ListChecks, read: true },
   { key: 'readiness', label: 'Evidence Readiness', icon: ClipboardCheck, read: true },
+  { key: 'mock', label: 'Mock Assessment', icon: Gavel, read: true },
   { key: 'poam', label: 'POA&M', icon: AlertTriangle, read: true },
   { key: 'inventory', label: 'Final Inventory & Scope', icon: Boxes, read: false },
   { key: 'diagrams', label: 'Network & Data Flow', icon: Network, read: true },

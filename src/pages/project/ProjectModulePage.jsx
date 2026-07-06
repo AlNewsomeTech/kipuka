@@ -18,6 +18,7 @@ import DiagramModule from '@/components/project/diagram/DiagramModule';
 import SrmModule from '@/components/project/srm/SrmModule';
 import IncidentModule from '@/components/project/incident/IncidentModule';
 import EvidenceReadinessModule from '@/components/project/readiness/EvidenceReadinessModule';
+import MockAssessmentModule from '@/components/project/mock/MockAssessmentModule';
 
 // Modules with full in-app workflows (Phase 3 + Phase 4 + Phase 5).
 const RICH_MODULES = {
@@ -26,6 +27,7 @@ const RICH_MODULES = {
   assessment: AssessmentModule,
   evidence: EvidenceModule,
   readiness: EvidenceReadinessModule,
+  mock: MockAssessmentModule,
   'security-tooling': SecurityToolingModule,
   diagrams: DiagramModule,
   srm: SrmModule,
