@@ -9,6 +9,7 @@ import ScrollToTop from './components/ScrollToTop';
 import { ClientProvider } from '@/lib/clientContext';
 import { OrgProvider } from '@/lib/orgContext';
 import { ThemeProvider } from '@/lib/themeContext';
+import { BrandProvider } from '@/lib/brandContext';
 import RoleRoute from '@/components/RoleRoute';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
@@ -42,6 +43,8 @@ import AIAssistant from '@/pages/AIAssistant';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import SaaSAdmin from '@/pages/SaaSAdmin';
 import ControlLibraryAdmin from '@/pages/ControlLibraryAdmin';
+import BrandingSettings from '@/pages/BrandingSettings';
+import PolicyLibraryAdmin from '@/pages/PolicyLibraryAdmin';
 import OrgSettings from '@/pages/OrgSettings';
 import OrgAssets from '@/pages/OrgAssets';
 import AuditLogPage from '@/pages/AuditLogPage';
@@ -156,6 +159,8 @@ const AuthenticatedApp = () => {
           <Route path="/saas-admin" element={<SaaSAdmin />} />
           <Route path="/demo-workspace" element={<DemoWorkspace />} />
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
+          <Route path="/branding" element={<BrandingSettings />} />
+          <Route path="/policy-library" element={<PolicyLibraryAdmin />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
@@ -170,10 +175,12 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <ThemeProvider>
+          <BrandProvider>
           <Router>
             <ScrollToTop />
             <AuthenticatedApp />
           </Router>
+          </BrandProvider>
         </ThemeProvider>
         <Toaster />
       </QueryClientProvider>

@@ -67,8 +67,7 @@ export default function FindingDetail({ finding, controlLabels, evidenceLabels, 
             <div className="rounded-lg border border-purple-200 bg-purple-50/60 p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wide">ACOLYTE Analyst Assistant</span>
-                <span className="text-[10px] text-purple-500">· Powered by DarkHorizon.AI</span>
+                <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wide">Drafting Assistant</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 <button onClick={onExplainImpact} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">

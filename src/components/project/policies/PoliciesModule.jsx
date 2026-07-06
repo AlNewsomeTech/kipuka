@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScrollText, Loader2, Plus, FileDown, Package, Library, CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import StatusBadge from '@/components/StatusBadge';
 import { buildPolicySeed, mergePolicyBody } from '@/lib/policyTemplates';
 import { buildFamilyDocSeed, auditFamilyCoverage } from '@/lib/policyFamilyCoverage';

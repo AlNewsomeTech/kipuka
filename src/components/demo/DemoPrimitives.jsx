@@ -20,17 +20,18 @@ export function SampleChip({ className = '' }) {
   );
 }
 
-// Section shell with title + optional DarkHorizon badge.
-export function DemoSection({ id, title, icon: Icon, darkHorizon, children }) {
+// Section shell with title. `assist` flags AI-drafting-supported modules with a
+// neutral "Drafting Assistant" chip.
+export function DemoSection({ id, title, icon: Icon, assist, children }) {
   return (
     <section id={id} className="bg-white rounded-xl border border-slate-200 p-5 mb-5 scroll-mt-24">
       <div className="flex items-center gap-2 mb-4">
         {Icon && <Icon className="w-5 h-5 text-[#0F1E3C]" />}
         <h2 className="text-base font-bold text-slate-900">{title}</h2>
         <SampleChip className="ml-1" />
-        {darkHorizon && (
+        {assist && (
           <span className="ml-auto inline-flex items-center gap-1 text-[10px] font-semibold text-purple-600 bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">
-            <Sparkles className="w-3 h-3" /> DarkHorizon.AI
+            <Sparkles className="w-3 h-3" /> Drafting Assistant
           </span>
         )}
       </div>
@@ -61,7 +62,6 @@ export function downloadDemoReport(reportTitle, bodyLines = []) {
     `Report: ${reportTitle}`,
     'Organization: Acme Defense Components (ADC) — DEMO',
     'Prepared by: Pacific Global Security Group',
-    'Powered by: DarkHorizon.AI',
     `Generated: ${new Date().toLocaleString()}`,
     '',
     line,

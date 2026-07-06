@@ -2,7 +2,6 @@ import { NavLink, Link } from 'react-router-dom';
 import { Radar, ArrowUpRight } from 'lucide-react';
 import { PROJECT_MODULES } from '@/lib/projectModules';
 import { canAccessModule } from '@/lib/projectAccess';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 
 export default function ProjectNav({ projectId, orgRole }) {
   return (
@@ -26,7 +25,6 @@ export default function ProjectNav({ projectId, orgRole }) {
             >
               <Icon className="w-4 h-4 flex-shrink-0" />
               <span className="truncate">{m.label}</span>
-              {m.darkhorizon && <DarkHorizonBadge className="ml-auto scale-75 origin-right" />}
             </NavLink>
           );
         })}

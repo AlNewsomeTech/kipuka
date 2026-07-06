@@ -1,0 +1,43 @@
+{
+  "name": "BrandingSettings",
+  "type": "object",
+  "description": "Platform-wide branding. A single record (scope='platform') holds the uploaded logo variants used across the app UI and generated documents. Managed by Pac-Sec platform admins only.",
+  "properties": {
+    "scope": {
+      "type": "string",
+      "enum": [
+        "platform"
+      ],
+      "default": "platform",
+      "description": "Only one platform-scoped record is used."
+    },
+    "logo_color_url": {
+      "type": "string",
+      "description": "Primary color logo. Used in the app header/nav, login page, and on generated document cover pages, headers and footers."
+    },
+    "logo_dark_url": {
+      "type": "string",
+      "description": "Dark logo variant (for use on light backgrounds where the color logo does not read well)."
+    },
+    "logo_white_url": {
+      "type": "string",
+      "description": "White/reversed logo variant. Used automatically on dark backgrounds (e.g. the navy sidebar)."
+    },
+    "wordmark_text": {
+      "type": "string",
+      "default": "CMMC Command Center",
+      "description": "Fallback text wordmark shown when no logo is uploaded."
+    }
+  },
+  "required": [
+    "scope"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

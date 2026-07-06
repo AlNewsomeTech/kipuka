@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FileStack, Loader2, Wand2, FileDown, Save, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import RichTextField from '@/components/ui/RichTextField';
 import ProgressBar from '@/components/ProgressBar';
 import { SSP_SECTIONS, sectionCompletion, buildSspDraft } from '@/lib/sspSections';
@@ -115,7 +114,6 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           <div className="flex items-center gap-2.5">
             <FileStack className="w-5 h-5 text-[#0F1E3C]" />
             <h1 className="text-lg font-bold text-slate-900">System Security Plan</h1>
-            <DarkHorizonBadge />
           </div>
           <div className="flex gap-2 flex-wrap">
             {!readOnly && (

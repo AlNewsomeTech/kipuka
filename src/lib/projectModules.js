@@ -21,9 +21,9 @@ export const PROJECT_MODULES = [
   { key: 'diagrams', label: 'Network & Data Flow', icon: Network, read: true },
   { key: 'srm', label: 'Shared Responsibility', icon: Share2, read: true },
   { key: 'incident', label: 'Incident Response', icon: Siren, read: true },
-  { key: 'ssp', label: 'SSP', icon: FileStack, read: true, darkhorizon: true },
-  { key: 'policies', label: 'Policies', icon: ScrollText, read: false, darkhorizon: true },
-  { key: 'reports', label: 'Reports', icon: BarChart3, read: true, darkhorizon: true },
+  { key: 'ssp', label: 'SSP', icon: FileStack, read: true },
+  { key: 'policies', label: 'Policies', icon: ScrollText, read: false },
+  { key: 'reports', label: 'Reports', icon: BarChart3, read: true },
   { key: 'sprs', label: 'SPRS / PIEE', icon: BadgeCheck, read: false },
   { key: 'maintenance', label: 'Maintenance', icon: Wrench, read: false },
 ];

@@ -84,7 +84,6 @@ export default function ReadinessReviews() {
         title="Readiness Reviews"
         subtitle="Document manual monthly, quarterly, annual, and on-demand cyber readiness reviews."
         icon={CalendarCheck}
-        darkHorizon
         right={!readOnly && project ? (
           <button onClick={() => { setEditing(null); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
             <Plus className="w-4 h-4" /> New Review

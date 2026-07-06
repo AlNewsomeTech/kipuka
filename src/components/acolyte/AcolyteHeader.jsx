@@ -1,9 +1,8 @@
 import { Shield } from 'lucide-react';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import { ACOLYTE_BRAND } from '@/lib/acolyte';
 
 // Premium hero header for ACOLYTE pages.
-export default function AcolyteHeader({ title, subtitle, showPositioning, icon: Icon = Shield, right, darkHorizon }) {
+export default function AcolyteHeader({ title, subtitle, showPositioning, icon: Icon = Shield, right }) {
   return (
     <div className="bg-gradient-to-r from-[#0F1E3C] to-[#1E2D4A] rounded-xl p-6 text-white">
       <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -14,7 +13,6 @@ export default function AcolyteHeader({ title, subtitle, showPositioning, icon: 
             </div>
             <h1 className="text-xl font-bold">{title || ACOLYTE_BRAND.full}</h1>
             <span className="text-[10px] font-bold tracking-wider bg-white/15 px-2 py-0.5 rounded-full">PAC-SEC</span>
-            {darkHorizon && <DarkHorizonBadge />}
           </div>
           <p className="text-white/70 text-sm">{subtitle || ACOLYTE_BRAND.subtitle}</p>
           {showPositioning && (

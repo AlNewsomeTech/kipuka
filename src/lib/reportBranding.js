@@ -1,18 +1,27 @@
 // Shared branding + disclaimer strings and PDF helpers for all Phase 4 exports.
-// Keeps Pac-Sec / DarkHorizon.AI branding and confidentiality notices consistent.
+// Keeps Pac-Sec branding and confidentiality notices consistent.
 import jsPDF from 'jspdf';
 
 export const BRAND = {
   company: 'Pacific Global Security Group',
   product: 'CMMC Command Center',
-  poweredBy: 'Powered by DarkHorizon.AI',
+  poweredBy: 'Pac-Sec CMMC Command Center',
   confidential: 'CONFIDENTIAL & PROPRIETARY — Property of Pacific Global Security Group. Unauthorized distribution is prohibited.',
   disclaimer: 'Operational guidance only. Validate against official requirements.',
   poamDisclaimer: 'Not all gaps may be allowable for the target assessment path. The organization must validate official requirements before submission.',
 };
 
+// Pac-Sec brand palette (mirrors src/index.css tokens).
+export const BRAND_RGB = { primary: [71, 157, 207], secondary: [193, 204, 224] };
+
 const M = 48; // page margin
 const LINE = 15;
+
+// Module-level branding cache so PDF helpers can embed the uploaded logo.
+// Set once at app load / branding change via setReportBranding().
+let REPORT_BRANDING = { logoDataUrl: null, wordmark: 'CMMC Command Center' };
+export function setReportBranding(b) { REPORT_BRANDING = { ...REPORT_BRANDING, ...b }; }
+export function getReportBranding() { return REPORT_BRANDING; }
 
 // Strip HTML from richtext fields into plain text for PDF rendering.
 export function stripHtml(html) {
@@ -46,14 +55,19 @@ export function createReportPdf({ title, project, org, generatedBy, poweredBy = 
   const newPage = () => { footer(); doc.addPage(); state.page += 1; state.y = M; };
   const ensure = (h) => { if (state.y + h > pageH - 60) newPage(); };
 
-  // Header band
-  doc.setFillColor(15, 30, 60);
+  // Header band — Pac-Sec brand blue, with the uploaded logo when available.
+  doc.setFillColor(...BRAND_RGB.primary);
   doc.rect(0, 0, pageW, 70, 'F');
   doc.setTextColor(255);
+  const logo = REPORT_BRANDING.logoDataUrl;
+  let textX = M;
+  if (logo) {
+    try { doc.addImage(logo, 'PNG', M, 16, 38, 38); textX = M + 50; } catch { /* skip */ }
+  }
   doc.setFontSize(15); doc.setFont(undefined, 'bold');
-  doc.text(BRAND.product, M, 34);
+  doc.text(BRAND.product, textX, 34);
   doc.setFontSize(9); doc.setFont(undefined, 'normal');
-  doc.text(BRAND.company, M, 50);
+  doc.text(BRAND.company, textX, 50);
   if (poweredBy) doc.text(BRAND.poweredBy, pageW - M, 50, { align: 'right' });
   doc.setTextColor(0);
   state.y = 100;
@@ -72,9 +86,9 @@ export function createReportPdf({ title, project, org, generatedBy, poweredBy = 
     doc, state,
     heading(text) {
       ensure(30); state.y += 8;
-      doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(15, 30, 60);
+      doc.setFontSize(13); doc.setFont(undefined, 'bold'); doc.setTextColor(...BRAND_RGB.primary);
       doc.text(text, M, state.y); state.y += 6;
-      doc.setDrawColor(200); doc.line(M, state.y, pageW - M, state.y); state.y += 12;
+      doc.setDrawColor(...BRAND_RGB.secondary); doc.line(M, state.y, pageW - M, state.y); state.y += 12;
       doc.setTextColor(0);
     },
     text(body, opts = {}) {

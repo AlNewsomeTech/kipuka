@@ -3,7 +3,6 @@ import {
   BarChart3, Loader2, FileText, ListChecks, ScrollText, Package, Lock, Sparkles, Clock,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import PremiumBadge from '@/components/commercial/PremiumBadge';
 import { tierHasFeature, FEATURES } from '@/lib/subscriptionTiers';
 import {
@@ -109,7 +108,6 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
         <div className="flex items-center gap-2.5">
           <BarChart3 className="w-5 h-5 text-[#0F1E3C]" />
           <h1 className="text-lg font-bold text-slate-900">Reports &amp; Exports</h1>
-          <DarkHorizonBadge />
         </div>
         <p className="text-sm text-slate-500 mt-1">All exports include Pac-Sec branding, generated date, confidentiality footer, and validation disclaimer.</p>
         <p className="text-[13px] text-slate-500 mt-2 leading-relaxed">

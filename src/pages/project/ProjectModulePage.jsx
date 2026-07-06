@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { moduleByKey } from '@/lib/projectModules';
 import { useAuth } from '@/lib/AuthContext';
-import DarkHorizonBadge from '@/components/ui/DarkHorizonBadge';
 import ScopingModule from '@/components/project/scoping/ScopingModule';
 import InventoryModule from '@/components/project/inventory/InventoryModule';
 import AssessmentModule from '@/components/project/assessment/AssessmentModule';
@@ -60,7 +59,6 @@ export default function ProjectModulePage({ moduleKey }) {
       <div className="flex items-center gap-2.5 mb-1">
         <Icon className="w-5 h-5 text-[#0F1E3C]" />
         <h1 className="text-lg font-bold text-slate-900">{def.label}</h1>
-        {def.darkhorizon && <DarkHorizonBadge />}
       </div>
       <p className="text-sm text-slate-500 max-w-2xl">{content.desc}</p>
 

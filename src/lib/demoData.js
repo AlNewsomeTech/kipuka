@@ -13,8 +13,7 @@ export const DEMO_ORG = {
   project_name: 'ADC CMMC Level 2 Readiness Project',
   project_status: 'In Progress',
   prepared_by: 'Pacific Global Security Group',
-  powered_by: 'DarkHorizon.AI',
-};
+  };
 
 export const DEMO_BANNER_TEXT = 'Demo Workspace. Sample data only. Do not use for real client records.';
 

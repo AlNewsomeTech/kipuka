@@ -15,6 +15,8 @@ import { useTheme } from '@/lib/themeContext';
 import WarningBanner from '@/components/WarningBanner';
 import AcceptanceGate from '@/components/legal/AcceptanceGate';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
+import BrandLogo from '@/components/branding/BrandLogo';
+import { useBrand } from '@/lib/brandContext';
 
 const navSections = [
   { label: 'Overview', items: [
@@ -98,6 +100,8 @@ export default function Layout() {
   const { clients, selectedClientId, setSelectedClientId, selectedClient, loading } = useClient();
   const { user } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { branding, wordmark } = useBrand();
+  const hasLogo = !!(branding?.logo_white_url || branding?.logo_dark_url || branding?.logo_color_url);
   const [themeOpen, setThemeOpen] = useState(false);
 
   // Expanded/collapsed state per section. Restore from session, default: Overview open.
@@ -135,14 +139,20 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className={`${collapsed ? 'w-16' : 'w-60'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-[#0F1E3C] flex flex-col transition-all duration-300 flex-shrink-0`}>
         <div className="flex items-center gap-2.5 px-4 h-16 border-b border-white/10 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-            <ShieldAlert className="w-5 h-5 text-white" />
-          </div>
-          {!collapsed && (
-            <div className="min-w-0">
-              <div className="text-white font-bold text-sm leading-tight truncate">CMMC Command Center</div>
-              <div className="text-white/50 text-[10px] leading-tight">Deployment &amp; Evidence Platform</div>
-            </div>
+          {hasLogo ? (
+            <BrandLogo variant="white" imgClassName={collapsed ? 'h-8 w-8 object-contain' : 'h-9 w-auto max-w-[180px] object-contain'} />
+          ) : (
+            <>
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                <ShieldAlert className="w-5 h-5 text-white" />
+              </div>
+              {!collapsed && (
+                <div className="min-w-0">
+                  <div className="text-white font-heading font-bold text-sm leading-tight truncate">{wordmark}</div>
+                  <div className="text-white/50 text-[10px] leading-tight">Deployment &amp; Evidence Platform</div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -302,9 +312,13 @@ export default function Layout() {
                 </>
               )}
             </div>
-            <div className="w-8 h-8 rounded-full bg-[#0F1E3C] text-white text-xs font-bold flex items-center justify-center">
-              CMMC
-            </div>
+            {branding?.logo_color_url ? (
+              <img src={branding.logo_color_url} alt={wordmark} className="h-8 w-auto max-w-[140px] object-contain" />
+            ) : (
+              <div className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center">
+                CMMC
+              </div>
+            )}
           </div>
         </header>
 

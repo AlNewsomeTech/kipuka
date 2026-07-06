@@ -1,20 +1,20 @@
-// ACOLYTE Analyst Assistant — user-triggered AI drafting helpers powered by
-// DarkHorizon.AI. Every function here is invoked manually by a user action.
-// Nothing runs on a schedule; nothing writes to records — the calling UI shows
-// an editable preview and only persists after the user clicks "Apply to Record".
+// ACOLYTE Analyst Assistant — user-triggered AI drafting helpers. Every function
+// here is invoked manually by a user action. Nothing runs on a schedule; nothing
+// writes to records — the calling UI shows an editable preview and only persists
+// after the user clicks "Apply to Record".
 import { base44 } from '@/api/base44Client';
 import { roleHasPerm, isReadOnly, PERMS } from '@/lib/orgRoles';
 
 export const ASSISTANT_BRAND = {
   name: 'ACOLYTE Analyst Assistant',
-  subtitle: 'Powered by DarkHorizon.AI',
+  subtitle: 'Pac-Sec Drafting Assistant',
   description:
     'The ACOLYTE Analyst Assistant helps summarize cyber readiness, draft executive language, explain findings, recommend remediation steps, and align operational issues to CMMC readiness. It supports Pac-Sec analysts and client admins but does not replace professional review.',
 };
 
 // Shown near every assistant action.
 export const ASSISTANT_DISCLAIMER =
-  'DarkHorizon.AI generated content is for drafting and operational support only. Pac-Sec staff or authorized customer personnel must review and validate all content before client delivery, compliance use, or official submission.';
+  'Generated content is for drafting and operational support only. Pac-Sec staff or authorized customer personnel must review and validate all content before client delivery, compliance use, or official submission.';
 
 // Shown on generated previews.
 export const REVIEW_NOTICE =

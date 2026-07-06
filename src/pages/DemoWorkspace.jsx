@@ -62,7 +62,7 @@ export default function DemoWorkspace() {
               <span>Status: <b className="text-white">{DEMO_ORG.project_status}</b></span>
             </div>
             <p className="text-[11px] text-white/50 mt-3">
-              Prepared by {DEMO_ORG.prepared_by} · Powered by {DEMO_ORG.powered_by}
+              Prepared by {DEMO_ORG.prepared_by}
             </p>
           </div>
           <div className="flex flex-col gap-2">
@@ -116,7 +116,7 @@ export default function DemoWorkspace() {
       </DemoSection>
 
       {/* 2. Onboarding */}
-      <DemoSection id="onboarding" title="Project Onboarding" icon={ClipboardCheck} darkHorizon>
+      <DemoSection id="onboarding" title="Project Onboarding" icon={ClipboardCheck} assist>
         <div className="grid sm:grid-cols-2 gap-2">
           {DEMO_ONBOARDING.items.map((it) => (
             <div key={it.label} className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700">
@@ -128,7 +128,7 @@ export default function DemoWorkspace() {
       </DemoSection>
 
       {/* 3. Scoping */}
-      <DemoSection id="scoping" title="Scoping Module" icon={Crosshair} darkHorizon>
+      <DemoSection id="scoping" title="Scoping Module" icon={Crosshair} assist>
         <div className="space-y-2 mb-4">
           {DEMO_SCOPING.rows.map((r) => (
             <div key={r.label} className="grid sm:grid-cols-3 gap-1 border-b border-slate-100 pb-2">
@@ -238,7 +238,7 @@ export default function DemoWorkspace() {
       </DemoSection>
 
       {/* 7. SSP Builder */}
-      <DemoSection id="ssp" title="SSP Builder" icon={FileStack} darkHorizon>
+      <DemoSection id="ssp" title="SSP Builder" icon={FileStack} assist>
         <div className="grid sm:grid-cols-2 gap-2 mb-4">
           {DEMO_SSP.sections.map((s) => (
             <div key={s.label} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
@@ -277,7 +277,7 @@ export default function DemoWorkspace() {
       </DemoSection>
 
       {/* 9. Policy Library */}
-      <DemoSection id="policies" title="Policy Library" icon={BookMarked} darkHorizon>
+      <DemoSection id="policies" title="Policy Library" icon={BookMarked} assist>
         <div className="grid sm:grid-cols-2 gap-2">
           {DEMO_POLICIES.items.map((p) => (
             <div key={p.name} className="flex items-center justify-between bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
