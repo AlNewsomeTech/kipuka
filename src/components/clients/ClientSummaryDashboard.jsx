@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TrendingUp, AlertTriangle, FileText, ChevronDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { loadProgressMap } from '@/lib/controlProgress';
+import { loadCompletedControlIds } from '@/lib/clientControlCompletion';
 
 const OPEN_POAM = ['Open', 'Mitigating', 'In Progress', 'Not Started'];
 
@@ -32,20 +32,17 @@ export default function ClientSummaryDashboard({ clientId, expanded, onToggle })
     if (!clientId || !expanded || data) return;
     let active = true;
     (async () => {
-      const [l1, l2, progress, poams, docs] = await Promise.all([
+      const [l1, l2, doneIds, poams, docs] = await Promise.all([
         base44.entities.CMMCControl.filter({ level: 'Level 1' }).catch(() => []),
         base44.entities.CMMCControl.filter({ level: 'Level 2' }).catch(() => []),
-        loadProgressMap(clientId),
+        loadCompletedControlIds(clientId),
         base44.entities.POAMItem.filter({ client_id: clientId }).catch(() => []),
         base44.entities.GeneratedDocument.filter({ client_id: clientId }, '-updated_date', 4).catch(() => []),
       ]);
       if (!active) return;
       const allControls = [...l1, ...l2];
       const total = allControls.length;
-      const complete = allControls.filter((c) => {
-        const p = progress[c.control_id];
-        return p && (p.status === 'Complete' || p.ready_for_assessment);
-      }).length;
+      const complete = allControls.filter((c) => doneIds.has(c.control_id)).length;
       const pct = total ? Math.round((complete / total) * 100) : 0;
       const activePoams = poams.filter((p) => OPEN_POAM.includes(p.status));
       setData({ pct, complete, total, activePoams, docs });

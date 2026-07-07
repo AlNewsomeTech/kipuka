@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Eye, ShieldCheck, Layers, Image, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { loadProgressMap, mergeControl } from '@/lib/controlProgress';
+import { loadCompletedControlIds } from '@/lib/clientControlCompletion';
 import ProgressBar from '@/components/ProgressBar';
 import StatusBadge from '@/components/StatusBadge';
 
@@ -17,11 +17,10 @@ export default function ClientProgressBlock({ clientId }) {
       base44.entities.DeploymentTask.filter({ client_id: clientId }).catch(() => []),
       base44.entities.Screenshot.filter({ client_id: clientId }).catch(() => []),
       base44.entities.EvidenceItem.filter({ client_id: clientId }).catch(() => []),
-      loadProgressMap(clientId),
-    ]).then(([l1, l2, tasks, screenshots, evidence, progress]) => {
+      loadCompletedControlIds(clientId),
+    ]).then(([l1, l2, tasks, screenshots, evidence, doneIds]) => {
       setData({
-        l1: l1.map((c) => mergeControl(c, progress[c.control_id])),
-        l2: l2.map((c) => mergeControl(c, progress[c.control_id])),
+        l1, l2, doneIds,
         tasks, evidenceCount: screenshots.length + evidence.length,
       });
     });
@@ -31,9 +30,9 @@ export default function ClientProgressBlock({ clientId }) {
     return <div className="bg-white rounded-xl border border-slate-200 p-8 flex justify-center"><div className="w-6 h-6 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
   }
 
-  const l1Complete = data.l1.filter((c) => c.status === 'Complete' || c.ready_for_assessment).length;
+  const l1Complete = data.l1.filter((c) => data.doneIds.has(c.control_id)).length;
   const l1Pct = data.l1.length ? (l1Complete / data.l1.length) * 100 : 0;
-  const l2Complete = data.l2.filter((c) => c.status === 'Complete' || c.ready_for_assessment).length;
+  const l2Complete = data.l2.filter((c) => data.doneIds.has(c.control_id)).length;
   const l2Pct = data.l2.length ? (l2Complete / data.l2.length) * 100 : 0;
   const currentPhase = data.tasks.find((t) => t.status === 'In Progress')?.phase || 'Not Started';
   const openTasks = data.tasks.filter((t) => t.status !== 'Complete' && t.status !== 'Reviewed').length;

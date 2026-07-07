@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Building2, ShieldCheck, Layers, ChevronRight } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
+import { loadControlProgressSets } from '@/lib/clientControlCompletion';
 import ProgressBar from '@/components/ProgressBar';
 import EmptyState from '@/components/EmptyState';
 
@@ -10,34 +11,32 @@ export default function AdminClientSummary() {
   const { clients, setSelectedClientId } = useClient();
   const navigate = useNavigate();
   const [controls, setControls] = useState({ l1: [], l2: [] });
-  const [progress, setProgress] = useState([]);
+  // Map of client_id -> { done: Set, started: Set }, merged from ControlAssessment + ControlProgress.
+  const [progressByClient, setProgressByClient] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      base44.entities.CMMCControl.filter({ level: 'Level 1' }).catch(() => []),
-      base44.entities.CMMCControl.filter({ level: 'Level 2' }).catch(() => []),
-      base44.entities.ControlProgress.list().catch(() => []),
-    ]).then(([l1, l2, prog]) => {
+    let active = true;
+    (async () => {
+      const [l1, l2] = await Promise.all([
+        base44.entities.CMMCControl.filter({ level: 'Level 1' }).catch(() => []),
+        base44.entities.CMMCControl.filter({ level: 'Level 2' }).catch(() => []),
+      ]);
+      const entries = await Promise.all(
+        clients.map(async (c) => [c.id, await loadControlProgressSets(c.id)])
+      );
+      if (!active) return;
       setControls({ l1, l2 });
-      setProgress(prog);
+      setProgressByClient(Object.fromEntries(entries));
       setLoading(false);
-    });
-  }, []);
+    })();
+    return () => { active = false; };
+  }, [clients]);
 
   const handleSelectClient = (clientId) => {
     setSelectedClientId(clientId);
     navigate('/board');
   };
-
-  // Group completed controls by client_id -> Set of control IDs
-  const completedByClient = {};
-  progress.forEach(p => {
-    if (!p.client_id || !p.control_id) return;
-    if (p.status !== 'Complete' && !p.ready_for_assessment) return;
-    if (!completedByClient[p.client_id]) completedByClient[p.client_id] = new Set();
-    completedByClient[p.client_id].add(p.control_id);
-  });
 
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
 
@@ -54,19 +53,22 @@ export default function AdminClientSummary() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {clients.map((client) => {
-          const completedControls = completedByClient[client.id] || new Set();
-          const l1Complete = controls.l1.filter(c => completedControls.has(c.control_id)).length;
-          const l2Complete = controls.l2.filter(c => completedControls.has(c.control_id)).length;
+          const sets = progressByClient[client.id] || { done: new Set(), started: new Set() };
+          const l1Complete = controls.l1.filter(c => sets.done.has(c.control_id)).length;
+          const l2Complete = controls.l2.filter(c => sets.done.has(c.control_id)).length;
+          const l1Started = controls.l1.filter(c => sets.started.has(c.control_id)).length;
+          const l2Started = controls.l2.filter(c => sets.started.has(c.control_id)).length;
           const l1Pct = controls.l1.length ? (l1Complete / controls.l1.length) * 100 : 0;
           const l2Pct = controls.l2.length ? (l2Complete / controls.l2.length) * 100 : 0;
 
-          const levelStatus = (complete, total) => {
-            if (!total || complete === 0) return { label: 'Not Started', cls: 'bg-slate-100 text-slate-600' };
+          const levelStatus = (complete, started, total) => {
+            if (!total) return { label: 'Not Started', cls: 'bg-slate-100 text-slate-600' };
             if (complete >= total) return { label: 'Complete', cls: 'bg-green-50 text-green-700' };
-            return { label: 'In Progress', cls: 'bg-blue-50 text-blue-700' };
+            if (complete > 0 || started > 0) return { label: 'In Progress', cls: 'bg-blue-50 text-blue-700' };
+            return { label: 'Not Started', cls: 'bg-slate-100 text-slate-600' };
           };
-          const l1Status = levelStatus(l1Complete, controls.l1.length);
-          const l2Status = levelStatus(l2Complete, controls.l2.length);
+          const l1Status = levelStatus(l1Complete, l1Started, controls.l1.length);
+          const l2Status = levelStatus(l2Complete, l2Started, controls.l2.length);
 
           return (
             <div
