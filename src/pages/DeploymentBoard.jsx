@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle, ListChecks, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
@@ -6,6 +6,7 @@ import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import BulkUpdateBar from '@/components/BulkUpdateBar';
+import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
 import Level2Board from '@/components/board/Level2Board';
 import ClientProjectLinks from '@/components/board/ClientProjectLinks';
 
@@ -205,7 +206,7 @@ export default function DeploymentBoard() {
         <Level2Board clientId={selectedClientId} client={selectedClient} />
       </div>
 
-      {selectedTask && <TaskDetailModal task={selectedTask} controlIdMap={controlIdMap} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
+      {selectedTask && <TaskDetailModal task={selectedTask} controlIdMap={controlIdMap} clientId={selectedClientId} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
 
       {bulkMode && (
         <BulkUpdateBar
@@ -218,10 +219,20 @@ export default function DeploymentBoard() {
   );
 }
 
-function TaskDetailModal({ task, controlIdMap, onClose, onUpdate }) {
+function TaskDetailModal({ task, controlIdMap, clientId, onClose, onUpdate }) {
   const [form, setForm] = useState(task);
   const [saving, setSaving] = useState(false);
+  const [evidenceCount, setEvidenceCount] = useState(null);
   const controlRecordId = task.related_control ? controlIdMap?.[task.related_control] : null;
+
+  const loadEvidenceCount = useCallback(() => {
+    if (!clientId || !task.related_control) { setEvidenceCount(null); return; }
+    base44.entities.Screenshot.filter({ client_id: clientId, related_control: task.related_control })
+      .then((rows) => setEvidenceCount(rows.length))
+      .catch(() => setEvidenceCount(null));
+  }, [clientId, task.related_control]);
+
+  useEffect(loadEvidenceCount, [loadEvidenceCount]);
 
   const handleSave = () => {
     setSaving(true);
@@ -238,27 +249,37 @@ function TaskDetailModal({ task, controlIdMap, onClose, onUpdate }) {
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
 
-        {/* Workflow links — carry the technician from this task into the control and evidence upload */}
+        {/* Inline evidence upload — capture screenshots for this task without leaving the board */}
         <div className="px-5 pt-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2.5">Complete this task</h3>
-            <div className="flex flex-wrap gap-2">
-              {controlRecordId ? (
-                <Link to={`/controls/${controlRecordId}`} onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#0F1E3C] px-3.5 py-2 rounded-lg hover:bg-[#1E2D4A]">
-                  <ShieldCheck className="w-4 h-4" /> Open Control {task.related_control}
-                </Link>
-              ) : (
-                <Link to="/controls" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#0F1E3C] px-3.5 py-2 rounded-lg hover:bg-[#1E2D4A]">
-                  <ShieldCheck className="w-4 h-4" /> Go to Controls
-                </Link>
-              )}
-              <Link to="/screenshots" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 px-3.5 py-2 rounded-lg hover:bg-blue-50">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <h3 className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
                 <Upload className="w-4 h-4" /> Upload Evidence
-              </Link>
-              <Link to="/evidence" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 px-3.5 py-2 rounded-lg hover:bg-blue-50">
-                <ExternalLink className="w-4 h-4" /> Evidence Index
-              </Link>
+                {evidenceCount != null && (
+                  <span className="text-[11px] font-medium text-blue-700 bg-white border border-blue-200 px-2 py-0.5 rounded-full">
+                    {evidenceCount} uploaded
+                  </span>
+                )}
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {controlRecordId && (
+                  <Link to={`/controls/${controlRecordId}`} onClick={onClose} className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-white border border-blue-300 px-2.5 py-1.5 rounded-lg hover:bg-blue-50">
+                    <ShieldCheck className="w-3.5 h-3.5" /> Open Control {task.related_control}
+                  </Link>
+                )}
+                <Link to="/evidence" onClick={onClose} className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 bg-white border border-blue-300 px-2.5 py-1.5 rounded-lg hover:bg-blue-50">
+                  <ExternalLink className="w-3.5 h-3.5" /> Evidence Index
+                </Link>
+              </div>
             </div>
+
+            {task.related_control ? (
+              <BulkScreenshotUpload clientId={clientId} controlId={task.related_control} onUploaded={loadEvidenceCount} />
+            ) : (
+              <p className="text-sm text-blue-800/80 bg-white border border-blue-200 rounded-lg p-3">
+                Set a <span className="font-semibold">Related Control</span> below and save this task to attach evidence directly here.
+              </p>
+            )}
           </div>
         </div>
 
