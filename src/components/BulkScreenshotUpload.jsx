@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { UploadCloud, Loader2, CheckCircle2, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 
-export default function BulkScreenshotUpload({ clientId, controlId, onUploaded }) {
+export default function BulkScreenshotUpload({ clientId, controlId, relatedTask, onUploaded }) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -21,9 +21,10 @@ export default function BulkScreenshotUpload({ clientId, controlId, onUploaded }
     for (const file of files) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        const record = await base44.entities.Screenshot.create({
+        await base44.entities.Screenshot.create({
           client_id: clientId,
           related_control: controlId,
+          ...(relatedTask ? { related_task: relatedTask } : {}),
           file_url,
           file_name: file.name,
           actual_file_name: file.name,
@@ -41,7 +42,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, onUploaded }
     setResults(uploaded);
     setUploading(false);
     if (onUploaded) onUploaded();
-  }, [clientId, controlId, onUploaded]);
+  }, [clientId, controlId, relatedTask, onUploaded]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();

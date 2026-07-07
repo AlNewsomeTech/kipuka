@@ -274,7 +274,7 @@ function TaskDetailModal({ task, controlIdMap, clientId, onClose, onUpdate }) {
             </div>
 
             {task.related_control ? (
-              <BulkScreenshotUpload clientId={clientId} controlId={task.related_control} onUploaded={loadEvidenceCount} />
+              <BulkScreenshotUpload clientId={clientId} controlId={task.related_control} relatedTask={task.id} onUploaded={loadEvidenceCount} />
             ) : (
               <p className="text-sm text-blue-800/80 bg-white border border-blue-200 rounded-lg p-3">
                 Set a <span className="font-semibold">Related Control</span> below and save this task to attach evidence directly here.
