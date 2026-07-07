@@ -52,6 +52,28 @@ Deno.serve(async (req) => {
       return copy;
     });
 
+    // Guarantee every Level 1 control has a validation card on the board.
+    // The template task set historically covered only a subset of controls, which left
+    // the board (and therefore dashboard progress) unable to reach 100%.
+    const l1Controls = await base44.asServiceRole.entities.CMMCControl.filter({ level: 'Level 1' });
+    const coveredControls = new Set(newTasks.map((t) => t.related_control).filter(Boolean));
+    let order = Math.max(0, ...newTasks.map((t) => t.order || 0));
+    for (const c of l1Controls) {
+      if (coveredControls.has(c.control_id)) continue;
+      order += 1;
+      newTasks.push({
+        client_id: clientId,
+        status: 'Not Started',
+        completion_status: false,
+        title: `Validate ${c.control_id} — ${c.control_title}`,
+        phase: 'Level 1 Control Validation',
+        priority: 'High',
+        related_control: c.control_id,
+        instructions: `Confirm ${c.control_id} (${c.control_title}) is implemented, capture the required evidence, then mark this task complete to advance the control.`,
+        order,
+      });
+    }
+
     await base44.asServiceRole.entities.DeploymentTask.bulkCreate(newTasks);
 
     return Response.json({ created: newTasks.length, skipped: false });
