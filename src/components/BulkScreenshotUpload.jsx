@@ -7,6 +7,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [results, setResults] = useState([]);
+  const [note, setNote] = useState('');
   const inputRef = useRef(null);
 
   const handleFiles = useCallback(async (fileList) => {
@@ -25,6 +26,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
           client_id: clientId,
           related_control: controlId,
           ...(relatedTask ? { related_task: relatedTask } : {}),
+          ...(note.trim() ? { notes: note.trim() } : {}),
           file_url,
           file_name: file.name,
           actual_file_name: file.name,
@@ -41,8 +43,9 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
 
     setResults(uploaded);
     setUploading(false);
+    setNote('');
     if (onUploaded) onUploaded();
-  }, [clientId, controlId, relatedTask, onUploaded]);
+  }, [clientId, controlId, relatedTask, note, onUploaded]);
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
@@ -67,6 +70,16 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
 
   return (
     <div className="space-y-3">
+      <div>
+        <label className="text-xs font-medium text-slate-600 mb-1 block">Note (optional — applied to each screenshot in this upload)</label>
+        <input
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          disabled={uploading}
+          placeholder="e.g. MFA enforcement policy shown enabled for all users"
+          className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 bg-white text-slate-800 disabled:opacity-60"
+        />
+      </div>
       <div
         onDrop={onDrop}
         onDragOver={onDragOver}
