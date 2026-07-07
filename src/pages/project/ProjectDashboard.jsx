@@ -53,13 +53,15 @@ export default function ProjectDashboard() {
       ]);
       if (!alive) return;
       const closed = ['Closed', 'Accepted Risk'];
+      // Statuses that count a control as complete — matches what the control pages write.
+      const doneStatuses = ['Ready for Assessment', 'Ready for Documentation', 'Implemented', 'Evidence Accepted'];
       const evByControl = {};
       evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
       setCounts({
         openPoam: poams.filter((p) => !closed.includes(p.status)).length,
         highRisk: poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length,
         sspStatus: ssps[0]?.approval_status || 'Not Started',
-        controlsComplete: assessments.length ? `${assessments.filter((a) => a.status === 'Implemented').length}/${assessments.length}` : '—',
+        controlsComplete: assessments.length ? `${assessments.filter((a) => doneStatuses.includes(a.status)).length}/${assessments.length}` : '—',
         controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
         mockVerdict: mockSessions[0]?.overall_verdict || null,
       });
