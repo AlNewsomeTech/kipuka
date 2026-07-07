@@ -51,7 +51,7 @@ export default function DeploymentBoard() {
 
   const loadTasks = () => {
     if (!selectedClientId) { setLoading(false); return; }
-    base44.entities.DeploymentTask.filter({ client_id: selectedClientId })
+    base44.entities.DeploymentTask.filter({ client_id: selectedClientId }, 'order', 200)
       .then(setTasks)
       .catch(() => {})
       .finally(() => setLoading(false));
