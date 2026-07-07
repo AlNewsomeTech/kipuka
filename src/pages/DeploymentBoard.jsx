@@ -10,6 +10,7 @@ import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
 import Level2Board from '@/components/board/Level2Board';
 import ClientProjectLinks from '@/components/board/ClientProjectLinks';
 import TaskRunbookInline from '@/components/board/TaskRunbookInline';
+import { syncTaskStatusToControl } from '@/lib/boardControlSync';
 
 const phases = [
   'Intake', 'Scope', 'Tenant Baseline', 'Google Migration Planning', 'Identity Setup',
@@ -65,8 +66,11 @@ export default function DeploymentBoard() {
   };
 
   const handleStatusChange = (taskId, status) => {
+    const task = tasks.find(t => t.id === taskId);
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, status } : t));
-    base44.entities.DeploymentTask.update(taskId, { status }).catch(() => loadTasks());
+    base44.entities.DeploymentTask.update(taskId, { status })
+      .then(() => syncTaskStatusToControl(task, status))
+      .catch(() => loadTasks());
   };
 
   const toggleSelect = (taskId) => {
@@ -239,6 +243,7 @@ function TaskDetailModal({ task, controlIdMap, clientId, onClose, onUpdate }) {
   const handleSave = () => {
     setSaving(true);
     base44.entities.DeploymentTask.update(task.id, form)
+      .then(() => syncTaskStatusToControl({ ...task, related_control: form.related_control }, form.status))
       .then(() => { setSaving(false); onUpdate(); onClose(); })
       .catch(() => setSaving(false));
   };
