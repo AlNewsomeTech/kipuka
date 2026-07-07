@@ -9,6 +9,7 @@ import BulkUpdateBar from '@/components/BulkUpdateBar';
 import BulkScreenshotUpload from '@/components/BulkScreenshotUpload';
 import Level2Board from '@/components/board/Level2Board';
 import ClientProjectLinks from '@/components/board/ClientProjectLinks';
+import TaskRunbookInline from '@/components/board/TaskRunbookInline';
 
 const phases = [
   'Intake', 'Scope', 'Tenant Baseline', 'Google Migration Planning', 'Identity Setup',
@@ -192,6 +193,7 @@ export default function DeploymentBoard() {
                       )
                     )}
                     {task.owner && <div className="text-[10px] text-slate-400 mt-0.5">👤 {task.owner}</div>}
+                    {!bulkMode && <TaskRunbookInline task={task} />}
                   </div>
                 ))}
               </div>
