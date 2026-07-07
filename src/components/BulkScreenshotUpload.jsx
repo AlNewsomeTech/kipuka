@@ -10,8 +10,16 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
   const [note, setNote] = useState('');
   const inputRef = useRef(null);
 
+  const isAllowed = (f) =>
+    f.type.startsWith('image/') ||
+    /\.(xlsx|xls|csv)$/i.test(f.name) ||
+    ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'].includes(f.type);
+
+  const evidenceTypeFor = (f) =>
+    f.type.startsWith('image/') ? 'Screenshot' : 'Export';
+
   const handleFiles = useCallback(async (fileList) => {
-    const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+    const files = Array.from(fileList).filter(isAllowed);
     if (files.length === 0 || !clientId || !controlId) return;
 
     setUploading(true);
@@ -31,7 +39,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
           file_name: file.name,
           actual_file_name: file.name,
           screenshot_date: new Date().toISOString().split('T')[0],
-          evidence_type: 'Screenshot',
+          evidence_type: evidenceTypeFor(file),
           level: 'Level 1',
         });
         uploaded.push({ name: file.name, ok: true });
@@ -46,6 +54,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
     setNote('');
     if (onUploaded) onUploaded();
   }, [clientId, controlId, relatedTask, note, onUploaded]);
+  // isAllowed / evidenceTypeFor are pure helpers with no reactive deps.
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
@@ -71,7 +80,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
   return (
     <div className="space-y-3">
       <div>
-        <label className="text-xs font-medium text-slate-600 mb-1 block">Note (optional — applied to each screenshot in this upload)</label>
+        <label className="text-xs font-medium text-slate-600 mb-1 block">Note (optional — applied to each file in this upload)</label>
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
@@ -92,7 +101,7 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.xlsx,.xls,.csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"
           multiple
           className="hidden"
           onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
@@ -108,8 +117,8 @@ export default function BulkScreenshotUpload({ clientId, controlId, relatedTask,
         ) : (
           <div className="flex flex-col items-center gap-2">
             <UploadCloud className="w-8 h-8 text-slate-400" />
-            <p className="text-sm font-medium text-slate-700">Drag & drop screenshots here</p>
-            <p className="text-xs text-slate-400">or click to browse — multiple files supported</p>
+            <p className="text-sm font-medium text-slate-700">Drag & drop evidence here</p>
+            <p className="text-xs text-slate-400">Screenshots, Excel (.xlsx/.xls) & CSV — multiple files supported</p>
           </div>
         )}
       </div>
