@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle, ListChecks } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle, ListChecks, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';
@@ -27,6 +28,15 @@ export default function DeploymentBoard() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [generating, setGenerating] = useState(false);
+  const [controlIdMap, setControlIdMap] = useState({}); // control_id string -> CMMCControl record id
+
+  // Load the Level 1 control definitions once so task cards can deep-link to the
+  // matching control detail page (which is keyed by record id, not control_id).
+  useEffect(() => {
+    base44.entities.CMMCControl.filter({ level: 'Level 1' })
+      .then((defs) => setControlIdMap(Object.fromEntries(defs.map((c) => [c.control_id, c.id]))))
+      .catch(() => {});
+  }, []);
 
   const handleGenerate = () => {
     setGenerating(true);
@@ -167,7 +177,19 @@ export default function DeploymentBoard() {
                         {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     )}
-                    {task.related_control && <div className="text-[10px] text-slate-400 mt-1.5">{task.related_control}</div>}
+                    {task.related_control && (
+                      controlIdMap[task.related_control] ? (
+                        <Link
+                          to={`/controls/${controlIdMap[task.related_control]}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-600 hover:underline mt-1.5"
+                        >
+                          <ShieldCheck className="w-3 h-3" /> {task.related_control}
+                        </Link>
+                      ) : (
+                        <div className="text-[10px] text-slate-400 mt-1.5">{task.related_control}</div>
+                      )
+                    )}
                     {task.owner && <div className="text-[10px] text-slate-400 mt-0.5">👤 {task.owner}</div>}
                   </div>
                 ))}
@@ -183,7 +205,7 @@ export default function DeploymentBoard() {
         <Level2Board clientId={selectedClientId} client={selectedClient} />
       </div>
 
-      {selectedTask && <TaskDetailModal task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
+      {selectedTask && <TaskDetailModal task={selectedTask} controlIdMap={controlIdMap} onClose={() => setSelectedTask(null)} onUpdate={loadTasks} />}
 
       {bulkMode && (
         <BulkUpdateBar
@@ -196,9 +218,10 @@ export default function DeploymentBoard() {
   );
 }
 
-function TaskDetailModal({ task, onClose, onUpdate }) {
+function TaskDetailModal({ task, controlIdMap, onClose, onUpdate }) {
   const [form, setForm] = useState(task);
   const [saving, setSaving] = useState(false);
+  const controlRecordId = task.related_control ? controlIdMap?.[task.related_control] : null;
 
   const handleSave = () => {
     setSaving(true);
@@ -214,6 +237,31 @@ function TaskDetailModal({ task, onClose, onUpdate }) {
           <h2 className="text-lg font-bold text-slate-900">{form.title}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="w-5 h-5" /></button>
         </div>
+
+        {/* Workflow links — carry the technician from this task into the control and evidence upload */}
+        <div className="px-5 pt-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2.5">Complete this task</h3>
+            <div className="flex flex-wrap gap-2">
+              {controlRecordId ? (
+                <Link to={`/controls/${controlRecordId}`} onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#0F1E3C] px-3.5 py-2 rounded-lg hover:bg-[#1E2D4A]">
+                  <ShieldCheck className="w-4 h-4" /> Open Control {task.related_control}
+                </Link>
+              ) : (
+                <Link to="/controls" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-[#0F1E3C] px-3.5 py-2 rounded-lg hover:bg-[#1E2D4A]">
+                  <ShieldCheck className="w-4 h-4" /> Go to Controls
+                </Link>
+              )}
+              <Link to="/screenshots" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 px-3.5 py-2 rounded-lg hover:bg-blue-50">
+                <Upload className="w-4 h-4" /> Upload Evidence
+              </Link>
+              <Link to="/evidence" onClick={onClose} className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 bg-white border border-blue-300 px-3.5 py-2 rounded-lg hover:bg-blue-50">
+                <ExternalLink className="w-4 h-4" /> Evidence Index
+              </Link>
+            </div>
+          </div>
+        </div>
+
         <div className="p-5 space-y-4">
           <div className="grid md:grid-cols-2 gap-3">
             <Field label="Status"><select className="form-input" value={form.status} onChange={e => setForm({...form, status: e.target.value})}>{statuses.map(s => <option key={s}>{s}</option>)}</select></Field>
