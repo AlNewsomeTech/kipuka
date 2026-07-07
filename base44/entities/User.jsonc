@@ -12,6 +12,20 @@
     "assigned_client_ids": {
       "type": "string",
       "description": "Comma-separated client IDs assigned to this user (for technicians and clients)"
+    },
+    "organization_id": {
+      "type": "string",
+      "description": "The Organization (tenant) this user is bound to. Set automatically during self-service signup (org auto-created) or when an invited user accepts an org invitation. Used for data-layer tenant isolation in RLS. Pac-Sec platform staff (admin/technician app roles) are left unset \u2014 they remain global across all orgs."
+    },
+    "cui_notice_acknowledged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user has acknowledged the one-time CUI handling notice."
+    },
+    "cui_notice_acknowledged_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the user acknowledged the CUI handling notice."
     }
   },
   "required": [
