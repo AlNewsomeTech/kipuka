@@ -4,20 +4,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // New clients receive a copy of these tasks (runbooks included), scoped to their own client_id.
 const TEMPLATE_CLIENT_ID = '6a3d40cfbe3513bfa50e19fb'; // Fulcrum Defense (full 30-task L1 set)
 
-// Natural-sort CMMC control IDs so multi-step controls group together:
-// AC.L1-3.1.1 < AC.L1-3.1.2 < AC.L1-3.1.20 < IA.L1-3.5.1 ...
-function ctrlKey(id) {
-  if (!id || id === 'All') return [999, 999, 999, 999];
-  const nums = (id.match(/\d+/g) || []).map(Number);
-  while (nums.length < 4) nums.push(0);
-  return nums.slice(0, 4);
-}
-function cmpCtrl(a, b) {
-  const ka = ctrlKey(a), kb = ctrlKey(b);
-  for (let i = 0; i < 4; i++) { if (ka[i] !== kb[i]) return ka[i] - kb[i]; }
-  return 0;
-}
-
 // Fields copied from each template task. Excludes id/client_id/created/updated and
 // any per-client progress so every generated task starts clean.
 const COPY_FIELDS = [
@@ -66,31 +52,9 @@ Deno.serve(async (req) => {
       return copy;
     });
 
-    // Guarantee every Level 1 control has a validation card on the board.
-    // The template task set historically covered only a subset of controls, which left
-    // the board (and therefore dashboard progress) unable to reach 100%.
-    const l1Controls = await base44.asServiceRole.entities.CMMCControl.filter({ level: 'Level 1' });
-    const coveredControls = new Set(newTasks.map((t) => t.related_control).filter(Boolean));
-    let order = Math.max(0, ...newTasks.map((t) => t.order || 0));
-    // Add missing validation cards in control-ID order so same-control steps stay grouped.
-    const missingControls = l1Controls
-      .filter((c) => !coveredControls.has(c.control_id))
-      .sort((a, b) => cmpCtrl(a.control_id, b.control_id));
-    for (const c of missingControls) {
-      order += 1;
-      newTasks.push({
-        client_id: clientId,
-        status: 'Not Started',
-        completion_status: false,
-        title: `Validate ${c.control_id} — ${c.control_title}`,
-        phase: 'Level 1 Control Validation',
-        priority: 'High',
-        related_control: c.control_id,
-        instructions: `Confirm ${c.control_id} (${c.control_title}) is implemented, capture the required evidence, then mark this task complete to advance the control.`,
-        order,
-      });
-    }
-
+    // The template task set (Fulcrum Defense) is the canonical, human-reviewed board:
+    // one clean step-by-step flow that already covers every Level 1 control through real,
+    // named tasks. We copy it verbatim — no auto-injected abstract "Validate X" cards.
     await base44.asServiceRole.entities.DeploymentTask.bulkCreate(newTasks);
 
     return Response.json({ created: newTasks.length, skipped: false });
