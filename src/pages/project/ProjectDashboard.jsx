@@ -10,7 +10,6 @@ import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
 import { computeSprs } from '@/lib/sprsScoring';
 import { stepLink } from '@/lib/guidanceLinks';
-import { isMetStatus } from '@/lib/sprsScoring';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
@@ -49,12 +48,14 @@ export default function ProjectDashboard() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [poams, ssps, assessments, evidence, mockSessions] = await Promise.all([
+      const levels = targetLevelsFor(project);
+      const [poams, ssps, assessments, evidence, mockSessions, library] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
         base44.entities.MockAssessmentSession.filter({ project_id: project.id }, '-created_date', 1).catch(() => []),
+        base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
       ]);
       if (!alive) return;
       const closed = ['Closed', 'Accepted Risk'];
@@ -69,6 +70,20 @@ export default function ProjectDashboard() {
         controlsComplete: assessments.length ? `${assessments.filter((a) => doneStatuses.includes(a.status)).length}/${assessments.length}` : '—',
         controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
         mockVerdict: mockSessions[0]?.overall_verdict || null,
+      });
+
+      // Do-Next hero data.
+      const inScopeLib = library.filter((c) => levels.includes(c.cmmc_level));
+      const next = nextIncomplete(inScopeLib, assessments, project);
+      const { done, total } = queueCounts(inScopeLib, assessments, project);
+      const sprs = computeSprs(assessments);
+      setDoNext({
+        hasAssessments: assessments.length > 0,
+        allDone: total > 0 && done >= total,
+        nextControlId: next?.control_id || null,
+        done, total,
+        sprsCurrent: sprs.current,
+        sprsProjected: sprs.projected,
       });
     })();
     return () => { alive = false; };
@@ -123,6 +138,9 @@ export default function ProjectDashboard() {
         </div>
       </div>
 
+      {/* Do-Next hero */}
+      <DoNextHero project={project} doNext={doNext} />
+
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <Metric icon={TrendingUp} label="Overall Readiness" value={`${Math.round(project.current_readiness_score || 0)}%`} tone="blue" />
@@ -158,15 +176,72 @@ export default function ProjectDashboard() {
           ) : (
             <div className="space-y-2">
               {nextSteps.map((s) => (
-                <div key={s.key} className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2.5">
-                  <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <Link
+                  key={s.key}
+                  to={stepLink(project.id, s.key)}
+                  className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2.5 hover:bg-blue-50 hover:text-blue-700 transition-colors group"
+                >
+                  <ArrowRight className="w-4 h-4 text-blue-500 flex-shrink-0 group-hover:translate-x-0.5 transition-transform" />
                   {s.label}
-                </div>
+                </Link>
               ))}
             </div>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+// Do-Next hero — the primary "what should I do now?" call to action.
+function DoNextHero({ project, doNext }) {
+  if (!doNext) {
+    return (
+      <div className="bg-[#0F1E3C] rounded-xl p-5 h-[92px] flex items-center">
+        <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+      </div>
+    );
+  }
+
+  let to, label, Icon, sublabel;
+  if (!doNext.hasAssessments) {
+    to = `/projects/${project.id}/assessment`;
+    label = 'Generate your controls';
+    Icon = Sparkles;
+    sublabel = 'Build your control list to begin guided implementation';
+  } else if (doNext.allDone) {
+    to = `/projects/${project.id}/mock`;
+    label = 'Run a mock assessment';
+    Icon = PlayCircle;
+    sublabel = 'All controls done — check your readiness with a mock assessment';
+  } else {
+    to = `/projects/${project.id}/guided/${doNext.nextControlId}`;
+    label = 'Continue implementation';
+    Icon = Rocket;
+    sublabel = 'Pick up the next highest-impact control';
+  }
+
+  return (
+    <Link to={to} className="block bg-[#0F1E3C] rounded-xl p-5 hover:bg-[#152a52] transition-colors group">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+            <Icon className="w-6 h-6 text-white" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 text-white font-bold text-lg">
+              {label} <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </div>
+            <p className="text-xs text-white/60 mt-0.5">{sublabel}</p>
+          </div>
+        </div>
+        {doNext.total > 0 && (
+          <div className="text-right text-white/80">
+            <div className="text-sm font-semibold text-white">{doNext.done} of {doNext.total} controls done</div>
+            <div className="text-xs text-white/60">SPRS {doNext.sprsCurrent} → {doNext.sprsProjected}</div>
+          </div>
+        )}
+      </div>
+    </Link>
   );
 }

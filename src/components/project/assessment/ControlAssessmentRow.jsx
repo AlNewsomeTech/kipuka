@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   ChevronDown, CheckCircle2, CircleDashed, XCircle, FileUp, AlertTriangle,
-  FileText, Loader2, Save, ExternalLink,
+  FileText, Loader2, Save, ExternalLink, Rocket, MoreHorizontal,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
+import SimpleStatusBadge from '@/components/SimpleStatusBadge';
 import RichTextField from '@/components/ui/RichTextField';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
 import RelatedSecurityTools from '@/components/securitytools/RelatedSecurityTools';
@@ -14,7 +16,7 @@ const RISK_TONE = {
   High: 'bg-orange-50 text-orange-700', Critical: 'bg-red-50 text-red-700',
 };
 
-export default function ControlAssessmentRow({ assessment, libEntry, evidence, poams, readOnly, project, onUpdate, onRefresh, currentUser }) {
+export default function ControlAssessmentRow({ assessment, libEntry, evidence, poams, readOnly, project, onUpdate, onRefresh, currentUser, isClient = false }) {
   const [open, setOpen] = useState(false);
   const [sspOpen, setSspOpen] = useState(false);
   const [sspDraft, setSspDraft] = useState(assessment.ssp_statement || '');
@@ -23,6 +25,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
   const [poamOpen, setPoamOpen] = useState(false);
   const [poamDraft, setPoamDraft] = useState('');
   const [savingPoam, setSavingPoam] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   const mark = (status) => onUpdate(assessment.id, { status });
 
@@ -62,8 +65,10 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
             <span className="text-sm font-medium text-slate-800 truncate">{assessment.control_title}</span>
           </div>
         </div>
-        <span className={`hidden sm:inline text-[11px] px-2 py-0.5 rounded-full font-semibold ${RISK_TONE[assessment.risk_rating] || RISK_TONE.Moderate}`}>{assessment.risk_rating}</span>
-        <StatusBadge status={assessment.status} size="xs" />
+        {!isClient && <span className={`hidden sm:inline text-[11px] px-2 py-0.5 rounded-full font-semibold ${RISK_TONE[assessment.risk_rating] || RISK_TONE.Moderate}`}>{assessment.risk_rating}</span>}
+        {isClient
+          ? <SimpleStatusBadge status={assessment.status} size="xs" />
+          : <StatusBadge status={assessment.status} size="xs" />}
       </button>
 
       {open && (
@@ -146,8 +151,18 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
             )}
           </Field>
 
+          {/* Guided walkthrough — prominent first action, always available */}
+          <div className="pt-1">
+            <Link
+              to={`/projects/${project.id}/guided/${assessment.control_id}`}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]"
+            >
+              <Rocket className="w-4 h-4" /> Open guided walkthrough
+            </Link>
+          </div>
+
           {/* Action buttons */}
-          {!readOnly && (
+          {!readOnly && !isClient && (
             <div className="flex flex-wrap gap-2 pt-1">
               <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Implemented')}>Mark Implemented</ActionBtn>
               <ActionBtn icon={CircleDashed} tone="amber" onClick={() => mark('Partially Implemented')}>Mark Partial</ActionBtn>
@@ -156,6 +171,26 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
               <ActionBtn icon={FileUp} tone="slate" onClick={() => setEvidenceModal(true)}>Add Evidence</ActionBtn>
               <ActionBtn icon={AlertTriangle} tone="slate" onClick={() => setPoamOpen(!poamOpen)}>Create POA&M Item</ActionBtn>
               <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(assessment.ssp_statement || libEntry?.ssp_statement_starter || ''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>
+            </div>
+          )}
+
+          {/* Client roles: the seven actions collapse into a More actions menu */}
+          {!readOnly && isClient && (
+            <div className="pt-1">
+              <button onClick={() => setMoreOpen(!moreOpen)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 border border-slate-200">
+                <MoreHorizontal className="w-3.5 h-3.5" /> More actions
+              </button>
+              {moreOpen && (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Implemented')}>Mark Implemented</ActionBtn>
+                  <ActionBtn icon={CircleDashed} tone="amber" onClick={() => mark('Partially Implemented')}>Mark Partial</ActionBtn>
+                  <ActionBtn icon={XCircle} tone="red" onClick={() => mark('Gap Identified')}>Mark Gap Identified</ActionBtn>
+                  <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Ready for Documentation')}>Ready for Documentation</ActionBtn>
+                  <ActionBtn icon={FileUp} tone="slate" onClick={() => setEvidenceModal(true)}>Add Evidence</ActionBtn>
+                  <ActionBtn icon={AlertTriangle} tone="slate" onClick={() => setPoamOpen(!poamOpen)}>Create POA&M Item</ActionBtn>
+                  <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(assessment.ssp_statement || libEntry?.ssp_statement_starter || ''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>
+                </div>
+              )}
             </div>
           )}
 

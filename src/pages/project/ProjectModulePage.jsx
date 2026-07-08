@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { ArrowUpRight } from 'lucide-react';
 import { moduleByKey } from '@/lib/projectModules';
 import { useAuth } from '@/lib/AuthContext';
+import { useOrg } from '@/lib/orgContext';
+import { isClientView } from '@/lib/clientView';
 import ScopingModule from '@/components/project/scoping/ScopingModule';
 import InventoryModule from '@/components/project/inventory/InventoryModule';
 import AssessmentModule from '@/components/project/assessment/AssessmentModule';
@@ -46,10 +48,12 @@ const MODULE_CONTENT = {};
 export default function ProjectModulePage({ moduleKey }) {
   const { project, readOnly, org, refreshProject } = useOutletContext();
   const { user } = useAuth();
+  const { orgRole, isPlatformAdmin } = useOrg();
+  const isClient = isClientView(orgRole, isPlatformAdmin);
 
   const RichModule = RICH_MODULES[moduleKey];
   if (RichModule) {
-    return <RichModule project={project} org={org} readOnly={readOnly} currentUser={user} refreshProject={refreshProject} />;
+    return <RichModule project={project} org={org} readOnly={readOnly} currentUser={user} refreshProject={refreshProject} isClient={isClient} />;
   }
 
   const def = moduleByKey(moduleKey);
