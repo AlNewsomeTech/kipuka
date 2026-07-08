@@ -20,6 +20,7 @@ import NewProjectWizard from '@/pages/NewProjectWizard';
 import ProjectWorkspace from '@/pages/ProjectWorkspace';
 import ProjectDashboard from '@/pages/project/ProjectDashboard';
 import ProjectModulePage from '@/pages/project/ProjectModulePage';
+import GuidedWalkthrough from '@/pages/project/GuidedWalkthrough';
 import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
@@ -109,6 +110,8 @@ const AuthenticatedApp = () => {
 
         {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
         <Route path="/projects" element={<Projects />} />
+        {/* Guided walkthrough — full-page 5-step wizard for a single control (all roles) */}
+        <Route path="/projects/:id/guided/:controlId" element={<GuidedWalkthrough />} />
         <Route path="/projects/:id" element={<ProjectWorkspace />}>
           <Route index element={<ProjectDashboard />} />
           <Route path="scoping" element={<ProjectModulePage moduleKey="scoping" />} />

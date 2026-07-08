@@ -2,11 +2,15 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import {
   ShieldCheck, ClipboardCheck, ListChecks, AlertTriangle, FileStack,
-  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel,
+  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
+import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
+import { computeSprs } from '@/lib/sprsScoring';
+import { stepLink } from '@/lib/guidanceLinks';
+import { isMetStatus } from '@/lib/sprsScoring';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
@@ -30,6 +34,7 @@ export default function ProjectDashboard() {
   const { project, refreshProject, readOnly, hasFeature, orgName, org } = useOutletContext();
   const [counts, setCounts] = useState(null);
   const [reporting, setReporting] = useState(false);
+  const [doNext, setDoNext] = useState(null); // { hasAssessments, allDone, nextControlId, done, total, sprsCurrent, sprsProjected }
 
   const handleReport = async () => {
     setReporting(true);

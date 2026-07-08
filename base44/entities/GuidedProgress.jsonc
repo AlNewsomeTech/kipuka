@@ -1,0 +1,88 @@
+{
+  "name": "GuidedProgress",
+  "type": "object",
+  "description": "Per-user, per-control progress through the 5-step guided walkthrough so a user can leave and resume mid-control. One record per (project_id, control_id).",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "current_step": {
+      "type": "integer",
+      "default": 1,
+      "description": "The step the user is currently on (1-5)."
+    },
+    "completed_steps": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      },
+      "default": [],
+      "description": "Which of the 5 guided steps the user has marked complete."
+    },
+    "selected_stack": {
+      "type": "string",
+      "description": "The implementation stack variant the user last viewed for the DO step (overrides the project default for their own view)."
+    },
+    "verify_checks": {
+      "type": "object",
+      "default": {},
+      "description": "Map of validation-step index -> boolean for the VERIFY checklist."
+    }
+  },
+  "required": [
+    "project_id",
+    "control_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "client"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -40,10 +40,12 @@ export default function ProjectWorkspace() {
   // Determine current module key from the URL.
   const parts = location.pathname.split('/').filter(Boolean); // projects, :id, [module]
   const moduleKey = parts[2] || 'dashboard';
-  const moduleDef = moduleByKey(moduleKey);
+  const isGuided = moduleKey === 'guided';
+  const moduleDef = isGuided ? { label: 'Guided Setup' } : moduleByKey(moduleKey);
 
   // Read-only roles blocked from restricted modules → send to dashboard.
-  if (!canAccessModule(orgRole, moduleKey)) {
+  // Guided setup is an implementation surface — treated like the assessment module.
+  if (!isGuided && !canAccessModule(orgRole, moduleKey)) {
     return <Navigate to={`/projects/${id}`} replace />;
   }
 
