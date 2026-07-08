@@ -36,6 +36,10 @@
     "plain_english_summary": {
       "type": "string"
     },
+    "why_it_matters": {
+      "type": "string",
+      "description": "Plain-English 'why this matters' shown in the guided walkthrough UNDERSTAND step (max ~3 short sentences)."
+    },
     "assessment_objectives": {
       "type": "array",
       "items": {
@@ -48,6 +52,16 @@
     },
     "example_evidence": {
       "type": "string"
+    },
+    "how_to_implement": {
+      "type": "object",
+      "description": "Per-implementation-stack how-to variants keyed by stack: m365_commercial, m365_gcc, m365_gcc_high, google_workspace, generic. Each variant is an object with: where_to_go {name, url}, steps (array of ordered click-by-click strings), setting_to_change (string), screenshot_instructions (string), screenshot_naming (string, CONTROLID_ToolName_Description_YYYY-MM-DD convention), validation_steps (array of strings), common_mistakes (array of strings).",
+      "default": {}
+    },
+    "estimated_minutes": {
+      "type": "integer",
+      "default": 15,
+      "description": "Rough time estimate for the guided walkthrough time badge. Defaults derived from SPRS point value (5pt~30, 3pt~20, 1pt~15) and adjustable per control."
     },
     "related_policy_templates": {
       "type": "array",
