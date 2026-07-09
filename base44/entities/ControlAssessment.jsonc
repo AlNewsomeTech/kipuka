@@ -119,7 +119,7 @@
           }
         },
         {
-          "organization_id": "{{user.organization_id}}",
+          "organization_id": "{{user.data.organization_id}}",
           "user_condition": {
             "role": "client"
           }
