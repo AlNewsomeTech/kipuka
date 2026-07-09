@@ -1,42 +1,50 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// ORG GATEKEEPER — the single data path for client-role users.
-// RLS templating of custom user fields is NOT enforced by the platform
-// (proven by the tenancy probe), so client entity access is denied at the
-// RLS layer and mediated here instead. Every read is filtered to the
-// caller's organization_id (read server-side from their User record) and
-// every write is verified against the target record's organization_id.
+// ORG READ GATEKEEPER — the single READ path for client-role users.
 //
-// Whitelist: entity -> which operations client-role users may perform.
-// Reads: filter/get. Writes: create/update only where the client UI
-// legitimately writes (guided walkthrough, evidence upload, comments).
-const ENTITY_RULES = {
-  Project:                { read: true,  create: false, update: true  }, // checklist/status/readiness updates from guided flow
-  CompanyProfile:         { read: true,  create: true,  update: true  }, // onboarding wizard
-  ControlAssessment:      { read: true,  create: true,  update: true  }, // guided walkthrough status updates + control generation
-  ProjectEvidence:        { read: true,  create: true,  update: true  }, // evidence upload
-  GuidedProgress:         { read: true,  create: true,  update: true  }, // per-user walkthrough progress
-  RemediationComment:     { read: true,  create: true,  update: false }, // client comments on remediation items
-  ScopingProfile:         { read: true,  create: true,  update: true  }, // onboarding scoping answers
-  Asset:                  { read: true,  create: false, update: false },
-  ProjectPOAM:            { read: true,  create: true,  update: false }, // "I'm stuck" flow creates a POA&M
-  Organization:           { read: true,  create: false, update: false }, // own-org record only (scoped by record id)
-  OrganizationUser:       { read: true,  create: false, update: false }, // own-org membership/role lookup
-  ReportExport:           { read: true,  create: false, update: false },
-  MockAssessmentSession:  { read: true,  create: false, update: false },
-  MockAssessmentObjective:{ read: true,  create: false, update: false },
-  PolicyTemplate:         { read: true,  create: false, update: false },
-  SPRSRecord:             { read: true,  create: false, update: false },
-  SystemSecurityPlan:     { read: true,  create: false, update: false },
-  DeploymentTask:         { read: true,  create: false, update: false },
-  SecurityReviewNote:     { read: true,  create: false, update: false },
-  AcolyteRemediationItem: { read: true,  create: false, update: false },
-  AcolyteProfile:         { read: true,  create: false, update: false },
-  CyberFinding:           { read: true,  create: false, update: false },
-  IncidentReadinessRecord:{ read: true,  create: false, update: false },
-  AcolyteExecutiveReport: { read: true,  create: false, update: false },
-  CyberReadinessReview:   { read: true,  create: false, update: false },
-};
+// Entity RLS is creator+staff locked, so an invited client-role teammate who
+// did not create the records cannot read them directly. This function reads
+// org data on their behalf, after resolving their organization membership
+// server-side from OrganizationUser (never trusting a client-supplied
+// organization_id) and forcing organization_id on every query.
+//
+// Payload: { entity, operation: 'list'|'filter'|'get', query, sort, limit, id }
+//
+// WHITELIST of org-scoped entities readable through the gate.
+const READ_WHITELIST = new Set([
+  'ControlAssessment', 'Project', 'CompanyProfile', 'ProjectEvidence', 'Asset',
+  'ScopingProfile', 'ProjectPOAM', 'SSPControlStatement', 'SystemSecurityPlan',
+  'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan', 'IncidentLog',
+  'MockAssessmentSession', 'MockAssessmentObjective', 'ObjectiveEvidenceLink',
+  'SPRSRecord', 'CMMCLevelDetermination', 'MaintenanceTask', 'ReportExport',
+  'ToolControlMapping', 'ToolEvidenceChecklist', 'ProjectSecurityTool',
+  'PolicyTemplate', 'GuidedProgress', 'RemediationComment', 'DeploymentTask',
+  'SecurityReviewNote', 'AcolyteRemediationItem', 'AcolyteProfile',
+  'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
+  'CyberReadinessReview',
+  // Own-org records only (special-cased below):
+  'Organization', 'OrganizationUser',
+]);
+
+// Tier-gated entities: readable only when the org's plan tier / trial unlocks
+// the L2 workflow. Entry-tier orgs get a clean 403 instead of empty data.
+const L2_GATED = new Set([
+  'MockAssessmentSession', 'MockAssessmentObjective', 'ObjectiveEvidenceLink',
+]);
+
+const L2_PLAN_TIERS = new Set(['L2_Professional', 'L2_Premium', 'Enterprise']);
+
+function trialActive(org: any) {
+  if (!org?.trial_full_access) return false;
+  if (!org?.trial_ends_date) return true;
+  return new Date(org.trial_ends_date) >= new Date(new Date().toDateString());
+}
+
+function planUnlocksL2(org: any) {
+  if (!org) return false;
+  if (trialActive(org)) return true;
+  return L2_PLAN_TIERS.has(org.plan_tier);
+}
 
 Deno.serve(async (req) => {
   try {
@@ -44,84 +52,71 @@ Deno.serve(async (req) => {
     const caller = await base44.auth.me();
     if (!caller) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    // organization_id is read server-side from the authenticated user record —
-    // the client cannot supply or spoof it.
-    const org = caller.organization_id;
-    if (!org) {
-      return Response.json({ error: 'No organization bound to this account. Contact your administrator.' }, { status: 403 });
+    const body = await req.json().catch(() => ({}));
+    // Accept both { operation } (spec) and legacy { op }.
+    const entity = body.entity;
+    const operation = body.operation || body.op;
+    const { query, sort, limit, id } = body;
+
+    if (!READ_WHITELIST.has(entity)) {
+      return Response.json({ error: `Entity not permitted: ${entity}` }, { status: 403 });
+    }
+    if (!['list', 'filter', 'get'].includes(operation)) {
+      return Response.json({ error: `Unsupported operation: ${operation}` }, { status: 400 });
     }
 
-    const body = await req.json().catch(() => ({}));
-    const { entity, op, query, sort, limit, id, data } = body;
+    // Resolve the caller's organization server-side from OrganizationUser.
+    // App-level admins (platform owners) are not the target of this gate, but
+    // if one calls it we still resolve via their membership.
+    const memberships = await base44.asServiceRole.entities.OrganizationUser
+      .filter({ user_email: caller.email })
+      .catch(() => []);
+    const active = memberships.filter((m: any) => m.status !== 'Removed');
+    if (active.length === 0) {
+      return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
+    }
+    const org = active[0].organization_id;
 
-    const rules = ENTITY_RULES[entity];
-    if (!rules) return Response.json({ error: `Entity not permitted: ${entity}` }, { status: 403 });
+    // Org gating: fully disabled or expired trial → clean 403.
+    const orgRecord = await base44.asServiceRole.entities.Organization.get(org).catch(() => null);
+    if (orgRecord?.fully_disabled === true) {
+      return Response.json({ error: 'Your organization\'s access has been disabled. Contact Pac-Sec support.' }, { status: 403 });
+    }
+    const endDate = orgRecord?.subscription_end_date;
+    const expired = !!endDate && new Date(endDate) < new Date(new Date().toDateString());
+    if (expired) {
+      return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
+    }
+    if (L2_GATED.has(entity) && !planUnlocksL2(orgRecord)) {
+      return Response.json({ error: 'This feature requires a Level 2 plan tier. Contact your administrator.' }, { status: 403 });
+    }
 
     const svc = base44.asServiceRole.entities[entity];
 
-    // Organization has no organization_id field — its own id IS the org id.
-    const isOrgRecord = entity === 'Organization';
-
-    if (op === 'filter' || op === 'list') {
-      if (!rules.read) return Response.json({ error: 'Read not permitted' }, { status: 403 });
-      if (isOrgRecord) {
-        const record = await svc.get(org).catch(() => null);
-        return Response.json({ records: record ? [record] : [] });
-      }
-      // organization_id is forced — a caller-supplied organization_id in query is overwritten.
-      const scoped = { ...(query || {}), organization_id: org };
-      const records = await svc.filter(scoped, sort || '-created_date', Math.min(limit || 500, 500));
-      return Response.json({ records });
-    }
-
-    if (op === 'get') {
-      if (!rules.read) return Response.json({ error: 'Read not permitted' }, { status: 403 });
-      if (!id) return Response.json({ error: 'id required' }, { status: 400 });
-      if (isOrgRecord) {
+    // Organization / OrganizationUser: own-org only.
+    if (entity === 'Organization') {
+      if (operation === 'get') {
         if (id !== org) return Response.json({ error: 'Not found' }, { status: 404 });
         const record = await svc.get(org).catch(() => null);
-        if (!record) return Response.json({ error: 'Not found' }, { status: 404 });
-        return Response.json({ record });
+        return record ? Response.json({ record }) : Response.json({ error: 'Not found' }, { status: 404 });
       }
-      const record = await svc.get(id);
+      const record = await svc.get(org).catch(() => null);
+      return Response.json({ records: record ? [record] : [] });
+    }
+
+    if (operation === 'get') {
+      if (!id) return Response.json({ error: 'id required' }, { status: 400 });
+      const record = await svc.get(id).catch(() => null);
       if (!record || record.organization_id !== org) {
         return Response.json({ error: 'Not found' }, { status: 404 });
       }
       return Response.json({ record });
     }
 
-    if (op === 'create') {
-      if (!rules.create) return Response.json({ error: 'Create not permitted' }, { status: 403 });
-      const payload = { ...(data || {}), organization_id: org };
-      const record = await svc.create(payload);
-      return Response.json({ record });
-    }
-
-    if (op === 'bulkCreate') {
-      if (!rules.create) return Response.json({ error: 'Create not permitted' }, { status: 403 });
-      if (!Array.isArray(data) || data.length === 0) {
-        return Response.json({ error: 'data must be a non-empty array' }, { status: 400 });
-      }
-      const items = data.map((d) => ({ ...(d || {}), organization_id: org }));
-      const records = await svc.bulkCreate(items);
-      return Response.json({ records });
-    }
-
-    if (op === 'update') {
-      if (!rules.update) return Response.json({ error: 'Update not permitted' }, { status: 403 });
-      if (!id) return Response.json({ error: 'id required' }, { status: 400 });
-      const existing = await svc.get(id);
-      if (!existing || existing.organization_id !== org) {
-        return Response.json({ error: 'Not found' }, { status: 404 });
-      }
-      // organization_id can never be changed through this path.
-      const patch = { ...(data || {}) };
-      delete patch.organization_id;
-      const record = await svc.update(id, patch);
-      return Response.json({ record });
-    }
-
-    return Response.json({ error: `Unsupported op: ${op}` }, { status: 400 });
+    // list / filter — organization_id forced over any client-supplied filters.
+    const scoped = { ...(query || {}), organization_id: org };
+    const records = await svc.filter(scoped, sort || '-created_date', Math.min(limit || 500, 500));
+    return Response.json({ records });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
