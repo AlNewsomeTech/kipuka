@@ -20,6 +20,7 @@ export default function RlsProbe() {
   const [me, setMe] = useState(null);
   const [readResult, setReadResult] = useState(null);
   const [writeResult, setWriteResult] = useState(null);
+  const [gateResult, setGateResult] = useState(null);
   const [bindEmail, setBindEmail] = useState('');
   const [bindResult, setBindResult] = useState(null);
   const [running, setRunning] = useState(false);
@@ -45,6 +46,22 @@ export default function RlsProbe() {
         setWriteResult({ rejected: false });
       } catch (e) {
         setWriteResult({ rejected: true, message: e.message });
+      }
+
+      // TEST 3 — gatekeeper path (orgScopedData function). Reads must be
+      // scoped to my org; cross-org update must be rejected.
+      try {
+        const readRes = await base44.functions.invoke('orgScopedData', { entity: 'ControlAssessment', op: 'filter', query: {} });
+        const recs = readRes?.data?.records || [];
+        const foreign = recs.filter((r) => r.organization_id !== PROBE_ORG_A).length;
+        let crossWriteRejected = null;
+        try {
+          await base44.functions.invoke('orgScopedData', { entity: 'ControlAssessment', op: 'update', id: FOREIGN_RECORD_ID, data: { assessor_notes: 'gatekeeper cross-org write attempt' } });
+          crossWriteRejected = false;
+        } catch { crossWriteRejected = true; }
+        setGateResult({ total: recs.length, foreign, crossWriteRejected });
+      } catch (e) {
+        setGateResult({ error: e.response?.data?.error || e.message });
       }
     } finally { setRunning(false); }
   };
@@ -109,6 +126,22 @@ export default function RlsProbe() {
                     {verdictRead === 'RULE IGNORED' && '❌ RULE IGNORED — foreign org records visible. Custom-field templating is NOT enforced. STOP: pivot to function-gatekeeping.'}
                     {verdictRead === 'MATCHES NOTHING' && '❌ MATCHES NOTHING — zero records returned including my own. The template resolves to nothing. STOP: diagnose syntax before rollout.'}
                   </div>
+                )}
+              </div>
+            )}
+            <div className="font-semibold text-slate-800 mt-3">Test 3 — Gatekeeper function (orgScopedData)</div>
+            {gateResult && (
+              <div className="bg-slate-50 rounded-lg p-3">
+                {gateResult.error ? <div className="text-red-600">Gatekeeper error: {gateResult.error}</div> : (
+                  <>
+                    <div>Records returned: <strong>{gateResult.total}</strong> · foreign: <strong>{gateResult.foreign}</strong></div>
+                    <div className={`mt-1 font-bold ${gateResult.foreign === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {gateResult.foreign === 0 ? '✅ Gatekeeper reads are org-scoped.' : '❌ Gatekeeper leaked foreign records.'}
+                    </div>
+                    <div className={`font-bold ${gateResult.crossWriteRejected ? 'text-green-600' : 'text-red-600'}`}>
+                      {gateResult.crossWriteRejected ? '✅ Gatekeeper rejected the cross-org write.' : '❌ Gatekeeper allowed a cross-org write. CRITICAL.'}
+                    </div>
+                  </>
                 )}
               </div>
             )}
