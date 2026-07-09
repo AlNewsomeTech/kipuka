@@ -119,10 +119,16 @@
           }
         },
         {
-          "organization_id": "{{user.data.organization_id}}",
-          "user_condition": {
-            "role": "client"
-          }
+          "$and": [
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            },
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            }
+          ]
         }
       ]
     },
@@ -140,6 +146,18 @@
           "user_condition": {
             "role": "technician"
           }
+        },
+        {
+          "$and": [
+            {
+              "data.organization_id": "{{user.data.organization_id}}"
+            },
+            {
+              "user_condition": {
+                "role": "client"
+              }
+            }
+          ]
         }
       ]
     }
