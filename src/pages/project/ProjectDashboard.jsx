@@ -49,13 +49,14 @@ export default function ProjectDashboard() {
     let alive = true;
     (async () => {
       const levels = targetLevelsFor(project);
-      const [poams, ssps, assessments, evidence, mockSessions, library] = await Promise.all([
+      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
         base44.entities.MockAssessmentSession.filter({ project_id: project.id }, '-created_date', 1).catch(() => []),
         base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
+        base44.entities.SPRSRecord.filter({ project_id: project.id }).catch(() => []),
       ]);
       if (!alive) return;
       const closed = ['Closed', 'Accepted Risk'];
@@ -63,13 +64,29 @@ export default function ProjectDashboard() {
       const doneStatuses = ['Ready for Assessment', 'Ready for Documentation', 'Implemented', 'Evidence Accepted'];
       const evByControl = {};
       evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
+      const doneCount = assessments.filter((a) => doneStatuses.includes(a.status)).length;
+      // Live readiness computed from actual control status — never a stale stored value.
+      const readiness = assessments.length
+        ? Math.round((doneCount / assessments.length) * 100)
+        : Math.round(project.current_readiness_score || 0);
+      // Keep the stored score in sync for anything else that reads it (reports, consultant views).
+      if (assessments.length && readiness !== Math.round(project.current_readiness_score || 0)) {
+        base44.entities.Project.update(project.id, { current_readiness_score: readiness }).catch(() => {});
+      }
+      const sprs = sprsRecs[0] || null;
+      const sprsStatus = !sprs ? 'Not Started'
+        : sprs.affirmed_date ? 'Affirmed'
+        : sprs.submitted_date ? 'Submitted'
+        : 'In Progress';
       setCounts({
         openPoam: poams.filter((p) => !closed.includes(p.status)).length,
         highRisk: poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length,
         sspStatus: ssps[0]?.approval_status || 'Not Started',
-        controlsComplete: assessments.length ? `${assessments.filter((a) => doneStatuses.includes(a.status)).length}/${assessments.length}` : '—',
+        controlsComplete: assessments.length ? `${doneCount}/${assessments.length}` : '—',
         controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
         mockVerdict: mockSessions[0]?.overall_verdict || null,
+        readiness,
+        sprsStatus,
       });
 
       // Do-Next hero data.
@@ -134,7 +151,7 @@ export default function ProjectDashboard() {
         <div className="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
           <div><span className="text-slate-500">Target level:</span> <span className="font-semibold text-slate-800">{project.target_cmmc_level}</span></div>
           <div><span className="text-slate-500">Assessment path:</span> <span className="font-semibold text-slate-800">{project.assessment_path}</span></div>
-          <div><span className="text-slate-500">Overall readiness:</span> <span className="font-semibold text-slate-800">{Math.round(project.current_readiness_score || 0)}%</span></div>
+          <div><span className="text-slate-500">Overall readiness:</span> <span className="font-semibold text-slate-800">{counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%</span></div>
         </div>
       </div>
 
@@ -143,7 +160,7 @@ export default function ProjectDashboard() {
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={TrendingUp} label="Overall Readiness" value={`${Math.round(project.current_readiness_score || 0)}%`} tone="blue" />
+        <Metric icon={TrendingUp} label="Overall Readiness" value={`${counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%`} tone="blue" />
         <Metric icon={AlertTriangle} label="Open POA&M" value={counts?.openPoam ?? '—'} tone="amber" />
         <Metric icon={AlertTriangle} label="High-Risk Gaps" value={counts?.highRisk ?? '—'} tone="red" />
         <Metric icon={FileStack} label="SSP Status" value={counts?.sspStatus ?? '—'} />
@@ -156,7 +173,9 @@ export default function ProjectDashboard() {
             value={counts?.mockVerdict || 'Not Run'}
             tone={counts?.mockVerdict === 'Likely Pass' ? 'green' : counts?.mockVerdict === 'Not Ready' ? 'red' : counts?.mockVerdict === 'Conditional' ? 'amber' : 'slate'} />
         </Link>
-        <Metric icon={BadgeCheck} label="SPRS / PIEE" value="Not Started" />
+        <Link to={`/projects/${project.id}/sprs`} className="block">
+          <Metric icon={BadgeCheck} label="SPRS / PIEE" value={counts?.sprsStatus ?? '—'} tone={counts?.sprsStatus === 'Affirmed' ? 'green' : counts?.sprsStatus === 'Submitted' ? 'blue' : 'slate'} />
+        </Link>
       </div>
 
       <AcolyteSummaryCard projectId={project.id} />
