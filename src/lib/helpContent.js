@@ -7,10 +7,10 @@ import {
 export const HELP_ARTICLES = [
   {
     slug: 'getting-started', title: 'Getting Started', icon: Rocket,
-    summary: 'Set up your organization, create a project, and navigate the Command Center.',
+    summary: 'Set up your organization, create a project, and navigate Kipuka.',
     body: `## Getting Started
 
-Welcome to the CMMC Command Center by Pacific Global Security Group.
+Welcome to the Kipuka by Pacific Global Security Group.
 
 ### 1. Confirm your organization
 Open **Organization Settings** to review your company profile, CAGE code(s), UEI, and subscription tier.

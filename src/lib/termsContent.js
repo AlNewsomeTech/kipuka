@@ -4,7 +4,7 @@
 export const DEFAULT_TERMS_VERSION = 'PacSec-CMMCCommandCenter-Terms-v1.0';
 
 export const DEFAULT_TERMS_TITLE = 'Terms and Conditions of Use';
-export const TERMS_SUBTITLE = 'Pacific Global Security Group CMMC Command Center';
+export const TERMS_SUBTITLE = 'Pacific Global Security Group — Kipuka';
 
 export const LOGIN_MODAL_TITLE = 'Authorized Use and Confidentiality Notice';
 

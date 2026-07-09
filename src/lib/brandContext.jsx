@@ -12,12 +12,12 @@ async function toDataUrl(url) {
 }
 
 // Loads the single platform BrandingSettings record and exposes logo variants.
-// Falls back to the "CMMC Command Center" wordmark when nothing is uploaded.
+// Falls back to the "Kipuka" wordmark when nothing is uploaded.
 const BrandContext = createContext({
   branding: null,
   loading: true,
   refresh: () => {},
-  wordmark: 'CMMC Command Center',
+  wordmark: 'Kipuka',
 });
 
 export function BrandProvider({ children }) {
@@ -32,7 +32,7 @@ export function BrandProvider({ children }) {
       // Feed the color logo (for document cover pages/headers) into the report cache.
       const logoUrl = b?.logo_color_url;
       const logoDataUrl = logoUrl ? await toDataUrl(logoUrl) : null;
-      setReportBranding({ logoDataUrl, wordmark: b?.wordmark_text || 'CMMC Command Center' });
+      setReportBranding({ logoDataUrl, wordmark: b?.wordmark_text || 'Kipuka' });
     } catch {
       setBranding(null);
     } finally {
@@ -42,7 +42,7 @@ export function BrandProvider({ children }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const wordmark = branding?.wordmark_text || 'CMMC Command Center';
+  const wordmark = branding?.wordmark_text || 'Kipuka';
 
   return (
     <BrandContext.Provider value={{ branding, loading, refresh, wordmark }}>

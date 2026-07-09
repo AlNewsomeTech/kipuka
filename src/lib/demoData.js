@@ -35,7 +35,7 @@ export const DEMO_EXEC = {
     'Prepare SPRS self-assessment package',
   ],
   valueStatement:
-    'CMMC Command Center gives company admins one guided workspace for scoping, control assessment, evidence, SSP, POA&M, SPRS preparation, and executive reporting.',
+    'Kipuka gives company admins one guided workspace for scoping, control assessment, evidence, SSP, POA&M, SPRS preparation, and executive reporting.',
 };
 
 export const DEMO_ONBOARDING = {
@@ -260,4 +260,4 @@ export const DEMO_TOUR_STEPS = [
 ];
 
 export const DEMO_CTA =
-  'CMMC Command Center helps defense contractors organize CMMC readiness, evidence, SSP, POA&M, SPRS preparation, and executive reporting in one guided workspace.';
+  'Kipuka helps defense contractors organize CMMC readiness, evidence, SSP, POA&M, SPRS preparation, and executive reporting in one guided workspace.';

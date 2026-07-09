@@ -23,7 +23,7 @@ export default function ProductTourModal({ open, onClose, onExit }) {
         <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 bg-[#0F1E3C]">
           <div className="flex items-center gap-2 text-white">
             <PlayCircle className="w-5 h-5" />
-            <span className="font-bold text-sm">CMMC Command Center — Product Tour</span>
+            <span className="font-bold text-sm">Kipuka — Product Tour</span>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white"><X className="w-5 h-5" /></button>
         </div>

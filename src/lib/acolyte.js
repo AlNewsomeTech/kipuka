@@ -1,6 +1,6 @@
 // ACOLYTE module shared configuration: brand strings, enums, and badge styling.
 // ACOLYTE is Pacific Global Security Group's managed cyber readiness and
-// security operations support service, integrated inside CMMC Command Center.
+// security operations support service, integrated inside Kipuka.
 
 export const ACOLYTE_BRAND = {
   name: 'ACOLYTE',
@@ -9,7 +9,7 @@ export const ACOLYTE_BRAND = {
   short: 'Pac-Sec',
   subtitle: 'Managed cyber readiness and security operations support by Pacific Global Security Group.',
   positioning:
-    'CMMC Command Center helps organizations organize and prove readiness. ACOLYTE helps them achieve and maintain readiness.',
+    'Kipuka helps organizations organize and prove readiness. ACOLYTE helps them achieve and maintain readiness.',
   description:
     'ACOLYTE is Pac-Sec\u2019s managed cyber readiness and security operations support service for organizations that need disciplined cybersecurity oversight without building a full internal security department. ACOLYTE provides continuous posture review, vulnerability tracking, remediation coordination, incident response preparation, executive cyber reporting, and compliance-aligned operational support.',
   preparedBy: 'Prepared by Pacific Global Security Group',

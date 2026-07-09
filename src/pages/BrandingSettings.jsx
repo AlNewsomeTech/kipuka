@@ -15,7 +15,7 @@ export default function BrandingSettings() {
   const { isPlatformAdmin } = useOrg();
   const { branding, refresh, wordmark } = useBrand();
   const [uploading, setUploading] = useState(null);
-  const [wordmarkText, setWordmarkText] = useState(branding?.wordmark_text || 'CMMC Command Center');
+  const [wordmarkText, setWordmarkText] = useState(branding?.wordmark_text || 'Kipuka');
   const [savedFlash, setSavedFlash] = useState(false);
 
   if (!isPlatformAdmin) {
