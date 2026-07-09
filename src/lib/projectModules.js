@@ -74,8 +74,8 @@ export const WORKFLOW_PHASES = [
       { key: 'config_endpoint', label: 'Configure endpoint/security controls' },
       { key: 'config_cloud', label: 'Configure cloud controls' },
       { key: 'config_security_tooling', label: 'Configure Security Tooling' },
-      { key: 'config_ninjaone', label: 'Configure NinjaOne (if used)' },
-      { key: 'config_cortex', label: 'Configure Cortex XDR (if used)' },
+      { key: 'config_ninjaone', label: 'Configure RMM / device management (if used)' },
+      { key: 'config_cortex', label: 'Configure EDR / endpoint protection (if used)' },
     ],
   },
   {
@@ -98,7 +98,7 @@ export const WORKFLOW_PHASES = [
   },
   {
     key: 'final_inventory', title: 'Phase 6: Final Inventory & Scope Validation', steps: [
-      { key: 'intune_inventory', label: 'Complete Intune inventory' },
+      { key: 'intune_inventory', label: 'Complete device management inventory' },
       { key: 'hardware_inventory', label: 'Complete hardware inventory' },
       { key: 'confirm_endpoint_inventory', label: 'Confirm endpoint inventory' },
       { key: 'confirm_asset_ownership', label: 'Confirm asset ownership' },
