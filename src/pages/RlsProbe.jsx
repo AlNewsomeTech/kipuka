@@ -38,7 +38,12 @@ export default function RlsProbe() {
       catch (e) { readErr = e.message; }
       const byOrg = {};
       (records || []).forEach((r) => { const k = r.organization_id || '(none)'; byOrg[k] = (byOrg[k] || 0) + 1; });
-      setReadResult({ total: (records || []).length, byOrg, error: readErr, mine: byOrg[PROBE_ORG_A] || 0, foreign: (records || []).length - (byOrg[PROBE_ORG_A] || 0) });
+      // A record is only a LEAK if it's outside my org AND I didn't create it —
+      // the created_by_id RLS branch legitimately grants self-created records.
+      const meId = (await base44.auth.me().catch(() => null))?.id;
+      const selfCreated = (records || []).filter((r) => r.organization_id !== PROBE_ORG_A && r.created_by_id === meId).length;
+      const leaked = (records || []).filter((r) => r.organization_id !== PROBE_ORG_A && r.created_by_id !== meId).length;
+      setReadResult({ total: (records || []).length, byOrg, error: readErr, mine: byOrg[PROBE_ORG_A] || 0, selfCreated, foreign: leaked });
 
       // TEST 2 — cross-org WRITE attempt on a Probe Org B record. Must be REJECTED.
       try {
@@ -76,7 +81,7 @@ export default function RlsProbe() {
 
   const isAdmin = me?.role === 'admin';
   const verdictRead = readResult && !readResult.error
-    ? (readResult.total > 0 && readResult.foreign === 0 ? 'PASS' : readResult.total === 0 ? 'MATCHES NOTHING' : 'RULE IGNORED')
+    ? (readResult.foreign === 0 ? 'PASS' : 'RULE IGNORED')
     : null;
 
   return (
@@ -119,12 +124,11 @@ export default function RlsProbe() {
             {readResult.error ? <div className="text-red-600">Read error: {readResult.error}</div> : (
               <div className="bg-slate-50 rounded-lg p-3">
                 <div>Total records returned: <strong>{readResult.total}</strong></div>
-                <div>From my org (Probe A): <strong>{readResult.mine}</strong> · from other orgs: <strong>{readResult.foreign}</strong></div>
+                <div>From my org (Probe A): <strong>{readResult.mine}</strong> · self-created (other org, allowed by created_by rule): <strong>{readResult.selfCreated}</strong> · true foreign leaks: <strong>{readResult.foreign}</strong></div>
                 {!isAdmin && verdictRead && (
                   <div className={`mt-2 font-bold ${verdictRead === 'PASS' ? 'text-green-600' : 'text-red-600'}`}>
-                    {verdictRead === 'PASS' && '✅ PASS — RLS scopes reads to my organization only. Templating works.'}
-                    {verdictRead === 'RULE IGNORED' && '❌ RULE IGNORED — foreign org records visible. Custom-field templating is NOT enforced. STOP: pivot to function-gatekeeping.'}
-                    {verdictRead === 'MATCHES NOTHING' && '❌ MATCHES NOTHING — zero records returned including my own. The template resolves to nothing. STOP: diagnose syntax before rollout.'}
+                    {verdictRead === 'PASS' && '✅ PASS — no records from other orgs that this user did not create. RLS deny-for-clients is holding.'}
+                    {verdictRead === 'RULE IGNORED' && '❌ LEAK — records from other orgs created by OTHER users are visible. STOP.'}
                   </div>
                 )}
               </div>
