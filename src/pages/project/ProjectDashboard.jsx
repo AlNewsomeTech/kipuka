@@ -186,6 +186,7 @@ export default function ProjectDashboard() {
           hasHandoff={hasFeature(FEATURES.C3PAO_HANDOFF)}
           readOnly={readOnly}
           onToggle={toggleStep}
+          projectId={project.id}
         />
 
         <div className="bg-white rounded-xl border border-slate-200 p-5">
