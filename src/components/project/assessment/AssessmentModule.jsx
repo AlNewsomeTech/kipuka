@@ -78,13 +78,17 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
   const owners = useMemo(() => [...new Set(assessments.map((a) => a.responsible_owner).filter(Boolean))], [assessments]);
 
   const filtered = useMemo(() => assessments.filter((a) => {
-    if (filters.status && a.status !== filters.status) return false;
+    if (filters.status) {
+      // In client view the status filter holds a simple bucket; map before comparing.
+      if (isClient) { if (toSimpleStatus(a.status) !== filters.status) return false; }
+      else if (a.status !== filters.status) return false;
+    }
     if (filters.evidence_status && a.evidence_status !== filters.evidence_status) return false;
     if (filters.owner && a.responsible_owner !== filters.owner) return false;
     if (filters.risk && a.risk_rating !== filters.risk) return false;
     if (filters.level && a.cmmc_level !== filters.level) return false;
     return true;
-  }), [assessments, filters]);
+  }), [assessments, filters, isClient]);
 
   const byDomain = useMemo(() => {
     const map = {};
@@ -122,14 +126,21 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
           {assessments.length} of {library.length} controls tracked for {project.target_cmmc_level}.
         </p>
 
-        {/* Filters */}
-        <div className="grid sm:grid-cols-5 gap-2 mt-4">
-          <FilterSelect label="Status" value={filters.status} options={STATUSES} onChange={(v) => setFilters((f) => ({ ...f, status: v }))} />
-          <FilterSelect label="Evidence" value={filters.evidence_status} options={EVIDENCE_STATUSES} onChange={(v) => setFilters((f) => ({ ...f, evidence_status: v }))} />
-          <FilterSelect label="Owner" value={filters.owner} options={owners} onChange={(v) => setFilters((f) => ({ ...f, owner: v }))} />
-          <FilterSelect label="Risk" value={filters.risk} options={RISKS} onChange={(v) => setFilters((f) => ({ ...f, risk: v }))} />
-          <FilterSelect label="Level" value={filters.level} options={targetLevels} onChange={(v) => setFilters((f) => ({ ...f, level: v }))} />
-        </div>
+        {/* Filters — client view shows a simplified Status + Level only */}
+        {isClient ? (
+          <div className="grid sm:grid-cols-2 gap-2 mt-4">
+            <FilterSelect label="Status" value={filters.status} options={SIMPLE_STATUSES} onChange={(v) => setFilters((f) => ({ ...f, status: v }))} />
+            <FilterSelect label="Level" value={filters.level} options={targetLevels} onChange={(v) => setFilters((f) => ({ ...f, level: v }))} />
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-5 gap-2 mt-4">
+            <FilterSelect label="Status" value={filters.status} options={STATUSES} onChange={(v) => setFilters((f) => ({ ...f, status: v }))} />
+            <FilterSelect label="Evidence" value={filters.evidence_status} options={EVIDENCE_STATUSES} onChange={(v) => setFilters((f) => ({ ...f, evidence_status: v }))} />
+            <FilterSelect label="Owner" value={filters.owner} options={owners} onChange={(v) => setFilters((f) => ({ ...f, owner: v }))} />
+            <FilterSelect label="Risk" value={filters.risk} options={RISKS} onChange={(v) => setFilters((f) => ({ ...f, risk: v }))} />
+            <FilterSelect label="Level" value={filters.level} options={targetLevels} onChange={(v) => setFilters((f) => ({ ...f, level: v }))} />
+          </div>
+        )}
       </div>
 
       {assessments.length === 0 ? (
@@ -161,6 +172,7 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
                       onUpdate={updateAssessment}
                       onRefresh={load}
                       currentUser={currentUser}
+                      isClient={isClient}
                     />
                   ))}
                 </div>

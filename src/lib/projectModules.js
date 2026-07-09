@@ -2,7 +2,7 @@
 import {
   LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
   AlertTriangle, ScrollText, BadgeCheck, BarChart3, Wrench, ShieldHalf,
-  Network, Share2, Siren, Gavel,
+  Network, Share2, Siren, Gavel, Rocket,
 } from 'lucide-react';
 
 // Modules rendered in the per-project left navigation.
@@ -32,6 +32,17 @@ export const PROJECT_MODULES = [
 export function moduleByKey(key) {
   return PROJECT_MODULES.find((m) => m.key === key) || PROJECT_MODULES[0];
 }
+
+// Simplified, grouped navigation for client-facing roles. Each entry points at an
+// EXISTING module route — no new pages. Consultants still get the full PROJECT_MODULES
+// list, and clients can flip to it with the "Advanced view" toggle.
+export const CLIENT_NAV_GROUPS = [
+  { key: 'dashboard', label: 'Guided Setup', icon: Rocket },
+  { key: 'assessment', label: 'My Controls', icon: ClipboardCheck },
+  { key: 'evidence', label: 'Evidence', icon: ListChecks },
+  { key: 'ssp', label: 'Documents', icon: FileStack },
+  { key: 'mock', label: 'Get Assessment Ready', icon: Gavel },
+];
 
 // Phase-based workflow checklist shown on the project dashboard.
 // Documentation generation appears AFTER implementation, evidence, control
