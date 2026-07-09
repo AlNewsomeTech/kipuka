@@ -2,6 +2,7 @@
 // download client-side. No automation, no external calls.
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, BRAND, stripHtml, safeFileName } from '@/lib/reportBranding';
+import { isMetStatus } from '@/lib/sprsScoring';
 
 function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
 
@@ -30,7 +31,7 @@ function downloadCsv(rows, filename) {
 // 1. Executive Readiness Report
 export async function generateExecutiveReadiness({ project, org, assessments, poams, evidence, generatedBy }) {
   const total = assessments.length;
-  const implemented = assessments.filter((a) => a.status === 'Implemented').length;
+  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
   const readiness = pct(implemented, total);
   const openPoams = poams.filter((p) => !['Closed', 'Accepted Risk'].includes(p.status));
   const blockers = assessments.filter((a) => a.status === 'Not Implemented' && ['High', 'Critical'].includes(a.risk_rating));
@@ -75,7 +76,7 @@ export async function generateGapAssessment({ project, org, assessments, evidenc
   const evByControl = {};
   evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
   const evidenceGaps = assessments.filter((a) => !evByControl[a.control_id]);
-  const highRisk = assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && a.status !== 'Implemented');
+  const highRisk = assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && !isMetStatus(a.status));
 
   const r = createReportPdf({ title: 'Gap Assessment Report', project, org, generatedBy });
   r.heading('Control Implementation Status');
@@ -148,7 +149,7 @@ export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp,
   const r = createReportPdf({ title: 'C3PAO Handoff Package', project, org, generatedBy });
 
   r.heading('Executive Summary');
-  const implemented = assessments.filter((a) => a.status === 'Implemented').length;
+  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
   r.text(`${org?.organization_name || 'The organization'} is pursuing ${project.target_cmmc_level} via ${project.assessment_path}. ${implemented} of ${assessments.length} in-scope controls are implemented. This package consolidates scope, assets, SSP, POA&M, evidence, controls, and policies for C3PAO review.`);
 
   r.heading('Scope Summary');
@@ -186,7 +187,7 @@ export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp,
   r.text('Confirm SPRS score entry and PIEE affirmation via the SPRS / PIEE module before submission.');
 
   r.heading('Open Risks');
-  assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && a.status !== 'Implemented')
+  assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && !isMetStatus(a.status))
     .forEach((a) => r.text(`• ${a.control_id} — ${a.risk_rating} (${a.status})`));
 
   r.heading('Contact Sheet');
