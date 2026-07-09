@@ -22,6 +22,7 @@ import ProjectDashboard from '@/pages/project/ProjectDashboard';
 import ProjectModulePage from '@/pages/project/ProjectModulePage';
 import GuidedWalkthrough from '@/pages/project/GuidedWalkthrough';
 import GuidedQueue from '@/pages/project/GuidedQueue';
+import RlsProbe from '@/pages/RlsProbe'; // TEMP — delete with the RLS probe
 import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
@@ -113,6 +114,8 @@ const AuthenticatedApp = () => {
         <Route path="/projects" element={<Projects />} />
         {/* Guided walkthrough — full-page 5-step wizard for a single control (all roles) */}
         <Route path="/projects/:id/guided" element={<GuidedQueue />} />
+        {/* TEMP RLS probe route — delete when the tenancy probe concludes */}
+        <Route path="/rls-probe" element={<RlsProbe />} />
         <Route path="/projects/:id/guided/:controlId" element={<GuidedWalkthrough />} />
         <Route path="/projects/:id" element={<ProjectWorkspace />}>
           <Route index element={<ProjectDashboard />} />
