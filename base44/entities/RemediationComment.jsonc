@@ -1,7 +1,7 @@
 {
   "name": "RemediationComment",
   "type": "object",
-  "description": "A comment on an ACOLYTE remediation item. Client org users may add comments here (client role has write access), keeping the remediation record itself analyst-controlled.",
+  "description": "A comment on an ACOLYTE remediation item. Client org users add comments through the org-scoped gatekeeper function only.",
   "properties": {
     "organization_id": {
       "type": "string"
@@ -30,9 +30,6 @@
     "read": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -40,11 +37,6 @@
         {
           "user_condition": {
             "role": "technician"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "client"
           }
         }
       ]
@@ -52,9 +44,6 @@
     "write": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -62,11 +51,6 @@
         {
           "user_condition": {
             "role": "technician"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "client"
           }
         }
       ]
