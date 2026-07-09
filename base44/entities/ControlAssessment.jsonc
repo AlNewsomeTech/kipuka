@@ -119,6 +119,7 @@
           }
         },
         {
+          "organization_id": "{{user.organization_id}}",
           "user_condition": {
             "role": "client"
           }
