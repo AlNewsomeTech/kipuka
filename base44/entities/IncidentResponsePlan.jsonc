@@ -68,11 +68,6 @@
           "user_condition": {
             "role": "technician"
           }
-        },
-        {
-          "user_condition": {
-            "role": "client"
-          }
         }
       ]
     },
