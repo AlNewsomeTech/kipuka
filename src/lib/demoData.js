@@ -260,4 +260,4 @@ export const DEMO_TOUR_STEPS = [
 ];
 
 export const DEMO_CTA =
-  'Kipuka helps defense contractors organize CMMC readiness, evidence, SSP, POA&M, SPRS preparation, and executive reporting in one guided workspace.';
+  'Kipuka by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.';
