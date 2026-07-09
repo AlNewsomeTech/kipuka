@@ -1,7 +1,7 @@
 {
-  "name": "Kipuka",
-  "short_name": "CMMC",
-  "description": "CMMC 2.0 Deployment & Evidence Management Platform",
+  "name": "Kipuka by Pac-Sec",
+  "short_name": "Kipuka",
+  "description": "Kipuka by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F1E3C",
