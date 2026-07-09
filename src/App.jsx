@@ -22,6 +22,7 @@ import ProjectDashboard from '@/pages/project/ProjectDashboard';
 import ProjectModulePage from '@/pages/project/ProjectModulePage';
 import GuidedWalkthrough from '@/pages/project/GuidedWalkthrough';
 import GuidedQueue from '@/pages/project/GuidedQueue';
+import '@/lib/externalLinks'; // force all external links to open in a new tab
 import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
 import CMMCControls from '@/pages/CMMCControls';
