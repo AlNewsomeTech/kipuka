@@ -1,7 +1,7 @@
 {
   "name": "SecurityReviewNote",
   "type": "object",
-  "description": "Dated Pac-Sec analyst review notes for an ACOLYTE-serviced project, visible to the client org.",
+  "description": "Dated Pac-Sec analyst review notes for an ACOLYTE-serviced project. Client orgs read these through the org-scoped gatekeeper function only.",
   "properties": {
     "organization_id": {
       "type": "string"
@@ -40,9 +40,6 @@
     "read": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -51,19 +48,11 @@
           "user_condition": {
             "role": "technician"
           }
-        },
-        {
-          "user_condition": {
-            "role": "client"
-          }
         }
       ]
     },
     "write": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
         {
           "user_condition": {
             "role": "admin"
