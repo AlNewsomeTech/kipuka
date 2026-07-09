@@ -134,9 +134,6 @@
     "read": {
       "$or": [
         {
-          "created_by_id": "{{user.id}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }
@@ -145,19 +142,11 @@
           "user_condition": {
             "role": "technician"
           }
-        },
-        {
-          "user_condition": {
-            "role": "client"
-          }
         }
       ]
     },
     "write": {
       "$or": [
-        {
-          "created_by_id": "{{user.id}}"
-        },
         {
           "user_condition": {
             "role": "admin"
