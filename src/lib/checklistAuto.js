@@ -4,7 +4,6 @@
 // Manual checkmarks still work and are OR-merged with these (a step is complete
 // if the user checked it OR the data proves it).
 import { isMetStatus } from '@/lib/sprsScoring';
-import { shortId } from '@/lib/sprsScoring';
 
 // All controls in the given families are MET (and at least one exists).
 function familiesDone(assessments, families) {
