@@ -40,8 +40,11 @@ export const CLIENT_NAV_GROUPS = [
   { key: 'dashboard', label: 'Guided Setup', icon: Rocket },
   { key: 'assessment', label: 'My Controls', icon: ClipboardCheck },
   { key: 'evidence', label: 'Evidence', icon: ListChecks },
+  { key: 'poam', label: 'POA&M (Gaps)', icon: AlertTriangle },
+  { key: 'policies', label: 'Policies', icon: ScrollText },
   { key: 'ssp', label: 'Documents', icon: FileStack },
-  { key: 'mock', label: 'Get Assessment Ready', icon: Gavel },
+  { key: 'mock', label: 'Mock Assessment', icon: Gavel },
+  { key: 'sprs', label: 'SPRS / PIEE', icon: BadgeCheck },
 ];
 
 // Phase-based workflow checklist shown on the project dashboard.
