@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Gavel, Loader2, Plus, FileDown, ChevronDown, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useOrg } from '@/lib/orgContext';
-import { PLAN_FEATURES } from '@/lib/planTiers';
+import { PLAN_FEATURES, planHasFeature } from '@/lib/planTiers';
 import PlanUpgradePanel from '@/components/commercial/PlanUpgradePanel';
 import ProgressBar from '@/components/ProgressBar';
 import {
@@ -13,7 +13,7 @@ import { generateMockAssessmentReport } from '@/lib/reportGenerators';
 import ObjectiveAssessRow from './ObjectiveAssessRow';
 
 export default function MockAssessmentModule({ project, org, readOnly, currentUser }) {
-  const { planHas } = useOrg();
+  const { planHas, isPlatformAdmin } = useOrg();
   const [sessions, setSessions] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [objectives, setObjectives] = useState([]);
@@ -23,7 +23,9 @@ export default function MockAssessmentModule({ project, org, readOnly, currentUs
   const [creating, setCreating] = useState(false);
   const [openDomains, setOpenDomains] = useState({});
 
-  const allowed = planHas(PLAN_FEATURES.MOCK_ASSESSMENT);
+  // Gate against the org whose project is being viewed (prop), not the viewer's
+  // own org context — platform staff viewing a client org were wrongly locked out.
+  const allowed = isPlatformAdmin || (org ? planHasFeature(org, PLAN_FEATURES.MOCK_ASSESSMENT) : planHas(PLAN_FEATURES.MOCK_ASSESSMENT));
 
   const load = useCallback(async () => {
     setLoading(true);
