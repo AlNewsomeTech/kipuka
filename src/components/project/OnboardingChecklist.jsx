@@ -1,10 +1,12 @@
-import { CheckCircle2, Circle, ChevronDown } from 'lucide-react';
+import { CheckCircle2, Circle, ChevronDown, ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { WORKFLOW_PHASES } from '@/lib/projectModules';
+import { stepLink } from '@/lib/guidanceLinks';
 
 // Phase-based workflow checklist. Implementation & evidence come before
 // heavy inventory and final documentation, reflecting the corrected workflow order.
-export default function OnboardingChecklist({ checklist = {}, hasHandoff, readOnly, onToggle }) {
+export default function OnboardingChecklist({ checklist = {}, hasHandoff, readOnly, onToggle, projectId }) {
   const phases = WORKFLOW_PHASES.map((p) => ({
     ...p,
     steps: p.steps.filter((s) => !s.tierGated || hasHandoff),
@@ -48,20 +50,30 @@ export default function OnboardingChecklist({ checklist = {}, hasHandoff, readOn
                   {phase.steps.map((s) => {
                     const complete = !!checklist[s.key];
                     return (
-                      <button
-                        key={s.key}
-                        type="button"
-                        disabled={readOnly}
-                        onClick={() => onToggle && onToggle(s.key, !complete)}
-                        className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-[13px] transition-colors ${
-                          readOnly ? 'cursor-default' : 'hover:bg-slate-50'
-                        }`}
-                      >
-                        {complete
-                          ? <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
-                          : <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />}
-                        <span className={complete ? 'text-slate-400 line-through' : 'text-slate-700'}>{s.label}</span>
-                      </button>
+                      <div key={s.key} className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          disabled={readOnly}
+                          onClick={() => onToggle && onToggle(s.key, !complete)}
+                          className={`flex-1 flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left text-[13px] transition-colors ${
+                            readOnly ? 'cursor-default' : 'hover:bg-slate-50'
+                          }`}
+                        >
+                          {complete
+                            ? <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
+                            : <Circle className="w-4 h-4 text-slate-300 flex-shrink-0" />}
+                          <span className={complete ? 'text-slate-400 line-through' : 'text-slate-700'}>{s.label}</span>
+                        </button>
+                        {projectId && (
+                          <Link
+                            to={stepLink(projectId, s.key)}
+                            title="Go to this step"
+                            className="p-1.5 rounded-lg text-slate-300 hover:text-blue-600 hover:bg-blue-50 transition-colors flex-shrink-0"
+                          >
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Link>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
