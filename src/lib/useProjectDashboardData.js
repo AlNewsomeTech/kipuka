@@ -2,6 +2,7 @@
 // User-triggered load only; no polling.
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
+import { isMetStatus } from '@/lib/sprsScoring';
 
 export function useProjectDashboardData(projectId) {
   const [data, setData] = useState(null);
@@ -43,7 +44,7 @@ const CLOSED_POAM = ['Closed', 'Accepted Risk'];
 export function deriveMetrics(project, d) {
   if (!d) return {};
   const total = d.assessments.length;
-  const implemented = d.assessments.filter((a) => a.status === 'Implemented').length;
+  const implemented = d.assessments.filter((a) => isMetStatus(a.status) || a.status === 'Not Applicable').length;
   const evByControl = {};
   d.evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
   const needEvidence = d.assessments.filter((a) => !evByControl[a.control_id]);
@@ -76,7 +77,7 @@ export function byDomain(assessments) {
     const dom = a.domain || 'Other';
     map[dom] = map[dom] || { total: 0, done: 0 };
     map[dom].total += 1;
-    if (a.status === 'Implemented') map[dom].done += 1;
+    if (isMetStatus(a.status) || a.status === 'Not Applicable') map[dom].done += 1;
   });
   return Object.entries(map).map(([domain, v]) => ({ domain, ...v }));
 }
