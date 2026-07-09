@@ -10,6 +10,7 @@ import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
 import { computeSprs } from '@/lib/sprsScoring';
 import { stepLink } from '@/lib/guidanceLinks';
+import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
@@ -49,7 +50,7 @@ export default function ProjectDashboard() {
     let alive = true;
     (async () => {
       const levels = targetLevelsFor(project);
-      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs] = await Promise.all([
+      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs, scopingList, reportExports, assets] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
@@ -57,6 +58,9 @@ export default function ProjectDashboard() {
         base44.entities.MockAssessmentSession.filter({ project_id: project.id }, '-created_date', 1).catch(() => []),
         base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
         base44.entities.SPRSRecord.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.ReportExport.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
       ]);
       if (!alive) return;
       const closed = ['Closed', 'Accepted Risk'];
@@ -87,6 +91,10 @@ export default function ProjectDashboard() {
         mockVerdict: mockSessions[0]?.overall_verdict || null,
         readiness,
         sprsStatus,
+        autoChecklist: deriveAutoChecklist({
+          project, scoping: scopingList[0] || null, assessments, evidence, poams,
+          ssps, sprs, exports: reportExports, assets,
+        }),
       });
 
       // Do-Next hero data.
@@ -112,6 +120,9 @@ export default function ProjectDashboard() {
     refreshProject();
   };
 
+  // Merge manual checkmarks with activity-derived auto-completion.
+  const effectiveChecklist = mergeChecklist(project.onboarding_checklist || {}, counts?.autoChecklist || {});
+
   // Corrected order: scope → implementation → evidence → validation → final inventory → docs.
   const nextSteps = [
     { key: 'confirm_fci_cui', label: 'Confirm FCI/CUI handling (preliminary scope)' },
@@ -120,7 +131,7 @@ export default function ProjectDashboard() {
     { key: 'mark_ready_for_docs', label: 'Validate controls — mark Ready for Documentation' },
     { key: 'intune_inventory', label: 'Complete final inventory & scope validation' },
     { key: 'gen_final_ssp', label: 'Generate final documentation' },
-  ].filter((s) => !(project.onboarding_checklist || {})[s.key]).slice(0, 3);
+  ].filter((s) => !effectiveChecklist[s.key]).slice(0, 3);
 
   return (
     <div className="space-y-4">
@@ -182,7 +193,7 @@ export default function ProjectDashboard() {
 
       <div className="grid lg:grid-cols-2 gap-4">
         <OnboardingChecklist
-          checklist={project.onboarding_checklist || {}}
+          checklist={effectiveChecklist}
           hasHandoff={hasFeature(FEATURES.C3PAO_HANDOFF)}
           readOnly={readOnly}
           onToggle={toggleStep}
