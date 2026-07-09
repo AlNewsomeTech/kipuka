@@ -19,7 +19,9 @@ const ENTITY_RULES = {
   RemediationComment:     { read: true,  create: true,  update: false }, // client comments on remediation items
   ScopingProfile:         { read: true,  create: true,  update: true  }, // onboarding scoping answers
   Asset:                  { read: true,  create: false, update: false },
-  ProjectPOAM:            { read: true,  create: false, update: false },
+  ProjectPOAM:            { read: true,  create: true,  update: false }, // "I'm stuck" flow creates a POA&M
+  Organization:           { read: true,  create: false, update: false }, // own-org record only (scoped by record id)
+  OrganizationUser:       { read: true,  create: false, update: false }, // own-org membership/role lookup
   ReportExport:           { read: true,  create: false, update: false },
   MockAssessmentSession:  { read: true,  create: false, update: false },
   MockAssessmentObjective:{ read: true,  create: false, update: false },
@@ -57,8 +59,15 @@ Deno.serve(async (req) => {
 
     const svc = base44.asServiceRole.entities[entity];
 
+    // Organization has no organization_id field — its own id IS the org id.
+    const isOrgRecord = entity === 'Organization';
+
     if (op === 'filter' || op === 'list') {
       if (!rules.read) return Response.json({ error: 'Read not permitted' }, { status: 403 });
+      if (isOrgRecord) {
+        const record = await svc.get(org).catch(() => null);
+        return Response.json({ records: record ? [record] : [] });
+      }
       // organization_id is forced — a caller-supplied organization_id in query is overwritten.
       const scoped = { ...(query || {}), organization_id: org };
       const records = await svc.filter(scoped, sort || '-created_date', Math.min(limit || 500, 500));
@@ -68,6 +77,12 @@ Deno.serve(async (req) => {
     if (op === 'get') {
       if (!rules.read) return Response.json({ error: 'Read not permitted' }, { status: 403 });
       if (!id) return Response.json({ error: 'id required' }, { status: 400 });
+      if (isOrgRecord) {
+        if (id !== org) return Response.json({ error: 'Not found' }, { status: 404 });
+        const record = await svc.get(org).catch(() => null);
+        if (!record) return Response.json({ error: 'Not found' }, { status: 404 });
+        return Response.json({ record });
+      }
       const record = await svc.get(id);
       if (!record || record.organization_id !== org) {
         return Response.json({ error: 'Not found' }, { status: 404 });
@@ -80,6 +95,16 @@ Deno.serve(async (req) => {
       const payload = { ...(data || {}), organization_id: org };
       const record = await svc.create(payload);
       return Response.json({ record });
+    }
+
+    if (op === 'bulkCreate') {
+      if (!rules.create) return Response.json({ error: 'Create not permitted' }, { status: 403 });
+      if (!Array.isArray(data) || data.length === 0) {
+        return Response.json({ error: 'data must be a non-empty array' }, { status: 400 });
+      }
+      const items = data.map((d) => ({ ...(d || {}), organization_id: org }));
+      const records = await svc.bulkCreate(items);
+      return Response.json({ records });
     }
 
     if (op === 'update') {

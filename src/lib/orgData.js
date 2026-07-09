@@ -6,13 +6,40 @@
 // backend function, which filters every read and verifies every write
 // against the caller's organization_id server-side.
 //
-// Usage (drop-in for the entity SDK surface used by client views):
-//   import { orgEntity } from '@/lib/orgData';
-//   const rows = await orgEntity('ControlAssessment').filter({ project_id });
-//
-// Admin/technician code should keep using base44.entities directly —
-// their RLS role branches grant direct access.
+// The base44 client (src/api/base44Client.js) wires this in automatically:
+// for client-role users, entity calls on gated entities are transparently
+// routed through the gatekeeper. Admin/technician calls hit the SDK directly.
 import { base44 } from '@/api/base44Client';
+
+// Entities the gatekeeper mediates — must mirror ENTITY_RULES in
+// base44/functions/orgScopedData/entry.ts.
+export const GATED_ENTITIES = new Set([
+  'Project',
+  'CompanyProfile',
+  'ControlAssessment',
+  'ProjectEvidence',
+  'GuidedProgress',
+  'RemediationComment',
+  'ScopingProfile',
+  'Asset',
+  'ProjectPOAM',
+  'Organization',
+  'OrganizationUser',
+  'ReportExport',
+  'MockAssessmentSession',
+  'MockAssessmentObjective',
+  'PolicyTemplate',
+  'SPRSRecord',
+  'SystemSecurityPlan',
+  'DeploymentTask',
+  'SecurityReviewNote',
+  'AcolyteRemediationItem',
+  'AcolyteProfile',
+  'CyberFinding',
+  'IncidentReadinessRecord',
+  'AcolyteExecutiveReport',
+  'CyberReadinessReview',
+]);
 
 async function call(payload) {
   const res = await base44.functions.invoke('orgScopedData', payload);
@@ -29,6 +56,8 @@ export function orgEntity(entityName) {
       (await call({ entity: entityName, op: 'get', id })).record,
     create: async (data) =>
       (await call({ entity: entityName, op: 'create', data })).record,
+    bulkCreate: async (data) =>
+      (await call({ entity: entityName, op: 'bulkCreate', data })).records,
     update: async (id, data) =>
       (await call({ entity: entityName, op: 'update', id, data })).record,
   };
