@@ -2,6 +2,7 @@
 // open POA&M items, and latest SPRS score. User-triggered only.
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName, BRAND } from '@/lib/reportBranding';
+import { isMetStatus } from '@/lib/sprsScoring';
 
 const CLOSED_POAM = ['Closed', 'Accepted Risk'];
 
@@ -14,7 +15,7 @@ export async function generateProjectStatusReport({ project, org, generatedBy })
   ]);
 
   const total = assessments.length;
-  const implemented = assessments.filter((a) => a.status === 'Implemented').length;
+  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
   const partial = assessments.filter((a) => a.status === 'Partially Implemented').length;
   const notImplemented = assessments.filter((a) => a.status === 'Not Implemented').length;
   const readiness = total ? Math.round((implemented / total) * 100) : Math.round(project.current_readiness_score || 0);
