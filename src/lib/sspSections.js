@@ -1,4 +1,5 @@
 // SSP section definitions + auto-build logic from project data.
+import { isMetStatus } from '@/lib/sprsScoring';
 export const SSP_SECTIONS = [
   { key: 'system_name', label: 'System Name', short: true },
   { key: 'system_description', label: 'System Description' },
@@ -58,7 +59,7 @@ export function buildSspDraft({ project, org, scoping, assets, assessments, evid
   const inScope = assets.filter((a) => a.in_scope);
   const cloud = assets.filter((a) => a.asset_type === 'Cloud Service' || a.asset_type === 'SaaS Application');
   const esp = assets.filter((a) => a.asset_type === 'External Provider');
-  const implemented = assessments.filter((a) => a.status === 'Implemented').length;
+  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
   const openPoams = poams.filter((p) => !['Closed', 'Accepted Risk'].includes(p.status));
   const inh = inheritanceSummaries(providers);
   const diagramNote = diagrams.filter((d) => d.image_url).map((d) => d.diagram_type).join(' and ');
