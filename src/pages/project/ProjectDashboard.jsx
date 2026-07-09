@@ -93,14 +93,14 @@ export default function ProjectDashboard() {
       const inScopeLib = library.filter((c) => levels.includes(c.cmmc_level));
       const next = nextIncomplete(inScopeLib, assessments, project);
       const { done, total } = queueCounts(inScopeLib, assessments, project);
-      const sprs = computeSprs(assessments);
+      const sprsScore = computeSprs(assessments);
       setDoNext({
         hasAssessments: assessments.length > 0,
         allDone: total > 0 && done >= total,
         nextControlId: next?.control_id || null,
         done, total,
-        sprsCurrent: sprs.current,
-        sprsProjected: sprs.projected,
+        sprsCurrent: sprsScore.current,
+        sprsProjected: sprsScore.projected,
       });
     })();
     return () => { alive = false; };
