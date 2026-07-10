@@ -1,0 +1,96 @@
+{
+  "name": "PostureAssessment",
+  "type": "object",
+  "description": "A repeatable ACOLYTE cyber posture self-assessment. Answers are Yes/Partial/No/Not Applicable across weighted domains, producing per-domain scores and an overall 0-100 posture score. Never overwritten \u2014 each run is a new record for trend tracking.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Optional linked project. Posture assessments are org-level but may be scoped to a project."
+    },
+    "assessment_name": {
+      "type": "string",
+      "default": "Cyber Posture Assessment"
+    },
+    "assessment_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "completed_by": {
+      "type": "string",
+      "description": "Name/email of the person who completed the assessment."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "completed"
+      ],
+      "default": "draft"
+    },
+    "answers": {
+      "type": "object",
+      "description": "Map of question key -> { answer: 'Yes'|'Partial'|'No'|'Not Applicable', note: string }.",
+      "default": {}
+    },
+    "domain_scores": {
+      "type": "object",
+      "description": "Map of domain key -> { score: number 0-100, weight: number, applicable: number, points: number, max: number }.",
+      "default": {}
+    },
+    "overall_score": {
+      "type": "number",
+      "default": 0,
+      "description": "Weighted overall posture score, normalized 0-100."
+    },
+    "remediation_generated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the auto-remediation plan has already been generated for this completed assessment (idempotency guard)."
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

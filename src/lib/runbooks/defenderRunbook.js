@@ -1,0 +1,216 @@
+// Microsoft Defender CMMC Technician Runbook content. Static guidance only.
+// Covers Microsoft Defender for Business / Defender for Endpoint via the
+// Defender portal (security.microsoft.com) for CMMC Level 2 readiness.
+// Enclave note: when CUI lives in an enclave (e.g., PreVeil), the endpoints
+// that run the enclave client ARE CUI assets — Defender is a Security
+// Protection Asset securing them, and its evidence remains in scope.
+
+export const DEFENDER_RUNBOOK = {
+  tool_name: 'Microsoft Defender',
+  title: 'Microsoft Defender CMMC Technician Runbook',
+  subtitle: 'Endpoint protection setup: onboarding, AV/EDR policy, attack surface reduction, vulnerability visibility, alerting, and evidence collection.',
+  intro:
+    'This runbook guides technicians through configuring Microsoft Defender (Defender for Business or Defender for Endpoint) to support CMMC Level 2 readiness. Defender provides supporting evidence for malicious code protection, monitoring, and vulnerability management controls. Defender does not satisfy CMMC requirements by itself — coverage must match the asset inventory, alerts must have an assigned responder, and all evidence requires reviewer validation.',
+  evidenceNaming: {
+    format: 'CONTROLID_ToolName_EvidenceDescription_YYYY-MM-DD.png',
+    toolName: 'Defender',
+    examples: [
+      'SI.L2-3.14.2_Defender_AV_Policy_Settings_2026-07-10.png',
+      'SI.L2-3.14.6_Defender_Alert_Notification_Rules_2026-07-10.png',
+      'RA.L2-3.11.2_Defender_Vulnerability_Dashboard_2026-07-10.png',
+      'SI.L2-3.14.1_Defender_Device_Onboarding_Status_2026-07-10.png',
+      'SI.L2-3.14.4_Defender_Definition_Update_Status_2026-07-10.png',
+    ],
+    rules: [
+      'Start every file name with the primary CMMC control ID.',
+      'Use Defender as the tool name.',
+      'Use short descriptive names with underscores instead of spaces.',
+      'Use YYYY-MM-DD date format.',
+      'Do not use vague names like screenshot1.png or defender.png.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls inside Kipuka.',
+      'Sanitize any user names or device names your project rules mark as sensitive before upload.',
+    ],
+  },
+  mappingGroups: [
+    { label: 'Malicious code protection evidence may support', controls: ['SI.L2-3.14.1', 'SI.L2-3.14.2', 'SI.L2-3.14.4', 'SI.L2-3.14.5'] },
+    { label: 'Monitoring and alerting evidence may support', controls: ['SI.L2-3.14.6', 'SI.L2-3.14.7', 'AU.L2-3.3.1', 'IR.L2-3.6.1'] },
+    { label: 'Vulnerability management evidence may support', controls: ['RA.L2-3.11.2', 'RA.L2-3.11.3', 'SI.L2-3.14.1', 'CA.L2-3.12.2'] },
+    { label: 'Attack surface reduction evidence may support', controls: ['CM.L2-3.4.6', 'CM.L2-3.4.7', 'CM.L2-3.4.8'] },
+    { label: 'Incident detection/response evidence may support', controls: ['IR.L2-3.6.1', 'IR.L2-3.6.2', 'AU.L2-3.3.5'] },
+  ],
+  finalWarning:
+    'Do not mark controls as implemented based only on Defender evidence. Coverage must be verified against the asset inventory (assessors sample devices), a named person must own alert response, and policy, process, and reviewer validation are still required.',
+  sections: [
+    {
+      key: 'overview',
+      title: 'Technician Checklist Overview',
+      purpose: 'Track overall progress through the Defender readiness workflow at a glance.',
+      checklist: [
+        'Licensing verified (Defender for Business / for Endpoint P1-P2)',
+        'Portal roles reviewed; least-privilege admin access',
+        'All in-scope devices onboarded; inventory matches asset list',
+        'AV/next-gen protection policy configured with tamper protection',
+        'EDR and attack surface reduction rules enabled',
+        'Vulnerability management dashboard reviewed; top items actioned',
+        'Alert notifications configured with a named responder',
+        'Alert review cadence documented and evidenced',
+        'Evidence screenshots captured with correct names',
+        'Evidence mapped to controls in Kipuka',
+      ],
+    },
+    {
+      key: 'access',
+      title: 'Verify Licensing and Secure Portal Access',
+      purpose: 'Confirm the right Defender plan is active and admin access is controlled.',
+      steps: [
+        'Confirm licensing: Microsoft 365 Business Premium includes Defender for Business; E5/standalone includes Defender for Endpoint P2. Record the plan in the project notes.',
+        'Sign in to the Microsoft Defender portal at security.microsoft.com with an authorized admin account protected by MFA.',
+        'Review Permissions & roles: remove stale admins, apply least privilege (Security Reader for viewers, Security Administrator only where needed).',
+        'Document who holds security admin roles and the review cadence for that roster.',
+        'Capture evidence screenshots of the role assignments.',
+      ],
+      evidenceFiles: [
+        'AC.L2-3.1.5_Defender_Admin_Role_Assignments_YYYY-MM-DD.png',
+      ],
+      controls: ['AC.L2-3.1.5', 'AC.L2-3.1.6'],
+    },
+    {
+      key: 'onboarding',
+      title: 'Onboard All In-Scope Devices',
+      purpose: 'Every device in the assessment scope must report to Defender — coverage gaps are the top assessor finding.',
+      steps: [
+        'Open Assets > Devices in the Defender portal and export or screenshot the current device list.',
+        'Compare device-by-device against the Kipuka Asset Inventory: every in-scope Windows/macOS endpoint and server must appear.',
+        'Onboard missing devices: via Intune (preferred — Endpoint security > EDR onboarding policy) or the local onboarding package from Settings > Endpoints > Onboarding.',
+        'Verify each onboarded device shows sensor health Active and no configuration errors.',
+        'Document any in-scope device that cannot be onboarded (legacy OS, OT equipment) and create a POA&M item for its compensating protection.',
+        'Capture evidence: device list with onboarding status, side-by-side count vs the asset inventory.',
+      ],
+      evidenceFiles: [
+        'SI.L2-3.14.1_Defender_Device_Onboarding_Status_YYYY-MM-DD.png',
+        'SI.L2-3.14.2_Defender_Device_Health_Overview_YYYY-MM-DD.png',
+      ],
+      controls: ['SI.L2-3.14.1', 'SI.L2-3.14.2', 'CM.L2-3.4.1', 'CA.L2-3.12.3'],
+    },
+    {
+      key: 'av_policy',
+      title: 'Configure Antivirus / Next-Gen Protection',
+      purpose: 'Enforce real-time, cloud-assisted malware protection with tamper protection on every endpoint.',
+      steps: [
+        'Create or verify the AV policy (Intune: Endpoint security > Antivirus, or Defender portal Device configuration for Defender for Business).',
+        'Require: real-time protection ON, cloud-delivered protection ON, automatic sample submission per policy, PUA protection Block.',
+        'Turn ON tamper protection tenant-wide (Settings > Endpoints > Advanced features) so local admins and malware cannot disable AV.',
+        'Set signature/platform updates to automatic; verify devices show current definitions.',
+        'Schedule a periodic quick scan and enable scanning of removable media on access.',
+        'Assign the policy to ALL in-scope device groups — check assignments, not just policy existence.',
+        'Capture evidence: policy settings, tamper protection status, definition update status.',
+      ],
+      evidenceFiles: [
+        'SI.L2-3.14.2_Defender_AV_Policy_Settings_YYYY-MM-DD.png',
+        'SI.L2-3.14.4_Defender_Definition_Update_Status_YYYY-MM-DD.png',
+        'SI.L2-3.14.5_Defender_Scan_Schedule_YYYY-MM-DD.png',
+      ],
+      controls: ['SI.L2-3.14.1', 'SI.L2-3.14.2', 'SI.L2-3.14.4', 'SI.L2-3.14.5', 'MP.L2-3.8.8'],
+    },
+    {
+      key: 'edr_asr',
+      title: 'Enable EDR and Attack Surface Reduction',
+      purpose: 'Move beyond signature AV: behavioral detection and hardening rules that block common attack techniques.',
+      steps: [
+        'Verify the EDR sensor is active on onboarded devices (device page > sensor health). For third-party AV environments, enable EDR in block mode.',
+        'Enable Attack Surface Reduction rules (Intune: Endpoint security > Attack surface reduction). Start with Block mode for the low-friction core set: block credential stealing from LSASS, block Office apps creating executable content, block executable content from email, block untrusted USB processes.',
+        'Set any business-risky rules to Audit first, review the report after two weeks, then move to Block; document the decision per rule.',
+        'Enable network protection (Block) and controlled folder access where feasible for CUI-touching endpoints.',
+        'Capture evidence: ASR rule states, network protection setting.',
+      ],
+      evidenceFiles: [
+        'CM.L2-3.4.7_Defender_ASR_Rules_Status_YYYY-MM-DD.png',
+        'SI.L2-3.14.6_Defender_EDR_Sensor_Health_YYYY-MM-DD.png',
+      ],
+      controls: ['CM.L2-3.4.6', 'CM.L2-3.4.7', 'CM.L2-3.4.8', 'SI.L2-3.14.6'],
+    },
+    {
+      key: 'vulnerability',
+      title: 'Use Defender Vulnerability Management',
+      purpose: 'Defender VM provides the periodic vulnerability scanning and remediation trail RA-family controls expect.',
+      steps: [
+        'Open Vulnerability management > Dashboard; record the exposure score and screenshot it (this is your dated periodic scan evidence).',
+        'Review Recommendations sorted by impact; for each Critical/High affecting in-scope devices, either remediate or create a remediation/POA&M item in Kipuka with an owner and date.',
+        'Establish and document the review cadence (monthly minimum) — recurring dated screenshots demonstrate PERIODIC scanning, which one screenshot cannot.',
+        'Export or screenshot the top remediation activities and their completion status to show findings are tracked to closure.',
+        'Capture evidence: dashboard with date visible, recommendations list, a remediated item before/after.',
+      ],
+      evidenceFiles: [
+        'RA.L2-3.11.2_Defender_Vulnerability_Dashboard_YYYY-MM-DD.png',
+        'RA.L2-3.11.3_Defender_Remediation_Activity_YYYY-MM-DD.png',
+      ],
+      controls: ['RA.L2-3.11.2', 'RA.L2-3.11.3', 'SI.L2-3.14.1', 'CA.L2-3.12.2'],
+    },
+    {
+      key: 'alerting',
+      title: 'Configure Alerts and Response Ownership',
+      purpose: 'Detection without a named responder fails the monitoring controls — wire alerts to people.',
+      steps: [
+        'Configure email notification rules (Settings > Endpoints > Email notifications) for High and Medium alerts to the named security contact(s).',
+        'Assign a named alert responder and a backup; record them in the Incident Response Plan contacts.',
+        'Document the alert triage procedure: acknowledge, investigate, contain (isolate device from the device page if needed), record in the Kipuka Incident Log if it qualifies as an incident.',
+        'Establish and evidence a recurring alert-review cadence (e.g., daily glance, weekly documented review note).',
+        'Run a test: trigger the EICAR test file on one device, verify detection, alert, and notification flow end to end; keep the alert screenshot as evidence.',
+        'Capture evidence: notification rules, a resolved alert with assignment, the review note.',
+      ],
+      evidenceFiles: [
+        'SI.L2-3.14.6_Defender_Alert_Notification_Rules_YYYY-MM-DD.png',
+        'SI.L2-3.14.7_Defender_Resolved_Alert_Example_YYYY-MM-DD.png',
+        'IR.L2-3.6.1_Defender_EICAR_Test_Detection_YYYY-MM-DD.png',
+      ],
+      controls: ['SI.L2-3.14.6', 'SI.L2-3.14.7', 'IR.L2-3.6.1', 'IR.L2-3.6.2', 'AU.L2-3.3.1'],
+    },
+    {
+      key: 'gather',
+      title: 'Gather Evidence',
+      purpose: 'Collect the full Defender evidence package using the exact naming convention.',
+      evidenceTable: [
+        'Admin role assignments',
+        'Device onboarding status vs asset inventory',
+        'AV policy settings',
+        'Tamper protection status',
+        'Definition update status',
+        'Scan schedule',
+        'ASR rules status',
+        'Vulnerability dashboard (dated, recurring)',
+        'Remediation activity trail',
+        'Alert notification rules',
+        'Resolved alert example with assignment',
+        'EICAR test detection',
+        'Alert review cadence note',
+      ],
+      controls: [],
+    },
+    {
+      key: 'map',
+      title: 'Map Evidence to Controls',
+      purpose: 'Attach each uploaded evidence item to every control it supports.',
+      steps: [
+        'Upload each captured file through the Evidence module using the exact file name.',
+        'Map each item to its primary control (from the file name) and additional supported controls using the mapping groups above.',
+        'Mark Defender items as Supporting evidence in most cases; SI.L2-3.14.2/3.14.4/3.14.5 may treat Defender as a primary source when coverage is proven complete.',
+        'Do not change control status here — status changes happen in Control Implementation after validation.',
+      ],
+      controls: [],
+    },
+    {
+      key: 'validate',
+      title: 'Validate and Avoid Common Mistakes',
+      purpose: 'Confirm protection actually holds, and sidestep the failures assessors see most.',
+      steps: [
+        'Coverage sample: pick 5 random devices from the asset inventory and confirm each appears healthy in Defender — this is exactly what an assessor does.',
+        'Common mistake: policy exists but is assigned to a pilot group only — verify assignments cover ALL in-scope device groups.',
+        'Common mistake: tamper protection off, letting malware or local admins silently disable AV.',
+        'Common mistake: one vulnerability screenshot from six months ago — periodic means recurring dated evidence.',
+        'Common mistake: alerts flowing to a shared mailbox nobody owns — a named responder must exist and be interviewable.',
+        'When every section is complete and evidence is accepted, update the related controls in Control Implementation with reviewer validation.',
+      ],
+      controls: ['CA.L2-3.12.1', 'CA.L2-3.12.3'],
+    },
+  ],
+};
