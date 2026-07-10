@@ -117,7 +117,7 @@ export const DEFENDER_RUNBOOK = {
       title: 'Enable EDR and Attack Surface Reduction',
       purpose: 'Move beyond signature AV: behavioral detection and hardening rules that block common attack techniques.',
       steps: [
-        'Verify the EDR sensor is active on onboarded devices (device page > sensor health). For third-party AV environments, enable EDR in block mode.',
+        'Verify EDR sensor is active on onboarded devices (device page > sensor health). For third-party AV environments, enable EDR in block mode.',
         'Enable Attack Surface Reduction rules (Intune: Endpoint security > Attack surface reduction). Start with Block mode for the low-friction core set: block credential stealing from LSASS, block Office apps creating executable content, block executable content from email, block untrusted USB processes.',
         'Set any business-risky rules to Audit first, review the report after two weeks, then move to Block; document the decision per rule.',
         'Enable network protection (Block) and controlled folder access where feasible for CUI-touching endpoints.',
