@@ -1,5 +1,6 @@
 // Security Tooling configuration: tool catalog, statuses, and helpers.
-// NinjaOne and Cortex XDR are fully built; the rest are placeholders.
+// All tools support status tracking, ownership details, and control mappings.
+// Step-by-step runbooks currently exist for NinjaOne and Cortex XDR only.
 
 export const TOOL_STATUSES = ['Not Used', 'Planned', 'Enabled', 'In Review', 'Disabled'];
 
@@ -23,11 +24,11 @@ export const SUPPORT_TYPES = [
 export const TOOL_CATALOG = [
   { name: 'NinjaOne', built: true, runbook: 'ninjaone', description: 'RMM — endpoint inventory, patching, vulnerability visibility, remote management, and remediation tracking.' },
   { name: 'Palo Alto Cortex XDR', built: true, runbook: 'cortex', description: 'Endpoint protection — malware/exploit prevention, alerting, incident investigation, and response.' },
-  { name: 'Microsoft Defender', built: false, runbook: null, description: 'Endpoint & cloud protection.' },
-  { name: 'Microsoft Intune', built: false, runbook: null, description: 'Device management & configuration.' },
-  { name: 'Microsoft Entra ID', built: false, runbook: null, description: 'Identity & access management.' },
-  { name: 'Microsoft Purview', built: false, runbook: null, description: 'Data governance & compliance.' },
-  { name: 'Other', built: false, runbook: null, description: 'Any other in-scope security tool.' },
+  { name: 'Microsoft Defender', built: true, runbook: null, description: 'Endpoint & cloud protection.' },
+  { name: 'Microsoft Intune', built: true, runbook: null, description: 'Device management & configuration.' },
+  { name: 'Microsoft Entra ID', built: true, runbook: null, description: 'Identity & access management.' },
+  { name: 'Microsoft Purview', built: true, runbook: null, description: 'Data governance & compliance.' },
+  { name: 'Other', built: true, runbook: null, description: 'Any other in-scope security tool.' },
 ];
 
 export function toolByName(name) {
