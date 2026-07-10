@@ -35,10 +35,12 @@ function Metric({ icon: Icon, label, value, tone = 'slate' }) {
 
 export default function ProjectDashboard() {
   const { project, refreshProject, readOnly, hasFeature, orgName, org } = useOutletContext();
+  const { user } = useAuth();
   const [counts, setCounts] = useState(null);
   const [reporting, setReporting] = useState(false);
   const [doNext, setDoNext] = useState(null); // { hasAssessments, allDone, nextControlId, done, total, sprsCurrent, sprsProjected }
   const [cuiBanner, setCuiBanner] = useState(null); // { scoping } when a CUI hosting decision is needed
+  const [reloadKey, setReloadKey] = useState(0);
 
   const handleReport = async () => {
     setReporting(true);
@@ -54,7 +56,7 @@ export default function ProjectDashboard() {
     let alive = true;
     (async () => {
       const levels = targetLevelsFor(project);
-      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs, scopingList, reportExports, assets] = await Promise.all([
+      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs, scopingList, reportExports, assets, profiles] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
@@ -65,8 +67,25 @@ export default function ProjectDashboard() {
         base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ReportExport.filter({ project_id: project.id }).catch(() => []),
         base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
+        project.organization_id
+          ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }).catch(() => [])
+          : Promise.resolve([]),
       ]);
       if (!alive) return;
+
+      // CUI hosting decision gate — show the banner when this project handles CUI in an
+      // environment that cannot lawfully hold it and no compliant hosting has been chosen.
+      const scoping = scopingList[0] || null;
+      const itEnvironment = profiles[0]?.it_environment;
+      const handlesCui = !!scoping?.handles_cui
+        || project.target_cmmc_level === 'Level 2'
+        || project.assessment_path?.includes('Level 2');
+      const needsCuiHosting = cuiHostingRequired({
+        handlesCui,
+        itEnvironment,
+        currentHosting: scoping?.cui_hosting,
+      });
+      setCuiBanner(needsCuiHosting ? { scoping } : null);
       const closed = ['Closed', 'Accepted Risk'];
       // Statuses that count a control as complete — matches what the control pages write.
       const doneStatuses = ['Ready for Assessment', 'Ready for Documentation', 'Implemented', 'Evidence Accepted'];
@@ -116,7 +135,7 @@ export default function ProjectDashboard() {
       });
     })();
     return () => { alive = false; };
-  }, [project.id]);
+  }, [project.id, reloadKey]);
 
   const toggleStep = async (key, value) => {
     const next = { ...(project.onboarding_checklist || {}), [key]: value };
@@ -169,6 +188,17 @@ export default function ProjectDashboard() {
           <div><span className="text-slate-500">Overall readiness:</span> <span className="font-semibold text-slate-800">{counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%</span></div>
         </div>
       </div>
+
+      {/* CUI hosting decision gate */}
+      {cuiBanner && (
+        <CuiHostingBanner
+          project={project}
+          scoping={cuiBanner.scoping}
+          readOnly={readOnly}
+          currentUser={user}
+          onResolved={() => setReloadKey((k) => k + 1)}
+        />
+      )}
 
       {/* Do-Next hero */}
       <DoNextHero project={project} doNext={doNext} />
