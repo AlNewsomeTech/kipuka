@@ -63,7 +63,7 @@ export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, 
 
           {/* Actions */}
           <div className="mt-4 flex flex-wrap gap-2">
-            {active && (
+            {active && tool.runbook && (
               <button onClick={() => onOpenRunbook(tool)}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
                 <BookOpen className="w-3.5 h-3.5" /> Open Runbook
