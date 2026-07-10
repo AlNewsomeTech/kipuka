@@ -25,8 +25,8 @@ export const TOOL_CATALOG = [
   { name: 'NinjaOne', built: true, runbook: 'ninjaone', description: 'RMM — endpoint inventory, patching, vulnerability visibility, remote management, and remediation tracking.' },
   { name: 'Palo Alto Cortex XDR', built: true, runbook: 'cortex', description: 'Endpoint protection — malware/exploit prevention, alerting, incident investigation, and response.' },
   { name: 'PreVeil', built: true, runbook: 'preveil', description: 'CUI enclave — end-to-end encrypted email & file sharing overlaying your existing M365/Google environment. FedRAMP Moderate equivalent, FIPS 140-2 validated, DFARS 7012 (c)-(g) support. The low-cost alternative to a GCC High migration.' },
-  { name: 'Microsoft Defender', built: true, runbook: null, description: 'Endpoint & cloud protection.' },
-  { name: 'Microsoft Intune', built: true, runbook: null, description: 'Device management & configuration.' },
+  { name: 'Microsoft Defender', built: true, runbook: 'defender', description: 'Endpoint & cloud protection.' },
+  { name: 'Microsoft Intune', built: true, runbook: 'intune', description: 'Device management & configuration.' },
   { name: 'Microsoft Entra ID', built: true, runbook: null, description: 'Identity & access management.' },
   { name: 'Microsoft Purview', built: true, runbook: null, description: 'Data governance & compliance.' },
   { name: 'Other', built: true, runbook: null, description: 'Any other in-scope security tool.' },
@@ -41,6 +41,8 @@ export const RUNBOOK_TO_TOOL = {
   ninjaone: 'NinjaOne',
   cortex: 'Palo Alto Cortex XDR',
   preveil: 'PreVeil',
+  defender: 'Microsoft Defender',
+  intune: 'Microsoft Intune',
 };
 
 // Shared disclaimer used across runbooks and tool references.
