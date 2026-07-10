@@ -7,13 +7,16 @@ import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import AcceptanceModal from './AcceptanceModal';
 
 // Gates app content behind acceptance of the current terms version.
-// Checks whether the logged-in user has an accepted TermsAcceptance record
-// matching the current version; if not, shows the required acceptance modal.
+// Acceptance is required ONCE PER LOGIN SESSION (DoD-style consent banner
+// behavior): every fresh browser session shows the modal again, and every
+// acceptance writes a timestamped TermsAcceptance record as a consent log.
 export default function AcceptanceGate({ children }) {
   const { user, logout } = useAuth();
   const { settings, loading: settingsLoading } = useTermsSettings();
   const [status, setStatus] = useState('checking'); // checking | accepted | needs_acceptance
   const [submitting, setSubmitting] = useState(false);
+
+  const sessionKey = settings ? `kipuka_terms_session_${settings.terms_version}` : null;
 
   useEffect(() => {
     if (settingsLoading || !settings || !user) return;
@@ -23,16 +26,11 @@ export default function AcceptanceGate({ children }) {
       return;
     }
 
-    base44.entities.TermsAcceptance.filter({
-      user_email: user.email,
-      terms_version: settings.terms_version,
-      accepted: true,
-    }, '-accepted_date', 1)
-      .then((rows) => {
-        setStatus(rows && rows.length > 0 ? 'accepted' : 'needs_acceptance');
-      })
-      .catch(() => setStatus('needs_acceptance'));
-  }, [settingsLoading, settings, user]);
+    // Per-session gate: prior acceptance records do NOT carry across logins.
+    let sessionAccepted = false;
+    try { sessionAccepted = sessionStorage.getItem(sessionKey) === '1'; } catch { /* storage unavailable */ }
+    setStatus(sessionAccepted ? 'accepted' : 'needs_acceptance');
+  }, [settingsLoading, settings, user, sessionKey]);
 
   const captureIp = async () => {
     try {
@@ -58,6 +56,7 @@ export default function AcceptanceGate({ children }) {
       acceptance_text: ACCEPTANCE_CHECKBOX_TEXT,
     });
     await logAudit({ user, actionType: AUDIT_ACTIONS.LOGIN_ACCEPTANCE, summary: `Accepted terms ${settings.terms_version}` });
+    try { sessionStorage.setItem(sessionKey, '1'); } catch { /* storage unavailable */ }
     setSubmitting(false);
     setStatus('accepted');
   };
