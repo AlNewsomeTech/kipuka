@@ -25,6 +25,20 @@
     "fci_description": {
       "type": "string"
     },
+    "cui_hosting": {
+      "type": "string",
+      "enum": [
+        "preveil_enclave",
+        "gcc_high",
+        "other_fedramp",
+        "undecided"
+      ],
+      "description": "Where CUI is stored, processed, and transmitted. M365 Commercial / Google standard / on-prem / hybrid cannot hold CUI; this records the chosen compliant architecture."
+    },
+    "cui_hosting_notes": {
+      "type": "string",
+      "description": "Free-text detail on the CUI hosting choice (e.g. the name of the 'other' FedRAMP Moderate environment)."
+    },
     "environment_type": {
       "type": "string",
       "enum": [

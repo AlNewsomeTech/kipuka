@@ -4,7 +4,7 @@ import { SCOPING_QUESTIONNAIRE, determineTrack, SCOPING_DISCLAIMER } from '@/lib
 
 // Step 2 — plain-English scoping questionnaire. `answers` is a map of key→bool,
 // `setAnswer(key, val)` updates it. Shows a live track recommendation.
-export default function OnboardingScopingStep({ answers, setAnswer, onBack, onFinish, submitting }) {
+export default function OnboardingScopingStep({ answers, setAnswer, onBack, onFinish, submitting, finishLabelOverride }) {
   const result = useMemo(() => determineTrack(answers), [answers]);
   const answeredCount = SCOPING_QUESTIONNAIRE.filter((q) => answers[q.key] !== undefined).length;
   const allAnswered = answeredCount === SCOPING_QUESTIONNAIRE.length;
@@ -65,7 +65,7 @@ export default function OnboardingScopingStep({ answers, setAnswer, onBack, onFi
         <button onClick={onBack} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200">← Back</button>
         <button onClick={onFinish} disabled={submitting || !allAnswered}
           className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52] disabled:opacity-50">
-          {submitting ? 'Setting up your workspace…' : !allAnswered ? `Answer all questions (${answeredCount}/${SCOPING_QUESTIONNAIRE.length})` : 'Finish setup & open dashboard →'}
+          {submitting ? 'Setting up your workspace…' : !allAnswered ? `Answer all questions (${answeredCount}/${SCOPING_QUESTIONNAIRE.length})` : (finishLabelOverride || 'Finish setup & open dashboard →')}
         </button>
       </div>
     </div>

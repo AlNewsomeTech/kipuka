@@ -5,6 +5,7 @@ import {
   Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { useAuth } from '@/lib/AuthContext';
 import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
@@ -14,6 +15,8 @@ import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
+import CuiHostingBanner from '@/components/cui/CuiHostingBanner';
+import { cuiHostingRequired } from '@/lib/cuiHosting';
 
 function Metric({ icon: Icon, label, value, tone = 'slate' }) {
   const tones = {
@@ -35,6 +38,7 @@ export default function ProjectDashboard() {
   const [counts, setCounts] = useState(null);
   const [reporting, setReporting] = useState(false);
   const [doNext, setDoNext] = useState(null); // { hasAssessments, allDone, nextControlId, done, total, sprsCurrent, sprsProjected }
+  const [cuiBanner, setCuiBanner] = useState(null); // { scoping } when a CUI hosting decision is needed
 
   const handleReport = async () => {
     setReporting(true);

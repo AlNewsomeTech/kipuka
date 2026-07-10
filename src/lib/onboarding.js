@@ -76,7 +76,7 @@ export async function resolveOnboardingState({ user, memberships, isPlatformAdmi
 }
 
 // Seed the ScopingProfile for the default project from the questionnaire result.
-async function createScopingProfile({ organizationId, projectId, companyName, track, answers, trackResult }) {
+async function createScopingProfile({ organizationId, projectId, companyName, track, answers, trackResult, cuiHosting, cuiHostingNotes }) {
   return base44.entities.ScopingProfile.create({
     organization_id: organizationId,
     project_id: projectId,
@@ -84,6 +84,8 @@ async function createScopingProfile({ organizationId, projectId, companyName, tr
     handles_fci: trackResult.handles_fci,
     handles_cui: trackResult.handles_cui,
     environment_type: 'Unknown',
+    ...(cuiHosting ? { cui_hosting: cuiHosting } : {}),
+    ...(cuiHostingNotes ? { cui_hosting_notes: cuiHostingNotes } : {}),
     wizard_answers: Object.fromEntries(
       Object.entries(answers).map(([k, v]) => [k, v ? 'Yes' : 'No'])
     ),
@@ -111,7 +113,7 @@ async function seedAssessments({ organizationId, projectId, track }) {
 }
 
 // Perform the full atomic onboarding. Returns { organization, project, companyProfile }.
-export async function completeOnboarding({ user, company, answers, trackResult }) {
+export async function completeOnboarding({ user, company, answers, trackResult, cuiHosting, cuiHostingNotes }) {
   const track = trackResult.track;
   const projectLevel = track === 'Level 2' ? 'Level 2' : 'Level 1';
 
@@ -169,7 +171,7 @@ export async function completeOnboarding({ user, company, answers, trackResult }
 
   // 5) ScopingProfile + ControlAssessments (parallel)
   await Promise.all([
-    createScopingProfile({ organizationId: organization.id, projectId: project.id, companyName: company.company_name, track, answers, trackResult }),
+    createScopingProfile({ organizationId: organization.id, projectId: project.id, companyName: company.company_name, track, answers, trackResult, cuiHosting, cuiHostingNotes }),
     seedAssessments({ organizationId: organization.id, projectId: project.id, track }),
   ]);
 
