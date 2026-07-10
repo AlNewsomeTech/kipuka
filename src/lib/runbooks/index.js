@@ -1,12 +1,16 @@
 import { NINJAONE_RUNBOOK } from './ninjaoneRunbook';
 import { CORTEX_RUNBOOK } from './cortexRunbook';
 import { PREVEIL_RUNBOOK } from './preveilRunbook';
+import { DEFENDER_RUNBOOK } from './defenderRunbook';
+import { INTUNE_RUNBOOK } from './intuneRunbook';
 
 // Runbook lookup by slug (matches TOOL_CATALOG.runbook and RUNBOOK_TO_TOOL).
 export const RUNBOOKS_BY_SLUG = {
   ninjaone: NINJAONE_RUNBOOK,
   cortex: CORTEX_RUNBOOK,
   preveil: PREVEIL_RUNBOOK,
+  defender: DEFENDER_RUNBOOK,
+  intune: INTUNE_RUNBOOK,
 };
 
 export function runbookForSlug(slug) {
