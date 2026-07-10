@@ -60,6 +60,7 @@ const navSections = [
   ]},
   { label: 'ACOLYTE Operations', items: [
     { to: '/acolyte', label: 'Cyber Overview', icon: Radar, clientVisible: true },
+    { to: '/acolyte/posture', label: 'Posture Assessment', icon: ShieldCheck, clientVisible: true },
     { to: '/acolyte/reviews', label: 'Readiness Reviews', icon: ReviewIcon, clientVisible: true },
     { to: '/acolyte/findings', label: 'Cyber Findings', icon: AlertTriangle, clientVisible: true },
     { to: '/acolyte/remediation', label: 'Remediation Queue', icon: Wrench, clientVisible: true },

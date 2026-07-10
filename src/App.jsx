@@ -56,6 +56,7 @@ import HelpCenter from '@/pages/HelpCenter';
 import SupportInbox from '@/pages/SupportInbox';
 import DemoWorkspace from '@/pages/DemoWorkspace';
 import AcolyteOverview from '@/pages/acolyte/AcolyteOverview';
+import PostureAssessmentPage from '@/pages/acolyte/PostureAssessment';
 import ReadinessReviews from '@/pages/acolyte/ReadinessReviews';
 import CyberFindings from '@/pages/acolyte/CyberFindings';
 import RemediationQueue from '@/pages/acolyte/RemediationQueue';
@@ -103,6 +104,7 @@ const AuthenticatedApp = () => {
 
         {/* ACOLYTE Operations — all roles (read-only enforced inside via org role) */}
         <Route path="/acolyte" element={<AcolyteOverview />} />
+        <Route path="/acolyte/posture" element={<PostureAssessmentPage />} />
         <Route path="/acolyte/reviews" element={<ReadinessReviews />} />
         <Route path="/acolyte/findings" element={<CyberFindings />} />
         <Route path="/acolyte/remediation" element={<RemediationQueue />} />

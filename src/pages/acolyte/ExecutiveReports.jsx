@@ -1,9 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FileBarChart, Plus, Loader2, Eye, FileDown, Pencil, Archive, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { FileBarChart, Plus, Loader2, Eye, FileDown, Pencil, Archive, Sparkles, ShieldCheck, ArrowRight, Package } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { generateAcolyteReportPdf } from '@/lib/acolyteReport';
+import { generateMonthlyReviewPack } from '@/lib/monthlyReviewPack';
+import { scoreBand } from '@/lib/postureAssessment';
 import { ACOLYTE_BRAND, REPORT_STATUSES } from '@/lib/acolyte';
 import { canUseAssistant, draftExecutiveSummary } from '@/lib/acolyteAssistant';
 import { useAcolyteProfile } from '@/lib/useAcolyteProfile';
@@ -29,14 +32,34 @@ export default function ExecutiveReports() {
   const [editing, setEditing] = useState(null);
   const [preview, setPreview] = useState(null);
   const [fStatus, setFStatus] = useState('All');
+  const [posture, setPosture] = useState({ latest: null, delta: null });
+  const [packing, setPacking] = useState(false);
 
   const load = useCallback(async () => {
     if (!projectId) { setLoading(false); return; }
     setLoading(true);
     const r = await base44.entities.AcolyteExecutiveReport.filter({ project_id: projectId }, '-created_date').catch(() => []);
     setReports(r);
+    // Latest completed posture assessment for the context card + delta.
+    if (project?.organization_id) {
+      const rows = await base44.entities.PostureAssessment.filter({ organization_id: project.organization_id }, '-created_date', 200).catch(() => []);
+      const completed = rows.filter((p) => p.status === 'completed')
+        .sort((a, b) => new Date(a.assessment_date || a.created_date) - new Date(b.assessment_date || b.created_date));
+      const latest = completed[completed.length - 1] || null;
+      const prev = completed[completed.length - 2] || null;
+      setPosture({ latest, delta: latest && prev ? Math.round(latest.overall_score) - Math.round(prev.overall_score) : null });
+    } else {
+      setPosture({ latest: null, delta: null });
+    }
     setLoading(false);
-  }, [projectId]);
+  }, [projectId, project?.organization_id]);
+
+  const generatePack = async () => {
+    setPacking(true);
+    await generateMonthlyReviewPack({ project, org, generatedBy: user?.full_name }).catch(() => {});
+    await logAudit({ organizationId: project?.organization_id, user, actionType: AUDIT_ACTIONS.ACOLYTE_REPORT_EXPORT, targetEntity: 'ReportExport', targetRecordId: '', summary: 'Generated ACOLYTE Monthly Review Pack.' }).catch(() => {});
+    setPacking(false);
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -64,6 +87,9 @@ export default function ExecutiveReports() {
         icon={FileBarChart}
         right={!readOnly && project ? (
           <div className="flex items-center gap-2">
+            <button onClick={generatePack} disabled={packing} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100 disabled:opacity-60">
+              {packing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Package className="w-4 h-4" />} Generate Monthly Review Pack
+            </button>
             {canAssist && (
               <button onClick={() => { setEditing(null); setAutoDraft(true); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-purple-600 to-blue-600 text-white rounded-lg hover:opacity-90">
                 <Sparkles className="w-4 h-4" /> Generate Draft from Current Data
@@ -89,6 +115,28 @@ export default function ExecutiveReports() {
               {REPORT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
             <span className="text-xs text-slate-400">{ACOLYTE_BRAND.preparedBy}. {ACOLYTE_BRAND.reportDisclaimer}</span>
+          </div>
+
+          {/* Posture context — the Monthly Review Pack draws on the latest posture assessment. */}
+          <div className="bg-white rounded-xl border border-slate-200 p-4 flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-[#0F1E3C] flex items-center justify-center"><ShieldCheck className="w-5 h-5 text-white" /></div>
+              <div>
+                <div className="text-sm font-semibold text-slate-800">Cyber Posture</div>
+                {posture.latest ? (
+                  <div className="text-xs text-slate-500">
+                    Score <b style={{ color: scoreBand(posture.latest.overall_score).color }}>{Math.round(posture.latest.overall_score || 0)}/100</b>
+                    {posture.delta !== null && <> · {posture.delta >= 0 ? '+' : ''}{posture.delta} vs previous</>}
+                    {' · '}{posture.latest.assessment_date || '—'}
+                  </div>
+                ) : (
+                  <div className="text-xs text-slate-500">No posture assessment yet — run one to enrich the review pack.</div>
+                )}
+              </div>
+            </div>
+            <Link to="/acolyte/posture" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline">
+              Open Posture Assessment <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
           {rows.length === 0 ? (

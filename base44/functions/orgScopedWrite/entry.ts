@@ -16,7 +16,7 @@ const WRITE_WHITELIST = new Set([
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
   'IncidentLog', 'MockAssessmentSession', 'MockAssessmentObjective',
   'ObjectiveEvidenceLink', 'SPRSRecord', 'MaintenanceTask', 'RemediationComment',
-  'PolicyTemplate', 'GuidedProgress', 'CompanyProfile',
+  'PolicyTemplate', 'GuidedProgress', 'CompanyProfile', 'PostureAssessment',
 ]);
 
 // Org roles that are read-only and may not write anything.
