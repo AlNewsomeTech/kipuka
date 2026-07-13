@@ -112,7 +112,6 @@ export function OrgProvider({ children }) {
     orgRole,
     isPlatformAdmin,
     isPacSec: isPacSec(orgRole) || isPlatformAdmin,
-    planTier,
     status,
     suspended,
     expired,
