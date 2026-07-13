@@ -144,7 +144,7 @@ export default function SaaSAdmin() {
                           </span>
                         </button>
                       </td>
-                      <td className="px-4 py-3"><TierBadge tier={org.subscription_tier} /></td>
+                      <td className="px-4 py-3"><TierBadge org={org} /></td>
                       <td className="px-4 py-3"><StatusBadge status={mapStatus(org.subscription_status)} /></td>
                       <td className="px-4 py-3 text-slate-700">{seats.length}{cfg.seat_limit != null ? ` / ${org.seat_limit ?? cfg.seat_limit}` : ' / ∞'}</td>
                       <td className="px-4 py-3 text-slate-700">{projCount}{cfg.project_limit != null ? ` / ${cfg.project_limit}` : ' / ∞'}</td>
