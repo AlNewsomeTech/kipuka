@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { isPacSec, roleHasPerm, isReadOnly } from '@/lib/orgRoles';
-import { tierHasFeature, tierLimit } from '@/lib/subscriptionTiers';
+import { legacyFeatureAllowed, planLimitFor } from '@/lib/subscriptionTiers';
 import { planHasFeature, planConfig, trialActive } from '@/lib/planTiers';
 
 const OrgContext = createContext(null);
@@ -100,7 +100,7 @@ export function OrgProvider({ children }) {
 
   const can = (perm) => (orgRole ? roleHasPerm(orgRole, perm) : false);
   const readOnly = isReadOnly(orgRole) || suspended || expired;
-  const limit = (key) => tierLimit(tier, key);
+  const limit = (key) => planLimitFor(selectedOrg, key);
 
   const value = {
     loading,
@@ -112,7 +112,7 @@ export function OrgProvider({ children }) {
     orgRole,
     isPlatformAdmin,
     isPacSec: isPacSec(orgRole) || isPlatformAdmin,
-    tier,
+    planTier,
     status,
     suspended,
     expired,
