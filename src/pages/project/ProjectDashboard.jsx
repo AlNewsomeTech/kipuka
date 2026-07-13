@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import {
   ShieldCheck, ClipboardCheck, ListChecks, AlertTriangle, FileStack,
-  Package, BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle,
+  BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
-import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
+import { nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
 import { computeSprs } from '@/lib/sprsScoring';
 import { stepLink } from '@/lib/guidanceLinks';
 import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
