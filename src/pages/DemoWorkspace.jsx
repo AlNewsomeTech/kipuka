@@ -58,7 +58,7 @@ export default function DemoWorkspace() {
               <span>Path: <b className="text-white">{DEMO_ORG.assessment_path}</b></span>
               <span>UEI: <b className="text-white">{DEMO_ORG.uei}</b></span>
               <span>CAGE: <b className="text-white">{DEMO_ORG.cage_code}</b></span>
-              <span>Tier: <b className="text-white">{DEMO_ORG.subscription_tier}</b></span>
+              <span>Tier: <b className="text-white">{DEMO_ORG.plan_tier}</b></span>
               <span>Status: <b className="text-white">{DEMO_ORG.project_status}</b></span>
             </div>
             <p className="text-[11px] text-white/50 mt-3">
