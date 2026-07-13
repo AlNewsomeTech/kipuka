@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Building2, Pencil, Mail, Phone, Globe, FileBadge, ShieldCheck } from 'lucide-react';
 import { useOrg } from '@/lib/orgContext';
 import { PERMS } from '@/lib/orgRoles';
-import { getTierConfig } from '@/lib/subscriptionTiers';
+import { planLimits } from '@/lib/planTiers';
 import TierBadge from '@/components/org/TierBadge';
 import SubscriptionWarning from '@/components/org/SubscriptionWarning';
 import OrgFormModal from '@/components/org/OrgFormModal';
@@ -10,7 +10,7 @@ import OrgUserManager from '@/components/org/OrgUserManager';
 import EmptyState from '@/components/EmptyState';
 
 export default function OrgSettings() {
-  const { selectedOrg, orgRole, can, isPacSec, refreshOrgs, tier, status } = useOrg();
+  const { selectedOrg, orgRole, can, isPacSec, refreshOrgs, planTier, status } = useOrg();
   const [editOpen, setEditOpen] = useState(false);
 
   const canManageSettings = can(PERMS.MANAGE_ORG_SETTINGS) || isPacSec;
@@ -24,7 +24,7 @@ export default function OrgSettings() {
     );
   }
 
-  const cfg = getTierConfig(tier);
+  const cfg = planLimits(planTier);
   const org = selectedOrg;
 
   return (
@@ -41,7 +41,7 @@ export default function OrgSettings() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-slate-900">{org.organization_name}</h1>
-              <TierBadge tier={tier} size="md" />
+              <TierBadge org={selectedOrg} size="md" />
             </div>
             <p className="text-sm text-slate-500 mt-0.5">{org.legal_name || org.short_name || 'Organization settings'}</p>
           </div>
@@ -65,7 +65,7 @@ export default function OrgSettings() {
         </Card>
 
         <Card title="Subscription" icon={FileBadge}>
-          <Row label="Tier" value={<TierBadge tier={tier} />} />
+          <Row label="Tier" value={<TierBadge org={selectedOrg} />} />
           <Row label="Status" value={status} />
           <Row label="Support level" value={org.support_level} />
           <Row label="Seats" value={cfg.seat_limit != null ? `${org.seat_limit ?? cfg.seat_limit}` : 'Custom'} />
