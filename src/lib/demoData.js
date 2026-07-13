@@ -9,7 +9,7 @@ export const DEMO_ORG = {
   assessment_path: 'Level 2 Self-Assessment',
   uei: 'DEMO123456789',
   cage_code: '1A2B3',
-  subscription_tier: 'Premium L2 Readiness',
+  plan_tier: 'L2_Premium',
   project_name: 'ADC CMMC Level 2 Readiness Project',
   project_status: 'In Progress',
   prepared_by: 'Pacific Global Security Group',
