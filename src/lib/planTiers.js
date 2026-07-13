@@ -76,6 +76,20 @@ export function planConfig(tier) {
   return PLAN_CONFIG[tier] || PLAN_CONFIG.L1_Essentials;
 }
 
+// Default seat / project / storage / export limits per plan tier. A null value
+// means unlimited (Enterprise). Admins can override per-org after creation.
+export const PLAN_LIMITS = {
+  L1_Essentials: { seat_limit: 5, project_limit: 1, storage_limit_gb: 5, exports_per_month: 10 },
+  L1_Complete: { seat_limit: 5, project_limit: 1, storage_limit_gb: 10, exports_per_month: 25 },
+  L2_Professional: { seat_limit: 10, project_limit: 3, storage_limit_gb: 25, exports_per_month: 50 },
+  L2_Premium: { seat_limit: 25, project_limit: 10, storage_limit_gb: 100, exports_per_month: 200 },
+  Enterprise: { seat_limit: null, project_limit: null, storage_limit_gb: null, exports_per_month: null },
+};
+
+export function planLimits(tier) {
+  return PLAN_LIMITS[tier] || PLAN_LIMITS.L1_Essentials;
+}
+
 // A 14-day full-featured trial unlocks every platform feature until it expires.
 export function trialActive(org) {
   if (!org?.trial_full_access) return false;
