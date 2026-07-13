@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import PremiumBadge from '@/components/commercial/PremiumBadge';
-import { tierHasFeature, FEATURES } from '@/lib/subscriptionTiers';
+import { planHasFeature, PLAN_FEATURES } from '@/lib/planTiers';
 import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
   generatePolicyPackage, generateC3PAOHandoff, generateEvidencePackageZip,
@@ -39,7 +39,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
   useEffect(() => { load(); }, [load]);
 
   const genBy = currentUser?.full_name || currentUser?.email;
-  const hasC3PAO = tierHasFeature(org?.subscription_tier, FEATURES.C3PAO_HANDOFF);
+  const hasC3PAO = planHasFeature(org, PLAN_FEATURES.C3PAO_EXPORT);
 
   const run = async (key, fn) => {
     setBusy(key);
