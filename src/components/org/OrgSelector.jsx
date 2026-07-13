@@ -23,7 +23,7 @@ export default function OrgSelector() {
       <div className="flex items-center gap-2 text-sm">
         <Building2 className="w-4 h-4 text-slate-400" />
         <span className="font-semibold text-slate-800 truncate max-w-[180px]">{clientOrg?.organization_name || 'No organization'}</span>
-        {clientOrg && <TierBadge tier={clientOrg.subscription_tier} />}
+        {clientOrg && <TierBadge org={clientOrg} />}
       </div>
     );
   }
