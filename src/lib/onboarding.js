@@ -125,8 +125,10 @@ export async function completeOnboarding({ user, company, answers, trackResult, 
     primary_contact_email: user.email || '',
     cage_codes: company.cage_code ? [company.cage_code] : [],
     uei: company.duns_uei || '',
-    subscription_tier: 'Trial',
     subscription_status: 'Trial',
+    plan_tier: 'L1_Essentials',
+    trial_full_access: true,
+    trial_ends_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
   });
 
   // 2) Membership — sole Org Admin
