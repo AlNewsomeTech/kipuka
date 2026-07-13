@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Building2, Plus, X, Users, Monitor, Shield, Calendar, Pencil, Trash2, AlertTriangle, Copy, Cloud, MapPin, UserCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Building2, Plus, X, Users, Monitor, Shield, Pencil, Trash2, AlertTriangle, Copy, Cloud, MapPin, UserCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
-import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
 import ClientLevelStatus from '@/components/clients/ClientLevelStatus';

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import { applicableDocuments, CATEGORY_GROUPS } from '@/lib/documentCatalog';
-import { FileText, Loader2, RefreshCw, Wand2, Package, AlertCircle } from 'lucide-react';
+import { FileText, Loader2, Wand2 } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import DocumentCard from '@/components/documents/DocumentCard';
 import DocumentDetailModal from '@/components/documents/DocumentDetailModal';

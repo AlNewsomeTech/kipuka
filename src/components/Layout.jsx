@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2,
-  Cloud, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
+  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
@@ -12,7 +11,6 @@ import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
 import OrgSelector from '@/components/org/OrgSelector';
 import { useTheme } from '@/lib/themeContext';
-import WarningBanner from '@/components/WarningBanner';
 import AcceptanceGate from '@/components/legal/AcceptanceGate';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 import BrandLogo from '@/components/branding/BrandLogo';

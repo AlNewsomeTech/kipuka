@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Loader2, LayoutDashboard, Lock } from 'lucide-react';
+import { Loader2, LayoutDashboard } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useOrg } from '@/lib/orgContext';
 import { useAuth } from '@/lib/AuthContext';

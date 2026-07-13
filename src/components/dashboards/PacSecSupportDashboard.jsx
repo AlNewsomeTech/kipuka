@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Server, Loader2, Building2, AlertTriangle, CalendarClock, PauseCircle, Clock, StickyNote } from 'lucide-react';
+import { Loader2, Building2, AlertTriangle, CalendarClock, PauseCircle, Clock, StickyNote } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { DashCard, StatTile, MiniList } from './dashboardPrimitives';
 import StatusBadge from '@/components/StatusBadge';

@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeftRight, Plus, X, CheckCircle2, Circle } from 'lucide-react';
+import { ArrowLeftRight, Plus, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
-import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 
 const migrationPhases = [

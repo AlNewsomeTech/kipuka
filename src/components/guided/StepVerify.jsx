@@ -1,6 +1,6 @@
 import { CheckSquare, Square, ShieldCheck, Loader2 } from 'lucide-react';
 import { resolveVariant } from '@/lib/implementationStacks';
-import { GUIDED_DONE_STATUS, toSimpleStatus } from '@/lib/simpleStatus';
+import { toSimpleStatus } from '@/lib/simpleStatus';
 
 // Step 5 VERIFY — validation_steps as a checklist. When all are checked and the
 // user confirms, the ControlAssessment status is written to the "done" status.

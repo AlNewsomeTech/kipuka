@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { Rocket, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
-import { buildGuidedQueue, nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
+import { nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
 import { computeSprs } from '@/lib/sprsScoring';
 import ControlMetaBadges from '@/components/guided/ControlMetaBadges';
 

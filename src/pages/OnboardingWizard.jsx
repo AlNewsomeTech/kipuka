@@ -4,7 +4,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
 import { determineTrack } from '@/lib/scopingQuestionnaire';
 import { completeOnboarding } from '@/lib/onboarding';
-import { cuiHostingRequired, autoHostingForEnvironment, CUI_HOSTING } from '@/lib/cuiHosting';
+import { cuiHostingRequired, autoHostingForEnvironment } from '@/lib/cuiHosting';
 import OnboardingCompanyStep from '@/components/onboarding/OnboardingCompanyStep';
 import OnboardingScopingStep from '@/components/onboarding/OnboardingScopingStep';
 import OnboardingHostingStep from '@/components/onboarding/OnboardingHostingStep';

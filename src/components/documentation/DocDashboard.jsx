@@ -1,6 +1,5 @@
-import { ShieldCheck, AlertTriangle, FileWarning, Copy, Layers, FileCheck2, CircleDot, Eye, XCircle } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, FileWarning, Copy, Layers, FileCheck2, CircleDot, XCircle } from 'lucide-react';
 import ProgressBar from '@/components/ProgressBar';
-import StatusBadge from '@/components/StatusBadge';
 
 function ScoreCard({ label, value, icon: Icon, color }) {
   const colorMap = { green: 'text-green-600', amber: 'text-amber-600', red: 'text-red-600', blue: 'text-blue-600', navy: 'text-[#0F1E3C]' };

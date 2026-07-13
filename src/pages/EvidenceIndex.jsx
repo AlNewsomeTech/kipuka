@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ListChecks, Search, AlertCircle, Filter } from 'lucide-react';
+import { ListChecks, Search, AlertCircle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';

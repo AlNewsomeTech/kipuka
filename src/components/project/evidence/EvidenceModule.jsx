@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { ListChecks, Plus, Loader2, Download, AlertTriangle, XCircle } from 'lucide-react';
+import { ListChecks, Plus, Loader2, Download, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { isExpired } from '@/lib/evidenceQuality';
 import EvidenceUploadModal from './EvidenceUploadModal';

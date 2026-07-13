@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { pointValueFor } from '@/lib/sprsScoring';
 import { buildGuidedQueue, estimatedMinutes, targetLevelsFor } from '@/lib/doNextEngine';
 import { stackKeyForProject } from '@/lib/implementationStacks';
-import { toSimpleStatus, GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
+import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
 import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';

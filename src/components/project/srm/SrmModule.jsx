@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Share2, Loader2, Plus, FileDown, Layers } from 'lucide-react';
+import { Share2, Loader2, Plus, Layers } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName, BRAND, stripHtml } from '@/lib/reportBranding';
 import ProviderFormModal from './ProviderFormModal';

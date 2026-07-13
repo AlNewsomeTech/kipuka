@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, AlertCircle, ListChecks, ShieldCheck, Upload } from 'lucide-react';
+import { KanbanSquare, Plus, X, ExternalLink, CheckCircle2, ListChecks, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
 import StatusBadge from '@/components/StatusBadge';

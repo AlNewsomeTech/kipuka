@@ -3,7 +3,6 @@ import { Eye, ShieldCheck, Layers, Image, Clock } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { loadCompletedControlIds } from '@/lib/clientControlCompletion';
 import ProgressBar from '@/components/ProgressBar';
-import StatusBadge from '@/components/StatusBadge';
 
 export default function ClientProgressBlock({ clientId }) {
   const [data, setData] = useState(null);

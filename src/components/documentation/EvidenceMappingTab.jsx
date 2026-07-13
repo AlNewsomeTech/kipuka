@@ -1,4 +1,4 @@
-import { Link2, CheckCircle2, XCircle } from 'lucide-react';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 export default function EvidenceMappingTab({ synthesis }) {
   const checklist = synthesis.section_checklist || [];

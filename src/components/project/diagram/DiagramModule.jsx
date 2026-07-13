@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Network, Loader2, Wand2, Save, ImageDown, Trash2 } from 'lucide-react';
+import { Network, Loader2, Wand2, Save, ImageDown } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { seedNodesFromAssets, ZONE_TYPES } from '@/lib/diagramSeed';
+import { seedNodesFromAssets } from '@/lib/diagramSeed';
 import DiagramCanvas from './DiagramCanvas';
 
 const DIAGRAM_TYPES = ['Network Topology Diagram', 'CUI Data Flow Diagram'];

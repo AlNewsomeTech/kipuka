@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { FileStack, Loader2, Wand2, FileDown, Save, AlertTriangle } from 'lucide-react';
+import { FileStack, Loader2, Wand2, FileDown, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import RichTextField from '@/components/ui/RichTextField';
 import ProgressBar from '@/components/ProgressBar';

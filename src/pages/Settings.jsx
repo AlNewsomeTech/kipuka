@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, ExternalLink, Plus, X, ShieldAlert } from 'lucide-react';
+import { ExternalLink, Plus, X, ShieldAlert } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import WarningBanner from '@/components/WarningBanner';
 import TermsSettingsPanel from '@/components/legal/TermsSettingsPanel';

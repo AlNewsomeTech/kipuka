@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Settings2, ExternalLink, CheckCircle2, Search } from 'lucide-react';
+import { Settings2, ExternalLink, Search } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';
-import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 
 const defaultTasks = [

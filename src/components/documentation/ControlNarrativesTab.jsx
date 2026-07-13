@@ -1,4 +1,4 @@
-import { ShieldCheck, FileText, Image, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FileText, Image, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const statusConfig = {
   'Implemented': { color: 'text-green-600', bg: 'bg-green-50', dot: 'bg-green-500' },

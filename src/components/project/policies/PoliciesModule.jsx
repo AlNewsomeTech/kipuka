@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ScrollText, Loader2, Plus, FileDown, Package, Library, CheckCircle2, XCircle, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import StatusBadge from '@/components/StatusBadge';
 import { buildPolicySeed, mergePolicyBody } from '@/lib/policyTemplates';
 import { buildFamilyDocSeed, auditFamilyCoverage } from '@/lib/policyFamilyCoverage';
 import { generatePolicyPackage } from '@/lib/reportGenerators';

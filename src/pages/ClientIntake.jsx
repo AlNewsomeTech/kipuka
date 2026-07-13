@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
   ClipboardCheck, Mail, KeyRound, ShieldCheck, Globe, CreditCard,
-  CheckCircle2, Circle, AlertCircle, Save, UserCog, FileText
+  CheckCircle2, AlertCircle, Save, UserCog, FileText
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useClient } from '@/lib/clientContext';

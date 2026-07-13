@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Siren, Loader2, Plus, FileDown, Trash2, ShieldAlert } from 'lucide-react';
+import { Siren, Loader2, Plus, FileDown, ShieldAlert } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName, BRAND } from '@/lib/reportBranding';
 import { buildIrpBody, DFARS_REQUIREMENTS } from '@/lib/incidentResponsePlan';
