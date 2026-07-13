@@ -81,14 +81,15 @@ export function OrgProvider({ children }) {
     : (membershipForSelected?.role || null);
 
   // ---- Derived helpers scoped to the selected org ----
-  const tier = selectedOrg?.subscription_tier || 'Trial';
   const status = selectedOrg?.subscription_status || 'Trial';
   const suspended = status === 'Suspended' || status === 'Cancelled' || status === 'Past Due';
   const fullyDisabled = selectedOrg?.fully_disabled === true;
   const expired = !!selectedOrg?.subscription_end_date &&
     new Date(selectedOrg.subscription_end_date) < new Date();
 
-  const hasFeature = (feature) => tierHasFeature(tier, feature);
+  // Legacy FEATURES.* checks now resolve through the plan_tier system via the
+  // compatibility map, so plan_tier is the single source of truth for gating.
+  const hasFeature = (feature) => legacyFeatureAllowed(selectedOrg, feature);
 
   // ---- Platform capability plan tier (Part 3) ----
   const planTier = selectedOrg?.plan_tier || 'L1_Essentials';
