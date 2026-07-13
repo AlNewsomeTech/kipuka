@@ -1,5 +1,5 @@
 import { Users, HardDrive, FolderKanban } from 'lucide-react';
-import { getTierConfig } from '@/lib/subscriptionTiers';
+import { planLimits } from '@/lib/planTiers';
 
 function Meter({ icon: Icon, label, used, limit }) {
   const unlimited = limit === null || limit === undefined;
@@ -25,7 +25,7 @@ function Meter({ icon: Icon, label, used, limit }) {
 
 // Displays seat, project, and storage usage against the org's tier limits.
 export default function UsageDisplay({ tier, seatsUsed = 0, projectsUsed = 0, storageUsedGb = 0 }) {
-  const cfg = getTierConfig(tier);
+  const cfg = planLimits(tier);
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Meter icon={Users} label="Seats" used={seatsUsed} limit={cfg.seat_limit} />
