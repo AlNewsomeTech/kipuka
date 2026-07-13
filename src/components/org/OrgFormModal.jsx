@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
-import { TIERS, getTierConfig } from '@/lib/subscriptionTiers';
-import { PLAN_TIERS, PLAN_CONFIG } from '@/lib/planTiers';
+import { PLAN_TIERS, PLAN_CONFIG, planLimits } from '@/lib/planTiers';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 
 const SAM_STATUSES = ['Unknown', 'Active', 'Inactive', 'Pending', 'Not Applicable'];
@@ -118,11 +117,6 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Field label="Subscription tier">
-              <select className="form-input" value={form.subscription_tier} onChange={(e) => applyTierDefaults(e.target.value)}>
-                {TIERS.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </Field>
             <Field label="Subscription status">
               <select className="form-input" value={form.subscription_status} onChange={(e) => set('subscription_status', e.target.value)}>
                 {SUB_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -145,7 +139,7 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
             <p className="text-xs text-slate-500 mb-3">Sets which platform capabilities this organization can use. No self-serve billing — you set these manually.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="Plan tier (platform capabilities)">
-                <select className="form-input" value={form.plan_tier} onChange={(e) => set('plan_tier', e.target.value)}>
+                <select className="form-input" value={form.plan_tier} onChange={(e) => applyTierDefaults(e.target.value)}>
                   {PLAN_TIERS.map((t) => <option key={t} value={t}>{PLAN_CONFIG[t].label}</option>)}
                 </select>
               </Field>
