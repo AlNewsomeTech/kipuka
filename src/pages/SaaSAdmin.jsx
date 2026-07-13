@@ -4,7 +4,7 @@ import { Plus, Building2, Users, FolderKanban, HardDrive, Clock, ShieldCheck, Ba
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
-import { getTierConfig } from '@/lib/subscriptionTiers';
+import { planLimits } from '@/lib/planTiers';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import TierBadge from '@/components/org/TierBadge';
 import StatusBadge from '@/components/StatusBadge';
@@ -123,7 +123,7 @@ export default function SaaSAdmin() {
               <tbody className="divide-y divide-slate-100">
                 {orgs.map((org) => {
                   const seats = usersFor(org.id);
-                  const cfg = getTierConfig(org.subscription_tier);
+                  const cfg = planLimits(org.plan_tier);
                   const orgProjects = projectsFor(org.id);
                   const orgClients = clientsFor(org.id);
                   const projCount = orgProjects.length;
