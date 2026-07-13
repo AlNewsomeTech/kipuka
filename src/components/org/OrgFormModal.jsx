@@ -15,7 +15,7 @@ const ACOLYTE_LABELS = { none: 'None (locked preview)', watch: 'ACOLYTE Watch', 
 const empty = {
   organization_name: '', legal_name: '', short_name: '', primary_contact_name: '',
   primary_contact_email: '', primary_contact_phone: '', website: '', uei: '',
-  cage_codes: [], sam_registration_status: 'Unknown', subscription_tier: 'Trial',
+  cage_codes: [], sam_registration_status: 'Unknown',
   subscription_status: 'Trial', subscription_start_date: '', subscription_end_date: '',
   seat_limit: 5, storage_limit_gb: 5, support_level: 'Standard', customer_logo_url: '', notes: '',
   plan_tier: 'L1_Essentials', trial_full_access: false, trial_ends_date: '', acolyte_tier: 'none',
@@ -40,14 +40,14 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
   if (!open) return null;
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  // When tier changes, pre-fill the limits from the tier defaults (editable after).
+  // When the plan tier changes, pre-fill the limits from the tier defaults (editable after).
   const applyTierDefaults = (tier) => {
-    const cfg = getTierConfig(tier);
+    const lim = planLimits(tier);
     setForm((f) => ({
       ...f,
-      subscription_tier: tier,
-      seat_limit: cfg.seat_limit == null ? f.seat_limit : cfg.seat_limit,
-      storage_limit_gb: cfg.storage_limit_gb == null ? f.storage_limit_gb : cfg.storage_limit_gb,
+      plan_tier: tier,
+      seat_limit: lim.seat_limit == null ? f.seat_limit : lim.seat_limit,
+      storage_limit_gb: lim.storage_limit_gb == null ? f.storage_limit_gb : lim.storage_limit_gb,
     }));
   };
 
@@ -71,13 +71,13 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
       } else {
         saved = await base44.entities.Organization.create(payload);
         // Create a matching license record so billing can be layered on later.
-        const cfg = getTierConfig(payload.subscription_tier);
+        const lim = planLimits(payload.plan_tier);
         await base44.entities.LicenseRecord.create({
-          organization_id: saved.id, subscription_tier: payload.subscription_tier,
+          organization_id: saved.id, subscription_tier: payload.plan_tier,
           billing_status: payload.subscription_status, start_date: payload.subscription_start_date || undefined,
           renewal_date: payload.subscription_end_date || undefined, seat_limit: payload.seat_limit,
-          storage_limit_gb: payload.storage_limit_gb, allowed_projects: cfg.project_limit || 0,
-          allowed_exports_per_month: cfg.exports_per_month || 0,
+          storage_limit_gb: payload.storage_limit_gb, allowed_projects: lim.project_limit || 0,
+          allowed_exports_per_month: lim.exports_per_month || 0,
         }).catch(() => {});
         await logAudit({ organizationId: saved.id, user, actionType: AUDIT_ACTIONS.ORG_SETTINGS_CHANGE, targetEntity: 'Organization', targetRecordId: saved.id, summary: `Created organization ${payload.organization_name}` });
       }
