@@ -69,14 +69,16 @@ export default function DiagramCanvas({ diagram, readOnly, onChange }) {
     const p = surfacePoint(e);
     if (drag.kind === 'node') {
       const x = Math.max(0, p.x - drag.offX), y = Math.max(0, p.y - drag.offY);
-      onChange({ nodes: nodes.map((n) => n.id === drag.id ? { ...n, x, y } : n) });
+      // Compute from the current nodes array by id so rapid moves never drop
+      // updates to a stale render-time snapshot.
+      onChange({ nodes: (diagram.nodes || []).map((n) => n.id === drag.id ? { ...n, x, y } : n) });
     } else if (drag.kind === 'zone') {
       const x = Math.max(0, p.x - drag.offX), y = Math.max(0, p.y - drag.offY);
-      onChange({ zones: zones.map((z) => z.id === drag.id ? { ...z, x, y } : z) });
+      onChange({ zones: (diagram.zones || []).map((z) => z.id === drag.id ? { ...z, x, y } : z) });
     } else if (drag.kind === 'resize') {
       const w = Math.max(120, drag.startW + (p.x - drag.startX));
       const h = Math.max(90, drag.startH + (p.y - drag.startY));
-      onChange({ zones: zones.map((z) => z.id === drag.id ? { ...z, w, h } : z) });
+      onChange({ zones: (diagram.zones || []).map((z) => z.id === drag.id ? { ...z, w, h } : z) });
     }
   };
 
