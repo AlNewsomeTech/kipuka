@@ -61,26 +61,44 @@ export default function DiagramModule({ project, readOnly }) {
   };
 
   // Export the canvas to PNG, upload it, and store the URL on the diagram so the
-  // SSP can embed it. Uses html2canvas against the canvas DOM node.
+  // SSP can embed it. Saves any pending edits first so the capture and the stored
+  // record match, and never creates a duplicate diagram record.
   const exportPng = async () => {
     setSaving(true);
-    const el = document.getElementById('diagram-canvas-surface');
-    const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(el, { backgroundColor: '#ffffff', scale: 2 });
-    const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
-    const file = new File([blob], `${type.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    // Ensure the diagram record exists, then store the image URL.
-    let rec = current;
-    if (!rec.id) { rec = await base44.entities.ProjectDiagram.create({ organization_id: project.organization_id, project_id: project.id, diagram_type: type, title: current.title || type, nodes: current.nodes || [], connections: current.connections || [], zones: current.zones || [] }); }
-    const saved = await base44.entities.ProjectDiagram.update(rec.id, { image_url: file_url, last_exported_date: new Date().toISOString() });
-    setDiagrams((m) => ({ ...m, [type]: saved }));
-    setCurrent(saved);
-    setDirty(false);
-    setSaving(false);
-    // Also download a copy for the user.
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png'); a.download = file.name; a.click();
+    try {
+      // 1) Ensure the current diagram is persisted (create once, or update if dirty).
+      let rec = current;
+      const payload = {
+        organization_id: project.organization_id, project_id: project.id,
+        diagram_type: type, title: current.title || type,
+        nodes: current.nodes || [], connections: current.connections || [], zones: current.zones || [],
+      };
+      if (!rec.id) rec = await base44.entities.ProjectDiagram.create(payload);
+      else if (dirty) rec = await base44.entities.ProjectDiagram.update(rec.id, payload);
+
+      // 2) Let the DOM settle, then capture.
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+      const el = document.getElementById('diagram-canvas-surface');
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(el, { backgroundColor: '#ffffff', scale: 2 });
+      const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
+      const file = new File([blob], `${type.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // 3) Store the image URL on the same record.
+      const saved = await base44.entities.ProjectDiagram.update(rec.id, { image_url: file_url, last_exported_date: new Date().toISOString() });
+      setDiagrams((m) => ({ ...m, [type]: saved }));
+      setCurrent(saved);
+      setDirty(false);
+
+      // 4) Also download a copy for the user.
+      const a = document.createElement('a');
+      a.href = canvas.toDataURL('image/png'); a.download = file.name; a.click();
+    } catch (err) {
+      console.error('Diagram export failed', err);
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
