@@ -88,11 +88,19 @@ export default function DiagramModule({ project, readOnly }) {
       if (!rec.id) rec = await base44.entities.ProjectDiagram.create(payload);
       else if (dirty) rec = await base44.entities.ProjectDiagram.update(rec.id, payload);
 
-      // 2) Let the DOM settle, then capture.
+      // 2) Let the DOM settle, then capture. Capture at the full scroll size so
+      // nodes placed beyond the visible viewport are not clipped.
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
       const el = document.getElementById('diagram-canvas-surface');
       const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(el, { backgroundColor: '#ffffff', scale: 2 });
+      const canvas = await html2canvas(el, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+        windowWidth: el.scrollWidth,
+        windowHeight: el.scrollHeight,
+      });
       const blob = await new Promise((res) => canvas.toBlob(res, 'image/png'));
       const file = new File([blob], `${type.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -108,6 +116,7 @@ export default function DiagramModule({ project, readOnly }) {
       a.href = canvas.toDataURL('image/png'); a.download = file.name; a.click();
     } catch (err) {
       console.error('Diagram export failed', err);
+      setSeedMsg('PNG export failed. Try again, or check that the diagram has content. If it persists, save the diagram first, then export.');
     } finally {
       setSaving(false);
     }
