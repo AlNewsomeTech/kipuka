@@ -16,6 +16,7 @@ export default function DiagramModule({ project, readOnly }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [seedMsg, setSeedMsg] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,8 +40,18 @@ export default function DiagramModule({ project, readOnly }) {
   }, [type, diagrams]);
 
   const seed = () => {
+    if (!assets || assets.length === 0) {
+      setSeedMsg('No assets found. Add assets in the Inventory module first, then seed the diagram from them.');
+      return;
+    }
     const nodes = seedNodesFromAssets(assets);
-    setCurrent((c) => ({ ...c, nodes }));
+    // Preserve any existing connections whose endpoints still exist after reseed.
+    setCurrent((c) => {
+      const ids = new Set(nodes.map((n) => n.id));
+      const keptConns = (c.connections || []).filter((cn) => ids.has(cn.from) && ids.has(cn.to));
+      return { ...c, nodes, connections: keptConns };
+    });
+    setSeedMsg(`Seeded ${nodes.length} node${nodes.length === 1 ? '' : 's'} from your asset inventory. Drag to arrange, then add boundaries and connections.`);
     setDirty(true);
   };
 
