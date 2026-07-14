@@ -153,10 +153,16 @@ export default function DiagramCanvas({ diagram, readOnly, onChange }) {
               if (!a || !b) return null;
               const x1 = a.x + 40, y1 = a.y + 28, x2 = b.x + 40, y2 = b.y + 28;
               const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+              const labelW = c.label ? Math.max(40, c.label.length * 6 + 12) : 0;
               return (
                 <g key={c.id}>
                   <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="#94a3b8" strokeWidth="2" markerEnd="url(#arrow)" />
-                  {c.label && <foreignObject x={mx - 55} y={my - 12} width="110" height="24" className="overflow-visible"><div className="text-[10px] text-center bg-white/90 border border-slate-200 rounded px-1 text-slate-600 truncate">{c.label}</div></foreignObject>}
+                  {c.label && (
+                    <>
+                      <rect x={mx - labelW / 2} y={my - 9} width={labelW} height="18" rx="3" fill="#ffffff" stroke="#e2e8f0" strokeWidth="1" />
+                      <text x={mx} y={my + 3} textAnchor="middle" fontSize="10" fill="#475569" fontFamily="sans-serif">{c.label}</text>
+                    </>
+                  )}
                 </g>
               );
             })}
