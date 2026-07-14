@@ -37,6 +37,7 @@ export default function DiagramModule({ project, readOnly }) {
     const existing = diagrams[type];
     setCurrent(existing || { diagram_type: type, title: type, nodes: [], connections: [], zones: [] });
     setDirty(false);
+    setSeedMsg(null);
   }, [type, diagrams]);
 
   const seed = () => {
@@ -151,6 +152,13 @@ export default function DiagramModule({ project, readOnly }) {
           Drag nodes to arrange. {type === 'CUI Data Flow Diagram' ? 'Label each connection with what data moves (e.g. "CUI via HTTPS").' : 'Draw connections between systems and boundary zones to mark scope.'} Exported PNG embeds into the SSP.
         </p>
       </div>
+
+      {seedMsg && (
+        <div className={`rounded-lg border px-4 py-2 text-xs flex items-start justify-between gap-3 ${seedMsg.startsWith('No assets') ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-green-50 border-green-200 text-green-700'}`}>
+          <span>{seedMsg}</span>
+          <button onClick={() => setSeedMsg(null)} className="opacity-60 hover:opacity-100 shrink-0">✕</button>
+        </div>
+      )}
 
       {current?.image_url && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 text-xs text-blue-700">
