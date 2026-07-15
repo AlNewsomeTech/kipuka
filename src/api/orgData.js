@@ -26,7 +26,7 @@ export const READ_GATED = new Set([
   'PolicyTemplate', 'GuidedProgress', 'RemediationComment', 'DeploymentTask',
   'SecurityReviewNote', 'AcolyteRemediationItem', 'AcolyteProfile',
   'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
-  'CyberReadinessReview', 'Organization', 'OrganizationUser',
+  'CyberReadinessReview', 'Organization', 'OrganizationUser', 'PostureAssessment',
 ]);
 
 // Entities writable through the write gate.
@@ -35,7 +35,7 @@ export const WRITE_GATED = new Set([
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
   'IncidentLog', 'MockAssessmentSession', 'MockAssessmentObjective',
   'ObjectiveEvidenceLink', 'SPRSRecord', 'MaintenanceTask', 'RemediationComment',
-  'PolicyTemplate', 'GuidedProgress', 'CompanyProfile',
+  'PolicyTemplate', 'GuidedProgress', 'CompanyProfile', 'PostureAssessment',
 ]);
 
 async function readGate(entity, operation, payload) {
