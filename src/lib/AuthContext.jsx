@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
+import { base44, setRoleCache, resetRoleCache } from '@/api/base44Client';
 import { appParams } from '@/lib/app-params';
 import { createAxiosClient } from '@base44/sdk/dist/utils/axios-client';
 
@@ -95,6 +95,9 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      // Seed the entity-proxy role cache so org data routing is correct from the
+      // first call, without a second auth.me() round trip.
+      setRoleCache(currentUser?.role ?? null);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
       setAuthChecked(true);
@@ -117,6 +120,9 @@ export const AuthProvider = ({ children }) => {
   const logout = (shouldRedirect = true) => {
     setUser(null);
     setIsAuthenticated(false);
+    // Clear the cached platform role so the next user is never routed with the
+    // previous user's role.
+    resetRoleCache();
     
     if (shouldRedirect) {
       // Use the SDK's logout method which handles token cleanup and redirect
