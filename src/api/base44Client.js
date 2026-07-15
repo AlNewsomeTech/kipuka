@@ -22,10 +22,44 @@ export const rawClient = createClient({
 // The explicit data layer lives in @/api/orgData; this proxy is a safety net
 // so any surface still importing base44.entities directly stays correct for
 // client-role users. Both share the same gate helpers.
+// Role cache. ONLY successful resolutions are cached: a transient auth.me()
+// failure must never permanently pin the role to null, which would silently
+// downgrade a client-role user to ungated (creator-only) reads for the rest of
+// their session — i.e. an invited teammate would see a half-empty app with no
+// recovery until a page refresh. AuthContext seeds this on login and clears it
+// on logout so the role can never go stale across a user switch.
+let cachedRole;          // string | null once successfully resolved
+let roleResolved = false;
 let rolePromise = null;
+
+export function setRoleCache(role) {
+  cachedRole = role ?? null;
+  roleResolved = true;
+  rolePromise = null;
+}
+
+export function resetRoleCache() {
+  cachedRole = undefined;
+  roleResolved = false;
+  rolePromise = null;
+}
+
 function resolveRole() {
+  if (roleResolved) return Promise.resolve(cachedRole);
   if (!rolePromise) {
-    rolePromise = rawClient.auth.me().then((u) => u?.role ?? null).catch(() => null);
+    rolePromise = rawClient.auth.me()
+      .then((u) => {
+        cachedRole = u?.role ?? null;
+        roleResolved = true;
+        return cachedRole;
+      })
+      .catch(() => {
+        // Do not cache the failure — retry on the next call. This call falls
+        // back to a direct (RLS-enforced) SDK call, which is safe: RLS still
+        // protects the data, the caller may just see fewer rows once.
+        rolePromise = null;
+        return null;
+      });
   }
   return rolePromise;
 }
