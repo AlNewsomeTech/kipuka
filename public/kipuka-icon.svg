@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Kipuka">
+  <rect width="512" height="512" rx="112" fill="#0b1930"/>
+  <circle cx="256" cy="256" r="194" fill="#102b4c" stroke="#479dcf" stroke-width="10"/>
+  <image href="/kipuka-logo.png" x="56" y="118" width="400" height="276" preserveAspectRatio="xMidYMid meet"/>
+</svg>
