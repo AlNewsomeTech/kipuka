@@ -58,7 +58,8 @@ const statusConfig = {
 };
 
 export default function StatusBadge({ status, size = 'sm' }) {
-  const config = statusConfig[status] || statusConfig['Not Started'];
+  const label = status || 'Not Started';
+  const config = statusConfig[label] || statusConfig['Not Started'];
   const sizeClass =
     size === 'xs' ? 'text-[11px] px-2 py-0.5' :
     size === 'md' ? 'text-[13px] px-3 py-1' :
@@ -67,7 +68,7 @@ export default function StatusBadge({ status, size = 'sm' }) {
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-semibold ${config.bg} ${config.text} ${sizeClass}`}>
       <span className={`${dotSize} rounded-full ${config.dot} flex-shrink-0`} />
-      {status}
+      {label}
     </span>
   );
 }
