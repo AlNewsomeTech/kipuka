@@ -157,25 +157,33 @@ export default function Layout() {
 
       {/* Sidebar */}
       <aside className={`${collapsed ? 'w-[72px]' : 'w-[268px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
-        <div className="flex items-center gap-2.5 px-4 h-16 border-b border-white/10 flex-shrink-0">
+        <div className="flex h-[72px] flex-shrink-0 items-center gap-3 border-b border-white/10 px-4">
           {hasLogo ? (
-            <BrandLogo variant="white" imgClassName={collapsed ? 'h-8 w-8 object-contain' : 'h-9 w-auto max-w-[180px] object-contain'} />
+            <BrandLogo variant="white" imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
           ) : (
             <>
-              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                <ShieldAlert className="w-5 h-5 text-white" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#479dcf]/15 ring-1 ring-[#77c2e9]/25">
+                <ShieldAlert className="h-5 w-5 text-[#8fd0f2]" />
               </div>
               {!collapsed && (
                 <div className="min-w-0">
-                  <div className="text-white font-heading font-bold text-sm leading-tight truncate">{wordmark}</div>
-                  <div className="text-white/50 text-[10px] leading-tight">Deployment &amp; Evidence Platform</div>
+                  <div className="truncate text-[15px] font-extrabold leading-tight tracking-tight text-white">{wordmark}</div>
+                  <div className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">CMMC Readiness Platform</div>
                 </div>
               )}
             </>
           )}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            aria-label="Close navigation"
+            className="ml-auto rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-white lg:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        <nav className={`flex-1 overflow-y-auto py-3 px-2 ${collapsed ? 'space-y-4' : 'space-y-1'}`}>
+        <nav className={`flex-1 overflow-y-auto px-2.5 py-4 ${collapsed ? 'space-y-4' : 'space-y-1.5'}`}> 
           {navSections.map((section) => {
             const visibleItems = section.items.filter(item =>
               (!item.adminOnly || user?.role === 'admin') &&
@@ -197,8 +205,8 @@ export default function Layout() {
                         title={item.label}
                         onClick={() => setMobileOpen(false)}
                         className={({ isActive }) =>
-                          `flex items-center justify-center px-3 py-2 rounded-lg text-sm transition-colors ${
-                            isActive ? 'bg-white/15 text-white font-medium' : 'text-white/60 hover:text-white hover:bg-white/5'
+                          `flex h-10 items-center justify-center rounded-xl text-sm transition-all ${
+                            isActive ? 'bg-[#479dcf]/20 text-[#bfe8ff] ring-1 ring-[#6bb8e2]/25' : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
                           }`
                         }
                       >
@@ -217,7 +225,7 @@ export default function Layout() {
                   type="button"
                   onClick={() => toggleSection(section.label)}
                   aria-expanded={isOpen}
-                  className="w-full flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-[10px] font-semibold text-white/40 hover:text-white/70 hover:bg-white/5 uppercase tracking-wider transition-colors"
+                  className={`flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-[9px] font-extrabold uppercase tracking-[0.14em] transition-colors ${activeSection === section.label ? 'text-[#8fd0f2]' : 'text-white/35 hover:bg-white/[0.04] hover:text-white/65'}`}
                 >
                   <span className="truncate">{section.label}</span>
                   <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 transition-transform ${isOpen ? '' : '-rotate-90'}`} />
@@ -233,10 +241,10 @@ export default function Layout() {
                           end={item.end}
                           onClick={() => setMobileOpen(false)}
                           className={({ isActive }) =>
-                            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
+                            `relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] transition-all ${
                               isActive
-                                ? 'bg-white/15 text-white font-medium'
-                                : 'text-white/60 hover:text-white hover:bg-white/5'
+                                ? 'bg-[#479dcf]/20 font-semibold text-white ring-1 ring-[#6bb8e2]/20 before:absolute before:left-0 before:h-5 before:w-0.5 before:rounded-full before:bg-[#79c6ed]'
+                                : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
                             }`
                           }
                         >
@@ -254,7 +262,9 @@ export default function Layout() {
 
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="hidden lg:flex items-center justify-center h-10 border-t border-white/10 text-white/40 hover:text-white hover:bg-white/5 transition-colors"
+          type="button"
+          aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
+          className="hidden h-11 items-center justify-center border-t border-white/10 text-white/35 transition-colors hover:bg-white/[0.05] hover:text-white lg:flex"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
