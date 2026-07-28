@@ -370,9 +370,9 @@ export default function Layout() {
 
         {/* Page content */}
         <AcceptanceGate>
-          <main className="flex-1 overflow-y-auto flex flex-col">
-            <div className="flex-1 p-4 lg:p-6">
-              <div className="max-w-7xl mx-auto">
+          <main className="app-content flex flex-1 flex-col overflow-y-auto">
+            <div className="flex-1 p-4 sm:p-5 lg:p-7 2xl:p-8">
+              <div className="mx-auto w-full max-w-[1540px]">
                 <Outlet key={selectedClientId || 'all-clients'} />
               </div>
             </div>
