@@ -24,11 +24,11 @@ function Metric({ icon: Icon, label, value, tone = 'slate' }) {
     red: 'text-red-600', blue: 'text-blue-600',
   };
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-4">
-      <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-        <Icon className={`w-4 h-4 ${tones[tone]}`} /> {label}
+    <div className="app-surface app-surface-interactive min-h-[104px] p-4">
+      <div className="flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-[0.09em] text-slate-400">
+        <Icon className={`h-4 w-4 ${tones[tone]}`} /> {label}
       </div>
-      <div className="text-2xl font-bold text-slate-800 mt-1.5">{value}</div>
+      <div className="metric-value mt-3 truncate text-2xl font-extrabold text-slate-900">{value}</div>
     </div>
   );
 }
@@ -157,24 +157,25 @@ export default function ProjectDashboard() {
   ].filter((s) => !effectiveChecklist[s.key]).slice(0, 3);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header row */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <div className="app-surface overflow-hidden p-5 sm:p-6">
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-lg bg-[#0F1E3C] flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-white" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#0b1930] to-[#1d4a73] shadow-lg shadow-slate-950/10">
+              <ShieldCheck className="h-6 w-6 text-[#9bd9f7]" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-slate-900">{project.project_name}</h1>
-              <p className="text-xs text-slate-400">{orgName}</p>
+              <div className="page-kicker">CMMC project</div>
+              <h1 className="mt-1 text-xl font-extrabold text-slate-900">{project.project_name}</h1>
+              <p className="mt-0.5 text-xs font-medium text-slate-400">{orgName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2.5">
             <button
               onClick={handleReport}
               disabled={reporting}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#1E2D4A] disabled:opacity-60"
+              className="btn-primary disabled:opacity-60"
             >
               {reporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
               CMMC Status Report
@@ -182,10 +183,10 @@ export default function ProjectDashboard() {
             <StatusBadge status={project.project_status} size="md" />
           </div>
         </div>
-        <div className="grid sm:grid-cols-3 gap-3 mt-4 text-sm">
-          <div><span className="text-slate-500">Target level:</span> <span className="font-semibold text-slate-800">{project.target_cmmc_level}</span></div>
-          <div><span className="text-slate-500">Assessment path:</span> <span className="font-semibold text-slate-800">{project.assessment_path}</span></div>
-          <div><span className="text-slate-500">Overall readiness:</span> <span className="font-semibold text-slate-800">{counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%</span></div>
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <ProjectMeta label="Target level" value={project.target_cmmc_level} />
+          <ProjectMeta label="Assessment path" value={project.assessment_path} />
+          <ProjectMeta label="Overall readiness" value={`${counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%`} accent />
         </div>
       </div>
 
