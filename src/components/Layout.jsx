@@ -5,7 +5,8 @@ import {
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
-  Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal
+  Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal,
+  Menu, X
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -115,6 +116,19 @@ export default function Layout() {
   });
 
   const activeSection = findActiveSection(location.pathname);
+  const activePage = navSections
+    .flatMap((section) => section.items)
+    .filter((item) => item.end ? location.pathname === item.to : (location.pathname === item.to || location.pathname.startsWith(item.to + '/')))
+    .sort((a, b) => b.to.length - a.to.length)[0];
+  const currentPageTitle = activePage?.label || 'Kipuka Workspace';
+  const userLabel = user?.full_name || user?.email || 'Kipuka User';
+  const userInitials = userLabel
+    .split(/[\s@._-]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 
   // Persist session state.
   useEffect(() => {
@@ -128,17 +142,21 @@ export default function Layout() {
     }
   }, [activeSection]);
 
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [location.pathname]);
+
   const toggleSection = (label) => setExpanded((prev) => ({ ...prev, [label]: !prev[label] }));
 
   return (
-    <div className="flex h-screen bg-[#F1F4F8] overflow-hidden">
+    <div className="app-shell flex h-screen overflow-hidden">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 bg-black/30 z-30 lg:hidden" onClick={() => setMobileOpen(false)} />
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-16' : 'w-60'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-[#0F1E3C] flex flex-col transition-all duration-300 flex-shrink-0`}>
+      <aside className={`${collapsed ? 'w-[72px]' : 'w-[268px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex items-center gap-2.5 px-4 h-16 border-b border-white/10 flex-shrink-0">
           {hasLogo ? (
             <BrandLogo variant="white" imgClassName={collapsed ? 'h-8 w-8 object-contain' : 'h-9 w-auto max-w-[180px] object-contain'} />
