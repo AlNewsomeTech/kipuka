@@ -47,11 +47,12 @@ export default function AdminClientSummary() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Client Overview</h1>
-        <p className="text-sm text-slate-500 mt-1">Summary of all client projects — completion reflects controls marked Complete or ready for assessment. Select a client to view their dashboard.</p>
+        <div className="page-kicker">Portfolio</div>
+        <h1 className="page-title mt-2">Client overview</h1>
+        <p className="page-subtitle mt-2 max-w-3xl">Evidence-verified progress across every managed CMMC engagement. Select a client to open its command center.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
         {clients.map((client) => {
           const sets = progressByClient[client.id] || { done: new Set(), started: new Set() };
           const l1Complete = controls.l1.filter(c => sets.done.has(c.control_id)).length;
@@ -74,12 +75,12 @@ export default function AdminClientSummary() {
             <div
               key={client.id}
               onClick={() => handleSelectClient(client.id)}
-              className="bg-white rounded-xl border border-slate-200 p-5 cursor-pointer hover:shadow-md hover:border-slate-300 transition-all"
+              className="app-surface app-surface-interactive cursor-pointer p-5"
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-10 h-10 rounded-lg bg-[#0F1E3C] flex items-center justify-center flex-shrink-0">
-                    <Building2 className="w-5 h-5 text-white" />
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#0b1930] to-[#1d4a73] shadow-md">
+                    <Building2 className="h-5 w-5 text-[#9bd9f7]" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="text-sm font-bold text-slate-900 truncate">{client.legal_name}</h3>
