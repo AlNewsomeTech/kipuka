@@ -1,17 +1,15 @@
 import { useState } from 'react';
 import { Camera, Copy, Check } from 'lucide-react';
 import { resolveVariant } from '@/lib/implementationStacks';
+import { EVIDENCE_FILENAME_FORMAT } from '@/lib/evidenceFilename';
 
 // Step 3 CAPTURE — screenshot instructions + exact expected filename with copy button.
-export default function StepCapture({ libEntry, projectStackKey, selectedStack }) {
+export default function StepCapture({ libEntry, projectStackKey, selectedStack, suggestedFilename }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant } = resolveVariant(libEntry, activeKey);
   const [copied, setCopied] = useState(false);
 
-  // Build the concrete expected filename from the naming pattern, filling today's date.
-  const today = new Date().toISOString().slice(0, 10);
-  const pattern = variant?.screenshot_naming || `${libEntry.control_id}_ToolName_Description_YYYY-MM-DD`;
-  const filename = pattern.replace('YYYY-MM-DD', today);
+  const filename = suggestedFilename;
 
   const copy = () => {
     navigator.clipboard?.writeText(filename).then(() => {
@@ -44,7 +42,7 @@ export default function StepCapture({ libEntry, projectStackKey, selectedStack }
             {copied ? 'Copied' : 'Copy filename'}
           </button>
         </div>
-        <p className="text-[11px] text-slate-400 mt-2">Format: CONTROLID_ToolName_Description_YYYY-MM-DD</p>
+        <p className="text-[11px] text-slate-400 mt-2">Format: {EVIDENCE_FILENAME_FORMAT}</p>
       </div>
     </div>
   );
