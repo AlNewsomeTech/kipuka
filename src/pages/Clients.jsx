@@ -119,22 +119,23 @@ export default function Clients() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Clients</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage client deployments and scope</p>
+          <div className="page-kicker">Portfolio</div>
+          <h1 className="page-title mt-2">Clients</h1>
+          <p className="page-subtitle mt-2">Manage deployment scope, environments, and assigned delivery teams.</p>
         </div>
         {isAdmin && (
-          <button onClick={openNew} className="flex items-center gap-2 bg-[#0F1E3C] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#1E2D4A] transition-colors">
+          <button type="button" onClick={openNew} className="btn-primary">
             <Plus className="w-4 h-4" /> New Client
           </button>
         )}
       </div>
 
       {clients.length === 0 && !showForm ? (
-        <EmptyState icon={Building2} title="No clients yet" description="Create your first client to begin a CMMC deployment project." action={<button onClick={openNew} className="bg-[#0F1E3C] text-white text-sm px-4 py-2 rounded-lg">Create Client</button>} />
+        <div className="app-surface"><EmptyState icon={Building2} title="No clients yet" description="Create your first client to begin a CMMC deployment project." action={<button type="button" onClick={openNew} className="btn-primary">Create client</button>} /></div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {clients.map((c) => (
-            <div key={c.id} onClick={() => setSelectedClientId(c.id)} className={`bg-white rounded-xl border p-5 cursor-pointer transition-all hover:shadow-md ${selectedClientId === c.id ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200'}`}>
+            <div key={c.id} onClick={() => setSelectedClientId(c.id)} className={`app-surface app-surface-interactive cursor-pointer p-5 ${selectedClientId === c.id ? 'ring-2 ring-[#479dcf]/35' : ''}`}>
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <h3 className="font-semibold text-slate-900">{c.legal_name}</h3>
