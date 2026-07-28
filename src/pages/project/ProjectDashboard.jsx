@@ -235,8 +235,9 @@ export default function ProjectDashboard() {
           projectId={project.id}
         />
 
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h3 className="text-sm font-bold text-slate-800 mb-3">Next Recommended Steps</h3>
+        <div className="app-surface p-5">
+          <div className="page-kicker">Recommended</div>
+          <h3 className="mb-3 mt-2 text-sm font-extrabold text-slate-800">Next steps</h3>
           {nextSteps.length === 0 ? (
             <p className="text-sm text-slate-500">All onboarding steps are complete. Review your evidence and reports before submission.</p>
           ) : (
@@ -259,12 +260,21 @@ export default function ProjectDashboard() {
   );
 }
 
+function ProjectMeta({ label, value, accent = false }) {
+  return (
+    <div className={`rounded-xl border px-3.5 py-3 ${accent ? 'border-blue-200 bg-blue-50' : 'border-slate-200 bg-slate-50'}`}>
+      <div className="text-[9px] font-extrabold uppercase tracking-[0.1em] text-slate-400">{label}</div>
+      <div className={`mt-1 truncate text-xs font-extrabold ${accent ? 'text-blue-800' : 'text-slate-700'}`}>{value || 'Not set'}</div>
+    </div>
+  );
+}
+
 // Do-Next hero — the primary "what should I do now?" call to action.
 function DoNextHero({ project, doNext }) {
   if (!doNext) {
     return (
-      <div className="bg-[#0F1E3C] rounded-xl p-5 h-[92px] flex items-center">
-        <Loader2 className="w-5 h-5 animate-spin text-white/60" />
+      <div className="soft-grid flex h-[104px] items-center rounded-2xl bg-gradient-to-r from-[#0b1930] to-[#173f66] p-5 shadow-lg shadow-slate-950/10">
+        <Loader2 className="h-5 w-5 animate-spin text-white/60" />
       </div>
     );
   }
@@ -288,7 +298,7 @@ function DoNextHero({ project, doNext }) {
   }
 
   return (
-    <Link to={to} className="block bg-[#0F1E3C] rounded-xl p-5 hover:bg-[#152a52] transition-colors group">
+    <Link to={to} className="soft-grid group block rounded-2xl border border-white/10 bg-gradient-to-r from-[#0b1930] to-[#17456f] p-5 shadow-lg shadow-slate-950/10 transition-all hover:-translate-y-0.5 hover:shadow-xl sm:p-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
