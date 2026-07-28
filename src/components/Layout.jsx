@@ -273,52 +273,65 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 flex-shrink-0">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="lg:hidden p-2 -ml-2 text-slate-600"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+        <header className="flex h-[72px] flex-shrink-0 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-3 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0d1828]/90 sm:px-4 lg:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Open navigation"
+              className="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="hidden xl:block">
+              <div className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Workspace</div>
+              <div className="truncate text-sm font-extrabold text-slate-800">{currentPageTitle}</div>
+            </div>
+          </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center pr-3 mr-1 border-r border-slate-200">
+          <div className="ml-auto flex min-w-0 items-center gap-2 lg:ml-4">
+            <div className="hidden items-center border-r border-slate-200 pr-3 dark:border-slate-700 2xl:flex">
               <OrgSelector />
             </div>
-            <span className="text-sm font-medium text-slate-500 hidden sm:inline">Active Client:</span>
-            <select
-              value={selectedClientId || ''}
-              onChange={(e) => setSelectedClientId(e.target.value || null)}
-              disabled={loading || clients.length === 0}
-              className="text-sm font-semibold text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/30 min-w-[200px]"
-            >
-              {clients.length === 0 && <option value="">No clients yet</option>}
-              {(user?.role === 'admin' || user?.role === 'technician') && clients.length > 0 && <option value="">All Clients ({user.role === 'admin' ? 'Admin' : 'Technician'})</option>}
-              {clients.map((c) => (
-                <option key={c.id} value={c.id}>{c.legal_name}</option>
-              ))}
-            </select>
+            <div className="min-w-0">
+              <label htmlFor="active-client" className="sr-only">Active client</label>
+              <select
+                id="active-client"
+                value={selectedClientId || ''}
+                onChange={(e) => setSelectedClientId(e.target.value || null)}
+                disabled={loading || clients.length === 0}
+                className="h-10 w-[132px] truncate rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-800 shadow-sm transition-colors focus:border-[#479dcf] focus:outline-none focus:ring-2 focus:ring-[#479dcf]/20 disabled:opacity-60 sm:w-[190px] xl:w-[230px]"
+              >
+                {clients.length === 0 && <option value="">No clients yet</option>}
+                {(user?.role === 'admin' || user?.role === 'technician') && clients.length > 0 && <option value="">All Clients ({user.role === 'admin' ? 'Admin' : 'Technician'})</option>}
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>{c.legal_name}</option>
+                ))}
+              </select>
+            </div>
             {selectedClient && (
-              <span className="hidden md:inline-flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                <span className={`w-1.5 h-1.5 rounded-full ${selectedClient.project_status === 'Complete' ? 'bg-green-500' : selectedClient.project_status === 'In Progress' ? 'bg-blue-500' : 'bg-slate-400'}`} />
+              <span className="app-pill hidden xl:inline-flex">
+                <span className={`h-1.5 w-1.5 rounded-full ${selectedClient.project_status === 'Complete' ? 'bg-emerald-500' : selectedClient.project_status === 'In Progress' ? 'bg-[#479dcf]' : 'bg-slate-400'}`} />
                 {selectedClient.project_status}
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-shrink-0 items-center gap-2 border-l border-slate-200 pl-2 dark:border-slate-700">
             <div className="relative">
               <button
+                type="button"
                 onClick={() => setThemeOpen(!themeOpen)}
-                className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                aria-label="Change color theme"
+                className="flex h-10 items-center gap-1.5 rounded-xl px-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
               >
-                {theme === 'light' ? <Sun className="w-4 h-4" /> : theme === 'dark-green' ? <Terminal className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-                <span className="hidden sm:inline">{theme === 'dark-green' ? 'Green' : theme === 'dark' ? 'Dark' : 'Light'}</span>
+                {theme === 'light' ? <Sun className="h-4 w-4" /> : theme === 'dark-green' ? <Terminal className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                <span className="hidden 2xl:inline">{theme === 'dark-green' ? 'Green' : theme === 'dark' ? 'Dark' : 'Light'}</span>
               </button>
               {themeOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setThemeOpen(false)} />
-                  <div className="absolute right-0 mt-2 w-44 bg-white rounded-lg border border-slate-200 shadow-lg z-50 py-1">
+                  <div className="app-surface absolute right-0 z-50 mt-2 w-48 overflow-hidden p-1.5">
                     {[
                       { value: 'dark', label: 'Dark', icon: Moon },
                       { value: 'dark-green', label: 'Dark (Green)', icon: Terminal },
@@ -327,13 +340,14 @@ export default function Layout() {
                       const Icon = opt.icon;
                       return (
                         <button
+                          type="button"
                           key={opt.value}
                           onClick={() => { setTheme(opt.value); setThemeOpen(false); }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors"
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-xs font-semibold transition-colors ${theme === opt.value ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'}`}
                         >
-                          <Icon className="w-3.5 h-3.5" />
+                          <Icon className="h-3.5 w-3.5" />
                           {opt.label}
-                          {theme === opt.value && <Check className="w-3.5 h-3.5 ml-auto text-blue-600" />}
+                          {theme === opt.value && <Check className="ml-auto h-3.5 w-3.5" />}
                         </button>
                       );
                     })}
@@ -341,13 +355,16 @@ export default function Layout() {
                 </>
               )}
             </div>
-            {branding?.logo_color_url ? (
-              <img src={branding.logo_color_url} alt={wordmark} className="h-8 w-auto max-w-[140px] object-contain" />
-            ) : (
-              <div className="w-8 h-8 rounded-full bg-brand text-white text-xs font-bold flex items-center justify-center">
-                CMMC
+
+            <div className="flex items-center gap-2 rounded-xl p-1.5 pr-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#479dcf] to-[#286d98] text-[10px] font-extrabold text-white shadow-sm">
+                {userInitials || 'KU'}
               </div>
-            )}
+              <div className="hidden min-w-0 2xl:block">
+                <div className="max-w-[140px] truncate text-xs font-extrabold text-slate-800">{userLabel}</div>
+                <div className="text-[10px] font-semibold capitalize text-slate-400">{user?.role || 'member'}</div>
+              </div>
+            </div>
           </div>
         </header>
 
