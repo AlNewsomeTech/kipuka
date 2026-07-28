@@ -8,9 +8,10 @@
   "theme_color": "#0F1E3C",
   "icons": [
     {
-      "src": "/kipuka-logo.png",
-      "sizes": "800x552",
-      "type": "image/png"
+      "src": "/kipuka-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }
