@@ -8,7 +8,8 @@ import { useOrg } from '@/lib/orgContext';
 import { useAuth } from '@/lib/AuthContext';
 import { pointValueFor } from '@/lib/sprsScoring';
 import { buildGuidedQueue, estimatedMinutes, targetLevelsFor } from '@/lib/doNextEngine';
-import { stackKeyForProject } from '@/lib/implementationStacks';
+import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
+import { buildEvidenceFilename } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
 import GuidedStepper from '@/components/guided/GuidedStepper';
@@ -70,6 +71,10 @@ export default function GuidedWalkthrough() {
   const libEntry = useMemo(() => library.find((c) => c.control_id === controlId), [library, controlId]);
   const assessment = useMemo(() => assessments.find((a) => a.control_id === controlId), [assessments, controlId]);
   const projectStackKey = project ? stackKeyForProject(project) : 'generic';
+  const organization = useMemo(
+    () => organizations.find((org) => org.id === project?.organization_id),
+    [organizations, project?.organization_id],
+  );
 
   // Persist progress helper.
   const persist = useCallback(async (patch) => {
@@ -166,7 +171,14 @@ export default function GuidedWalkthrough() {
 
   const points = pointValueFor(controlId);
   const minutes = estimatedMinutes(libEntry, controlId);
-  const suggestedFilename = ((libEntry.how_to_implement?.[selectedStack || projectStackKey]?.screenshot_naming) || `${controlId}_ToolName_Description_YYYY-MM-DD`).replace('YYYY-MM-DD', new Date().toISOString().slice(0, 10));
+  const { variant } = resolveVariant(libEntry, selectedStack || projectStackKey);
+  const suggestedFilename = buildEvidenceFilename({
+    organization,
+    project,
+    libEntry,
+    variant,
+    controlType: 'Screenshot',
+  });
 
   const goToControl = (cid) => cid && navigate(`/projects/${projectId}/guided/${cid}`);
 
@@ -206,7 +218,7 @@ export default function GuidedWalkthrough() {
       <div>
         {step === 1 && <StepUnderstand libEntry={libEntry} />}
         {step === 2 && <StepDo libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} onSelectStack={onSelectStack} />}
-        {step === 3 && <StepCapture libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} />}
+        {step === 3 && <StepCapture libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} suggestedFilename={suggestedFilename} />}
         {step === 4 && <StepUpload project={project} currentUser={user} controlId={controlId} suggestedFilename={suggestedFilename} onChanged={load} />}
         {step === 5 && (
           <StepVerify
