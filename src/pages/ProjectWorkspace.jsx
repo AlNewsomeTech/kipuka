@@ -7,7 +7,6 @@ import { moduleByKey } from '@/lib/projectModules';
 import { isClientView } from '@/lib/clientView';
 import ProjectNav from '@/components/project/ProjectNav';
 import ProjectBreadcrumb from '@/components/project/ProjectBreadcrumb';
-import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 export default function ProjectWorkspace() {
   const { id } = useParams();
@@ -63,14 +62,12 @@ export default function ProjectWorkspace() {
         moduleLabel={moduleDef.label}
       />
 
-      <div className="flex flex-col lg:flex-row gap-4">
+      <div className="flex flex-col gap-5 lg:flex-row xl:gap-6">
         <ProjectNav projectId={project.id} orgRole={orgRole} isClient={isClient} />
         <div className="flex-1 min-w-0">
           <Outlet context={{ project, refreshProject, orgRole, readOnly, hasFeature, orgName, org }} />
         </div>
       </div>
-
-      <ConfidentialityFooter />
     </div>
   );
 }
