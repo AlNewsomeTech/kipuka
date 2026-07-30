@@ -1,4 +1,4 @@
-import { Wrench, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks } from 'lucide-react';
 import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementationStacks';
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
@@ -38,7 +38,38 @@ export default function StepDo({ libEntry, projectStackKey, selectedStack, onSel
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4">
+      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-5">
+        {variant.outcome && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">What you will finish</div>
+            <p className="text-sm text-blue-950 leading-relaxed">{variant.outcome}</p>
+          </div>
+        )}
+
+        {variant.responsible_role && (
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
+              <UserRound className="w-3.5 h-3.5" /> Who should do this
+            </div>
+            <p className="text-sm text-slate-700 leading-relaxed">{variant.responsible_role}</p>
+          </div>
+        )}
+
+        {Array.isArray(variant.before_you_start) && variant.before_you_start.length > 0 && (
+          <div>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <ListChecks className="w-3.5 h-3.5" /> Before you start
+            </div>
+            <ul className="space-y-1.5">
+              {variant.before_you_start.map((item, i) => (
+                <li key={i} className="text-sm text-slate-700 flex gap-2">
+                  <span className="text-slate-400">•</span><span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {variant.where_to_go?.name && (
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Where to go</div>
@@ -69,8 +100,23 @@ export default function StepDo({ libEntry, projectStackKey, selectedStack, onSel
 
         {variant.setting_to_change && (
           <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setting to change</div>
-            <p className="text-sm text-slate-700 leading-relaxed">{variant.setting_to_change}</p>
+            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setting or decision to record</div>
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{variant.setting_to_change}</p>
+          </div>
+        )}
+
+        {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+            <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <ClipboardCheck className="w-3.5 h-3.5" /> Finish this step in Kipuka
+            </div>
+            <ol className="space-y-1.5">
+              {variant.kipuka_actions.map((item, i) => (
+                <li key={i} className="text-[13px] text-emerald-950 flex gap-2">
+                  <span className="font-bold">{i + 1}.</span><span>{item}</span>
+                </li>
+              ))}
+            </ol>
           </div>
         )}
 
