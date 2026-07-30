@@ -6,6 +6,8 @@ import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementation
 export default function StepDo({ libEntry, projectStackKey, selectedStack, onSelectStack }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant, usedKey, fellBack } = resolveVariant(libEntry, activeKey);
+  const availableVariants = STACK_VARIANTS.filter((v) => libEntry?.how_to_implement?.[v.key]);
+  const selectorValue = availableVariants.some((v) => v.key === activeKey) ? activeKey : usedKey;
 
   if (!variant) {
     return <div className="bg-white rounded-xl border border-slate-200 p-5 text-sm text-slate-500">No implementation instructions are available for this control yet.</div>;
@@ -21,10 +23,10 @@ export default function StepDo({ libEntry, projectStackKey, selectedStack, onSel
           View another environment:
           <select
             className="form-input text-xs py-1 w-auto"
-            value={activeKey}
+            value={selectorValue || ''}
             onChange={(e) => onSelectStack(e.target.value)}
           >
-            {STACK_VARIANTS.map((v) => (
+            {availableVariants.map((v) => (
               <option key={v.key} value={v.key}>{v.label}</option>
             ))}
           </select>
