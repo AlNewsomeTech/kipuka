@@ -333,14 +333,14 @@ function checkImporter() {
   expect(/user\.role\s*!==\s*'admin'[\s\S]{0,200}status:\s*403/.test(src), 'non-admin callers receive 403');
 
   const firstServiceRole = at(/asServiceRole/);
-  const firstFetch = at(/await\s+fetch\s*\(/);
+  const buildCall = at(/await\s+buildDataset\(\)/);
   expect(
     roleAt !== -1 && (firstServiceRole === -1 || roleAt < firstServiceRole),
     'admin check precedes every service-role access',
   );
   expect(
-    roleAt !== -1 && (firstFetch === -1 || roleAt < firstFetch),
-    'admin check precedes the source fetch',
+    roleAt !== -1 && buildCall !== -1 && roleAt < buildCall,
+    'admin check precedes the call to buildDataset (which performs the source fetch)',
   );
   expect(authAt !== -1 && roleAt > authAt, 'authentication precedes authorization');
 
