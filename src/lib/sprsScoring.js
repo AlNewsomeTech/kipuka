@@ -52,12 +52,14 @@ const PARTIAL_CREDIT = {
 export const SPRS_MAX = 110;
 export const SPRS_FLOOR = -203;
 
-// ControlAssessment statuses that count as MET (no deduction).
+// ControlAssessment statuses that receive no deduction. Under 32 CFR 170.24,
+// a supported Not Applicable finding is equivalent to MET for scoring.
 const MET_STATUSES = new Set([
   'Evidence Accepted',
   'Ready for Documentation',
   'Implemented',
   'Ready for Assessment',
+  'Not Applicable',
 ]);
 
 // Statuses that represent "in progress" — not yet MET, but moving toward it.
