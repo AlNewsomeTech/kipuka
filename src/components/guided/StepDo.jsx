@@ -1,13 +1,18 @@
-import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks } from 'lucide-react';
+import { useState } from 'react';
+import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks, Copy, Check, Tags } from 'lucide-react';
 import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementationStacks';
+import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/lib/policyNaming';
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
 // stack label + selector to view another stack's instructions.
-export default function StepDo({ libEntry, projectStackKey, selectedStack, onSelectStack }) {
+export default function StepDo({ libEntry, project, organization, projectStackKey, selectedStack, onSelectStack }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant, usedKey, fellBack } = resolveVariant(libEntry, activeKey);
   const availableVariants = STACK_VARIANTS.filter((v) => libEntry?.how_to_implement?.[v.key]);
   const selectorValue = availableVariants.some((v) => v.key === activeKey) ? activeKey : usedKey;
+  const policyNames = shouldShowPolicyNames(libEntry, variant)
+    ? buildPolicyNames({ organization, project, libEntry, variant })
+    : [];
 
   if (!variant) {
     return <div className="bg-white rounded-xl border border-slate-200 p-5 text-sm text-slate-500">No implementation instructions are available for this control yet.</div>;
@@ -86,6 +91,8 @@ export default function StepDo({ libEntry, projectStackKey, selectedStack, onSel
           </div>
         )}
 
+        {policyNames.length > 0 && <PolicyNamingBlock names={policyNames} />}
+
         {Array.isArray(variant.steps) && variant.steps.length > 0 && (
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Step-by-step</div>
@@ -133,6 +140,46 @@ export default function StepDo({ libEntry, projectStackKey, selectedStack, onSel
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function PolicyNamingBlock({ names }) {
+  const [copied, setCopied] = useState('');
+
+  const copy = (value) => {
+    navigator.clipboard?.writeText(value).then(() => {
+      setCopied(value);
+      window.setTimeout(() => setCopied(''), 1600);
+    });
+  };
+
+  return (
+    <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
+      <div className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+        <Tags className="w-3.5 h-3.5" /> Policy and configuration names
+      </div>
+      <p className="text-[13px] text-violet-950 mb-2">
+        When a step tells you to create a policy, rule, profile, or written procedure, use the exact suggested name below. Use a different PolicyType for each separate policy.
+      </p>
+      <div className="space-y-2">
+        {names.map((name) => (
+          <div key={name.value}>
+            <div className="text-[11px] font-semibold text-violet-700 mb-1">{name.label}</div>
+            <div className="flex items-center gap-2 bg-slate-950 rounded-lg px-3 py-2">
+              <code className="text-green-400 font-mono text-xs break-all flex-1">{name.value}</code>
+              <button
+                onClick={() => copy(name.value)}
+                className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/80 hover:text-white flex-shrink-0"
+              >
+                {copied === name.value ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied === name.value ? 'Copied' : 'Copy'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="text-[11px] text-violet-800 mt-2">Format: {POLICY_NAME_FORMAT}</p>
     </div>
   );
 }
