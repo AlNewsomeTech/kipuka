@@ -129,7 +129,9 @@ export default function GuidedWalkthrough() {
       not_applicable_scope_evidence: scopeEvidence,
       not_applicable_confirmed_by: reviewer,
       not_applicable_confirmed_date: today,
-      not_applicable_previous_status: assessment?.status && assessment.status !== 'Not Applicable' ? assessment.status : 'Not Started',
+      not_applicable_previous_status: assessment?.status === 'Not Applicable'
+        ? assessment.not_applicable_previous_status || 'Not Started'
+        : assessment?.status || 'Not Started',
       last_reviewed_by: reviewer,
       last_reviewed_date: today,
     };
@@ -151,9 +153,11 @@ export default function GuidedWalkthrough() {
           ...patch,
         });
       }
-      setAssessments((prev) => prev.some((a) => a.id === saved.id)
-        ? prev.map((a) => (a.id === saved.id ? { ...a, ...saved, ...patch } : a))
-        : [...prev, saved]);
+      const savedRecord = { ...(assessment || {}), ...(saved || {}), ...patch };
+      const savedId = savedRecord.id;
+      setAssessments((prev) => prev.some((a) => a.id === savedId)
+        ? prev.map((a) => (a.id === savedId ? savedRecord : a))
+        : [...prev, savedRecord]);
       const allSteps = [1, 2, 3, 4, 5];
       setCompletedSteps(allSteps);
       await persist({ completed_steps: allSteps });
@@ -162,7 +166,7 @@ export default function GuidedWalkthrough() {
         user,
         actionType: AUDIT_ACTIONS.ASSESSMENT_STATUS_CHANGE,
         targetEntity: 'ControlAssessment',
-        targetRecordId: saved.id,
+        targetRecordId: savedId,
         summary: `${controlId} marked Not Applicable. Justification: ${justification}. Scope evidence: ${scopeEvidence}`,
       });
     } catch (error) {
