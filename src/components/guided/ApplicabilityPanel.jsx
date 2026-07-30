@@ -31,6 +31,7 @@ export default function ApplicabilityPanel({
   const [confirmed, setConfirmed] = useState(false);
   const [error, setError] = useState('');
   const guidance = guidanceFor(libEntry?.control_id);
+  const missingRecord = isNotApplicable && (!assessment?.not_applicable_justification || !assessment?.not_applicable_scope_evidence);
 
   useEffect(() => {
     setJustification(assessment?.not_applicable_justification || '');
@@ -38,6 +39,26 @@ export default function ApplicabilityPanel({
     setConfirmed(false);
     setError('');
   }, [assessment?.id, assessment?.status, assessment?.not_applicable_justification, assessment?.not_applicable_scope_evidence]);
+
+  const submit = () => {
+    if (justification.trim().length < 20) {
+      setError('Enter a specific justification of at least 20 characters.');
+      return;
+    }
+    if (scopeEvidence.trim().length < 10) {
+      setError('Identify the scope evidence that supports the decision.');
+      return;
+    }
+    if (!confirmed) {
+      setError('Confirm the scope statement before saving this N/A finding.');
+      return;
+    }
+    setError('');
+    onMarkNotApplicable({
+      justification: justification.trim(),
+      scopeEvidence: scopeEvidence.trim(),
+    });
+  };
 
   if (isNotApplicable) {
     return (
@@ -51,14 +72,22 @@ export default function ApplicabilityPanel({
             </div>
           </div>
           {!readOnly && (
-            <button
-              onClick={onRestoreApplicable}
-              disabled={saving}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-60"
-            >
-              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
-              Restore as Applicable
-            </button>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setOpen(!open)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100"
+              >
+                {open ? 'Close editor' : missingRecord ? 'Complete N/A record' : 'Edit N/A record'}
+              </button>
+              <button
+                onClick={onRestoreApplicable}
+                disabled={saving}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-60"
+              >
+                {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                Restore as Applicable
+              </button>
+            </div>
           )}
         </div>
         <div className="grid sm:grid-cols-2 gap-3 text-xs">
@@ -75,6 +104,34 @@ export default function ApplicabilityPanel({
           <p className="text-[11px] text-slate-500">
             Confirmed by {assessment.not_applicable_confirmed_by || 'unknown'} on {assessment.not_applicable_confirmed_date || 'unknown date'}.
           </p>
+        )}
+        {missingRecord && !open && (
+          <div className="flex gap-2 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            This older N/A record is incomplete. Add both the applicability justification and supporting scope evidence.
+          </div>
+        )}
+        {open && !readOnly && (
+          <div className="pt-3 border-t border-slate-200 space-y-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Why does {libEntry?.control_id} not apply?</label>
+              <textarea rows={3} className="form-input" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder={guidance.reason} />
+              <p className="text-[11px] text-slate-500 mt-1">{guidance.reason}</p>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">What evidence proves that scope statement?</label>
+              <textarea rows={3} className="form-input" value={scopeEvidence} onChange={(e) => setScopeEvidence(e.target.value)} placeholder={guidance.evidence} />
+              <p className="text-[11px] text-slate-500 mt-1">{guidance.evidence}</p>
+            </div>
+            <label className="flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+              <input type="checkbox" className="mt-0.5" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} />
+              <span>I reconfirmed that no in-scope system, device, location, provider, or data flow uses this capability.</span>
+            </label>
+            {error && <p className="text-xs font-semibold text-red-700">{error}</p>}
+            <button onClick={submit} disabled={saving} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 disabled:opacity-60">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />} Save N/A Record
+            </button>
+          </div>
         )}
       </div>
     );
@@ -135,25 +192,7 @@ export default function ApplicabilityPanel({
           {error && <p className="text-xs font-semibold text-red-700">{error}</p>}
           <div className="flex gap-2">
             <button
-              onClick={() => {
-                if (justification.trim().length < 20) {
-                  setError('Enter a specific justification of at least 20 characters.');
-                  return;
-                }
-                if (scopeEvidence.trim().length < 10) {
-                  setError('Identify the scope evidence that supports the decision.');
-                  return;
-                }
-                if (!confirmed) {
-                  setError('Confirm the scope statement before marking this control N/A.');
-                  return;
-                }
-                setError('');
-                onMarkNotApplicable({
-                  justification: justification.trim(),
-                  scopeEvidence: scopeEvidence.trim(),
-                });
-              }}
+              onClick={submit}
               disabled={saving}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-slate-700 hover:bg-slate-800 disabled:opacity-60"
             >
