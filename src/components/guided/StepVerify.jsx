@@ -9,6 +9,7 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
   const { variant } = resolveVariant(libEntry, activeKey);
   const steps = Array.isArray(variant?.validation_steps) ? variant.validation_steps : [];
   const allChecked = steps.length > 0 && steps.every((_, i) => checks[i]);
+  const notApplicable = currentStatus === 'Not Applicable';
   const alreadyDone = toSimpleStatus(currentStatus) === 'Done';
 
   return (
@@ -38,19 +39,21 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
 
       <div className="flex items-center justify-between flex-wrap gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
         <div className="text-sm text-green-900">
-          {alreadyDone
-            ? 'This control is marked done. You can move to the next control.'
-            : allChecked || steps.length === 0
+          {notApplicable
+            ? 'This control is documented as Not Applicable. Use the applicability panel above if the scope changes.'
+            : alreadyDone
+              ? 'This control is marked done. You can move to the next control.'
+              : allChecked || steps.length === 0
               ? 'All checks complete — mark this control done.'
               : 'Complete the checklist above to mark this control done.'}
         </div>
         <button
           onClick={onMarkDone}
-          disabled={saving || (steps.length > 0 && !allChecked) || alreadyDone}
+          disabled={saving || (steps.length > 0 && !allChecked) || alreadyDone || notApplicable}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-          {alreadyDone ? 'Marked Done' : 'Mark Control Done'}
+          {notApplicable ? 'Marked Not Applicable' : alreadyDone ? 'Marked Done' : 'Mark Control Done'}
         </button>
       </div>
     </div>
