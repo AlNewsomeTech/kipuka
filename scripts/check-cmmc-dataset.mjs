@@ -32,31 +32,27 @@ const DATASET_KEY = 'CMMC-2.13-SP800-171R2-2024-09';
 const CORRECTION_3_13_12 =
   'Prohibit remote activation of collaborative computing devices and provide indication of devices in use to users present at the device.';
 
-const LEVEL1_IDS = [
-  'AC.L1-b.1.i', 'AC.L1-b.1.ii', 'AC.L1-b.1.iii', 'AC.L1-b.1.iv',
-  'IA.L1-b.1.v', 'IA.L1-b.1.vi', 'MP.L1-b.1.vii',
-  'PE.L1-b.1.viii', 'PE.L1-b.1.ix',
-  'SC.L1-b.1.x', 'SC.L1-b.1.xi',
-  'SI.L1-b.1.xii', 'SI.L1-b.1.xiii', 'SI.L1-b.1.xiv', 'SI.L1-b.1.xv',
+// Independently pinned FAR 52.204-21 / CMMC Level 1 constants. These are not
+// imported from, or shared with, the backend importer under test.
+const LEVEL1_REQUIREMENTS = [
+  { id: 'AC.L1-b.1.i', nist: ['3.1.1'], text: 'Limit information system access to authorized users, processes acting on behalf of authorized users, or devices (including other information systems).' },
+  { id: 'AC.L1-b.1.ii', nist: ['3.1.2'], text: 'Limit information system access to the types of transactions and functions that authorized users are permitted to execute.' },
+  { id: 'AC.L1-b.1.iii', nist: ['3.1.20'], text: 'Verify and control/limit connections to and use of external information systems.' },
+  { id: 'AC.L1-b.1.iv', nist: ['3.1.22'], text: 'Control information posted or processed on publicly accessible information systems.' },
+  { id: 'IA.L1-b.1.v', nist: ['3.5.1'], text: 'Identify information system users, processes acting on behalf of users, or devices.' },
+  { id: 'IA.L1-b.1.vi', nist: ['3.5.2'], text: 'Authenticate (or verify) the identities of those users, processes, or devices, as a prerequisite to allowing access to organizational information systems.' },
+  { id: 'MP.L1-b.1.vii', nist: ['3.8.3'], text: 'Sanitize or destroy information system media containing Federal Contract Information before disposal or release for reuse.' },
+  { id: 'PE.L1-b.1.viii', nist: ['3.10.1'], text: 'Limit physical access to organizational information systems, equipment, and the respective operating environments to authorized individuals.' },
+  { id: 'PE.L1-b.1.ix', nist: ['3.10.3', '3.10.4', '3.10.5'], text: 'Escort visitors and monitor visitor activity; maintain audit logs of physical access; and control and manage physical access devices.' },
+  { id: 'SC.L1-b.1.x', nist: ['3.13.1'], text: 'Monitor, control, and protect organizational communications (i.e., information transmitted or received by organizational information systems) at the external boundaries and key internal boundaries of the information systems.' },
+  { id: 'SC.L1-b.1.xi', nist: ['3.13.5'], text: 'Implement subnetworks for publicly accessible system components that are physically or logically separated from internal networks.' },
+  { id: 'SI.L1-b.1.xii', nist: ['3.14.1'], text: 'Identify, report, and correct information and information system flaws in a timely manner.' },
+  { id: 'SI.L1-b.1.xiii', nist: ['3.14.2'], text: 'Provide protection from malicious code at appropriate locations within organizational information systems.' },
+  { id: 'SI.L1-b.1.xiv', nist: ['3.14.4'], text: 'Update malicious code protection mechanisms when new releases are available.' },
+  { id: 'SI.L1-b.1.xv', nist: ['3.14.5'], text: 'Perform periodic scans of the information system and real-time scans of files from external sources as files are downloaded, opened, or executed.' },
 ];
-
-const LEVEL1_CROSSWALK = [
-  ['AC.L1-b.1.i', ['3.1.1']],
-  ['AC.L1-b.1.ii', ['3.1.2']],
-  ['AC.L1-b.1.iii', ['3.1.20']],
-  ['AC.L1-b.1.iv', ['3.1.22']],
-  ['IA.L1-b.1.v', ['3.5.1']],
-  ['IA.L1-b.1.vi', ['3.5.2']],
-  ['MP.L1-b.1.vii', ['3.8.3']],
-  ['PE.L1-b.1.viii', ['3.10.1']],
-  ['PE.L1-b.1.ix', ['3.10.3', '3.10.4', '3.10.5']],
-  ['SC.L1-b.1.x', ['3.13.1']],
-  ['SC.L1-b.1.xi', ['3.13.5']],
-  ['SI.L1-b.1.xii', ['3.14.1']],
-  ['SI.L1-b.1.xiii', ['3.14.2']],
-  ['SI.L1-b.1.xiv', ['3.14.4']],
-  ['SI.L1-b.1.xv', ['3.14.5']],
-];
+const LEVEL1_IDS = LEVEL1_REQUIREMENTS.map((r) => r.id);
+const LEVEL1_CROSSWALK = LEVEL1_REQUIREMENTS.map((r) => [r.id, r.nist]);
 
 const FAMILY_CODES = [
   ['3.1', 'AC'], ['3.2', 'AT'], ['3.3', 'AU'], ['3.4', 'CM'], ['3.5', 'IA'],
