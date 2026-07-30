@@ -67,6 +67,27 @@ const DOCUMENT_CATALOG = [
 
 function specByKey(key) { return DOCUMENT_CATALOG.find(s => s.key === key); }
 
+// ---- Internal Pac-Sec authorization (duplicated locally on purpose) ----
+// Legacy Client/client_id workflows are internal tools: app-role admin may act on
+// any client; app-role technician only on clients listed in their assignment
+// string; every other role (including client) is refused before any data read.
+function isAssignedClient(user, clientId) {
+  const raw = user?.assigned_client_ids;
+  const tokens = Array.isArray(raw) ? raw : String(raw == null ? '' : raw).split(',');
+  return tokens.map((t) => String(t == null ? '' : t).trim()).filter(Boolean).includes(clientId);
+}
+function authorizeClientAccess(user, clientId) {
+  if (user?.role === 'admin') return null;
+  if (user?.role !== 'technician') {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  // Unassigned technician → 404 so the endpoint never reveals client existence.
+  if (!isAssignedClient(user, clientId)) {
+    return Response.json({ error: 'Client not found' }, { status: 404 });
+  }
+  return null;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -78,6 +99,10 @@ Deno.serve(async (req) => {
     if (!clientId || !docKey) return Response.json({ error: 'client_id and document_key required' }, { status: 400 });
     const spec = specByKey(docKey);
     if (!spec) return Response.json({ error: 'Unknown document_key' }, { status: 400 });
+
+    // Authorize BEFORE any service-role read/write.
+    const denied = authorizeClientAccess(user, clientId);
+    if (denied) return denied;
 
     const sr = base44.asServiceRole;
     const [

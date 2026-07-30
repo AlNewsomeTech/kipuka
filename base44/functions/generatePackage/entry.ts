@@ -122,6 +122,27 @@ function controlFamilyCode(controlId, family) {
 }
 function isApproved(status) { return status === 'Approved' || status === 'Published'; }
 
+// ---- Internal Pac-Sec authorization (duplicated locally on purpose) ----
+// Legacy Client/client_id workflows are internal tools: app-role admin may act on
+// any client; app-role technician only on clients listed in their assignment
+// string; every other role (including client) is refused before any data read.
+function isAssignedClient(user, clientId) {
+  const raw = user?.assigned_client_ids;
+  const tokens = Array.isArray(raw) ? raw : String(raw == null ? '' : raw).split(',');
+  return tokens.map((t) => String(t == null ? '' : t).trim()).filter(Boolean).includes(clientId);
+}
+function authorizeClientAccess(user, clientId) {
+  if (user?.role === 'admin') return null;
+  if (user?.role !== 'technician') {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  // Unassigned technician → 404 so the endpoint never reveals client existence.
+  if (!isAssignedClient(user, clientId)) {
+    return Response.json({ error: 'Client not found' }, { status: 404 });
+  }
+  return null;
+}
+
 // Map a generated document to a destination folder within the package.
 function docFolder(category) {
   const map = {
@@ -165,6 +186,10 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const clientId = body.client_id;
     if (!clientId) return Response.json({ error: 'client_id required' }, { status: 400 });
+
+    // Authorize BEFORE any service-role read/write/upload.
+    const denied = authorizeClientAccess(user, clientId);
+    if (denied) return denied;
 
     const level = body.level || 'Level 1';
     const exportMode = body.export_mode || 'Ready-only';
