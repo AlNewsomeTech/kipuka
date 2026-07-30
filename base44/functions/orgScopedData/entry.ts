@@ -76,8 +76,8 @@ Deno.serve(async (req) => {
       .filter({ user_email: caller.email, organization_id: org })
       .catch(() => []);
     const active = memberships.filter((m: any) => m.status === 'Active');
-    if (active.length === 0) {
-      return Response.json({ error: 'Your organization membership is not active. Contact your administrator.' }, { status: 403 });
+    if (active.length !== 1) {
+      return Response.json({ error: 'Your organization membership is not active or is ambiguous. Contact your administrator.' }, { status: 403 });
     }
 
     // Org gating: fully disabled or expired trial → clean 403.
