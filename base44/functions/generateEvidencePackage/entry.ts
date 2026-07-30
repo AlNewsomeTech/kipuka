@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
     }
 
     const orgRecord = await sr.entities.Organization.get(orgId).catch(() => null);
-    if (orgRecord?.fully_disabled === true
+    if (!orgRecord) return Response.json({ error: 'Project not found' }, { status: 404 });
+    if (orgRecord.fully_disabled === true
       || orgRecord?.subscription_status === 'Suspended'
       || orgRecord?.subscription_status === 'Cancelled'
       || orgRecord?.subscription_status === 'Past Due') {
