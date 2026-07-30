@@ -467,12 +467,20 @@ function checkImporter() {
     !/\.filter\([\s\S]*?\)\.catch\(\(\)\s*=>\s*\[\]\)/.test(src),
     'critical entity read failures are not swallowed as empty datasets',
   );
+  const persistedComparisons =
+    src.match(/stableSerialize\(persisted\[field\]\)\s*!==\s*stableSerialize\(expected\[field\]\)/g) || [];
   expect(
     /persistedErrors/.test(src) &&
       /const\s+controlFields\s*=/.test(src) &&
       /const\s+objectiveFields\s*=/.test(src) &&
-      /stableSerialize\(persisted\[field\]\)\s*!==\s*stableSerialize\(expected\[field\]\)/.test(src),
-    'persisted rows are revalidated for uniqueness, authoritative fields and hashes before activation',
+      persistedComparisons.length === 2,
+    'both persisted control and objective rows are revalidated for authoritative fields and hashes',
+  );
+  const persistedUniquenessChecks =
+    src.match(/new\s+Set\(persisted(?:Controls|Objectives)\.map/g) || [];
+  expect(
+    persistedUniquenessChecks.length === 2,
+    'both persisted control IDs and objective keys are checked for uniqueness before activation',
   );
   expect(
     /active:\s*existing\?\.active\s*===\s*true/.test(src) &&
