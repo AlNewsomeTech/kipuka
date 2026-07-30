@@ -645,7 +645,9 @@ Deno.serve(async (req) => {
       legacyByReq.set(reqId, list);
     }
 
-    const existingByControlId = new Map(alreadyImported.map((r: any) => [r.control_id, r]));
+    const existingByControlId = new Map<string, any>(
+      alreadyImported.map((r: any) => [r.control_id, r] as [string, any]),
+    );
     const created: string[] = [];
     const updated: string[] = [];
 
@@ -673,7 +675,9 @@ Deno.serve(async (req) => {
 
     const existingObjectives = await base44.asServiceRole.entities.AssessmentObjectiveLibrary
       .filter({ dataset_key: DATASET_KEY }, 'objective_key', 500);
-    const objByKey = new Map(existingObjectives.map((o: any) => [o.objective_key, o]));
+    const objByKey = new Map<string, any>(
+      existingObjectives.map((o: any) => [o.objective_key, o] as [string, any]),
+    );
     for (const row of built.allObjectives) {
       const existing = objByKey.get(row.objective_key);
       if (existing) {
@@ -706,8 +710,12 @@ Deno.serve(async (req) => {
       fail(persistedErrors, 'Persisted objective_key values are not unique and complete.');
     }
 
-    const expectedControls = new Map(built.allControls.map((r: any) => [r.control_id, r]));
-    const expectedObjectives = new Map(built.allObjectives.map((r: any) => [r.objective_key, r]));
+    const expectedControls = new Map<string, any>(
+      built.allControls.map((r: any) => [r.control_id, r] as [string, any]),
+    );
+    const expectedObjectives = new Map<string, any>(
+      built.allObjectives.map((r: any) => [r.objective_key, r] as [string, any]),
+    );
     const controlFields = [
       'dataset_key', 'dataset_version', 'framework', 'cmmc_level', 'domain', 'control_id',
       'requirement_text', 'source_requirement_id', 'source_document', 'source_version',
