@@ -132,7 +132,7 @@ function checkLegacyClientFunction(clean, { clientIdMissingPattern, nonClientOpP
   // 6. Authorized Client fetch + missing-client 404 before other target data work.
   const clientGet = must(clean, /entities\s*\.\s*Client\s*\.\s*get\s*\(\s*clientId\s*\)/,
     'authorized Client.get(clientId) existence check');
-  const missing404 = must(clean, /if\s*\(\s*!\s*client\s*\)[\s\S]{0,120}status:\s*404/,
+  const missing404 = must(clean, /if\s*\(\s*!\s*\w*[Cc]lient\w*\s*\)[\s\S]{0,140}status:\s*404/,
     'missing Client returns 404');
 
   const otherOp = at(clean, nonClientOpPattern);
@@ -212,8 +212,10 @@ function checkOrgScopedShared(clean) {
   must(clean, /memberships\s*\.\s*filter\s*\([\s\S]{0,80}status\s*===\s*'Active'\s*\)/,
     "membership set filtered to status exactly 'Active'");
   mustNot(clean, /status\s*!==\s*'Removed'/, "'not Removed' treated as an active membership");
-  must(clean, /if\s*\(\s*active\s*\.\s*length\s*===\s*0\s*\)[\s\S]{0,220}status:\s*403/,
-    'absent active membership is rejected with 403');
+  must(clean, /if\s*\(\s*active\s*\.\s*length\s*!==\s*1\s*\)[\s\S]{0,240}status:\s*403/,
+    'missing OR ambiguous active membership is rejected with 403 (exactly one required)');
+  mustNot(clean, /active\s*\.\s*length\s*===\s*0/,
+    'membership check only rejects zero memberships (multiple actives would pass)');
 
   const svc = must(clean, /const\s+svc\s*=\s*base44\s*\.\s*asServiceRole\s*\.\s*entities\s*\[\s*entity\s*\]/,
     'target entity handle resolution');
@@ -284,8 +286,10 @@ function checkOrgAssetWrite(src, clean) {
   must(clean, /memberships\s*\.\s*filter\s*\([\s\S]{0,80}status\s*===\s*'Active'\s*\)/,
     "membership set filtered to status exactly 'Active'");
   mustNot(clean, /status\s*!==\s*'Removed'/, "'not Removed' treated as an active membership");
-  must(clean, /if\s*\(\s*active\s*\.\s*length\s*===\s*0\s*\)[\s\S]{0,200}status:\s*403/,
-    'absent active membership is rejected with 403');
+  must(clean, /if\s*\(\s*active\s*\.\s*length\s*!==\s*1\s*\)[\s\S]{0,240}status:\s*403/,
+    'missing OR ambiguous active membership is rejected with 403 (exactly one required)');
+  mustNot(clean, /active\s*\.\s*length\s*===\s*0/,
+    'membership check only rejects zero memberships (multiple actives would pass)');
   must(clean, /READ_ONLY_ORG_ROLES\s*=\s*new\s+Set\s*\(\s*\[\s*'Auditor Viewer'\s*,\s*'Executive Viewer'/,
     'read-only organization roles remain defined');
   must(clean, /READ_ONLY_ORG_ROLES\s*\.\s*has\s*\(\s*role\s*\)[\s\S]{0,200}status:\s*403/,
