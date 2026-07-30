@@ -51,12 +51,19 @@ Deno.serve(async (req) => {
     const tasksByCtrl = {};
     for (const t of tasks) { if (t.related_control) (tasksByCtrl[t.related_control] ||= []).push(t); }
 
-    let migrated = 0, generated = 0, enriched = 0;
+    let migrated = 0, generated = 0, enriched = 0, preservedV2 = 0;
     const migratedIds = [], generatedIds = [];
     const updates = [];
 
     for (const rec of lib) {
       const cid = rec.control_id;
+
+      // Never overwrite the structured v2 layman guidance. The legacy migration
+      // may still backfill an old or newly seeded record that lacks v2 content.
+      if (rec.how_to_implement?.generic?.outcome && body.force_legacy !== true) {
+        preservedV2++;
+        continue;
+      }
       const pts = SPRS[shortId(cid)] || 1;
       const src = cmmcById[cid];
       const relTasks = tasksByCtrl[cid] || [];
@@ -137,6 +144,7 @@ Deno.serve(async (req) => {
       enriched_with_runbook_clicks: enriched,
       generated_generic_only: generated,
       generated_generic_control_ids: generatedIds,
+      preserved_structured_v2_guidance: preservedV2,
     });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
