@@ -101,6 +101,18 @@ async function sha256Hex(input: ArrayBuffer | Uint8Array | string) {
   return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
+// Deterministic JSON used for authoritative row hashes and lossless de-duplication.
+function stableSerialize(value: unknown): string {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return `[${value.map(stableSerialize).join(',')}]`;
+  if (typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    return `{${Object.keys(obj).sort().map((key) => `${JSON.stringify(key)}:${stableSerialize(obj[key])}`).join(',')}}`;
+  }
+  const encoded = JSON.stringify(value);
+  return encoded === undefined ? String(value) : encoded;
+}
+
 function familyOf(reqId: string) {
   const m = reqId.match(/^(3\.\d+)\.\d+$/);
   const fam = m ? FAMILY_MAP[m[1]] : null;
@@ -281,7 +293,7 @@ async function buildDataset() {
     const fam = familyOf(reqId);
     const control_id = `${fam.code}.L2-${reqId}`;
     const text = requirementText.get(reqId);
-    l2Controls.push({
+    const record: any = {
       ...meta,
       framework: 'CMMC',
       cmmc_level: 'Level 2',
@@ -295,8 +307,9 @@ async function buildDataset() {
       authoritative: true,
       active: false,
       sort_order: ++order,
-      content_sha256: await sha256Hex(`${control_id}|${text}`),
-    });
+    };
+    record.content_sha256 = await sha256Hex(stableSerialize(record));
+    l2Controls.push(record);
   }
 
   // --- Level 2 objective rows.
@@ -306,7 +319,7 @@ async function buildDataset() {
     const fam = familyOf(o.reqId);
     const control_id = `${fam.code}.L2-${o.reqId}`;
     const m = methodsByReq.get(o.reqId) || { examine: [], interview: [], test: [] };
-    l2ObjectiveRows.push({
+    const record: any = {
       ...meta,
       framework: 'NIST SP 800-171A',
       cmmc_level: 'Level 2',
@@ -324,8 +337,9 @@ async function buildDataset() {
       source_version: 'June 2018',
       sort_order: ++objOrder,
       active: false,
-      content_sha256: await sha256Hex(`${control_id}|${o.objective_id}|${o.text}`),
-    });
+    };
+    record.content_sha256 = await sha256Hex(stableSerialize(record));
+    l2ObjectiveRows.push(record);
   }
 
   // --- Level 1 ControlLibrary records (hardcoded authoritative map).
@@ -333,7 +347,7 @@ async function buildDataset() {
   let l1Order = 0;
   for (const entry of LEVEL1_MAP) {
     const fam = familyOf(entry.nist[0]);
-    l1Controls.push({
+    const record: any = {
       ...meta,
       framework: 'CMMC',
       cmmc_level: 'Level 1',
@@ -348,8 +362,9 @@ async function buildDataset() {
       authoritative: true,
       active: false,
       sort_order: ++l1Order,
-      content_sha256: await sha256Hex(`${entry.control_id}|${entry.text}`),
-    });
+    };
+    record.content_sha256 = await sha256Hex(stableSerialize(record));
+    l1Controls.push(record);
   }
   if (l1Controls.length !== EXPECT.l1Requirements) {
     fail(errors, `Expected ${EXPECT.l1Requirements} Level 1 requirements, found ${l1Controls.length}.`);
@@ -367,7 +382,7 @@ async function buildDataset() {
       const m = methodsByReq.get(reqId) || { examine: [], interview: [], test: [] };
       for (const o of mapped) {
         const objective_text = cuiToFci(o.text);
-        l1ObjectiveRows.push({
+        const record: any = {
           ...meta,
           framework: 'NIST SP 800-171A',
           cmmc_level: 'Level 1',
@@ -385,8 +400,9 @@ async function buildDataset() {
           source_version: 'June 2018 / v2.13',
           sort_order: ++l1ObjOrder,
           active: false,
-          content_sha256: await sha256Hex(`${entry.control_id}|${o.objective_id}|${objective_text}`),
-        });
+        };
+        record.content_sha256 = await sha256Hex(stableSerialize(record));
+        l1ObjectiveRows.push(record);
       }
     }
   }
@@ -468,29 +484,47 @@ const AUTHORITATIVE_FIELDS = new Set([
 ]);
 
 function mergeArrays(a: unknown, b: unknown) {
-  const list = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])].map((x) => String(x));
-  return [...new Set(list)];
+  const list = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])];
+  const seen = new Set<string>();
+  return list.filter((item) => {
+    const key = stableSerialize(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
-// Merge legacy guidance for a control, de-duplicating identical strings and
-// never discarding steps, evidence instructions, validation checks, or mistakes.
+function mergeGuidanceValue(existing: any, incoming: any): any {
+  if (incoming === undefined || incoming === null || incoming === '') return existing;
+  if (existing === undefined || existing === null || existing === '') return incoming;
+  if (Array.isArray(existing) && Array.isArray(incoming)) return mergeArrays(existing, incoming);
+  if (
+    typeof existing === 'object' && !Array.isArray(existing) &&
+    typeof incoming === 'object' && !Array.isArray(incoming)
+  ) {
+    const result = { ...existing };
+    for (const [key, value] of Object.entries(incoming)) {
+      result[key] = mergeGuidanceValue(result[key], value);
+    }
+    return result;
+  }
+  if (typeof existing === 'string' && typeof incoming === 'string') {
+    if (existing === incoming || existing.includes(incoming)) return existing;
+    if (incoming.includes(existing)) return incoming;
+    return `${existing}\n\n${incoming}`;
+  }
+  return existing;
+}
+
+// Merge legacy guidance recursively so nested runbooks and arrays of objects are
+// preserved without converting them to strings or overwriting sibling steps.
 function mergeLegacyGuidance(targets: any[]) {
   const merged: Record<string, any> = {};
   for (const legacy of targets) {
     if (!legacy) continue;
     for (const [k, v] of Object.entries(legacy)) {
       if (AUTHORITATIVE_FIELDS.has(k)) continue;
-      if (v === undefined || v === null || v === '') continue;
-      if (Array.isArray(v)) {
-        merged[k] = mergeArrays(merged[k], v);
-      } else if (typeof v === 'object') {
-        merged[k] = { ...(merged[k] || {}), ...v };
-      } else if (typeof v === 'string') {
-        if (!merged[k]) merged[k] = v;
-        else if (!String(merged[k]).includes(v)) merged[k] = `${merged[k]}\n\n${v}`;
-      } else if (merged[k] === undefined) {
-        merged[k] = v;
-      }
+      merged[k] = mergeGuidanceValue(merged[k], v);
     }
   }
   return merged;
