@@ -1,0 +1,110 @@
+{
+  "name": "AssessmentObjectiveLibrary",
+  "type": "object",
+  "description": "Authoritative, versioned NIST SP 800-171A assessment objectives. One row per (dataset_key, control_id, objective_id). Rows are imported inactive and only activated once the whole dataset validates.",
+  "properties": {
+    "dataset_key": {
+      "type": "string"
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "framework": {
+      "type": "string",
+      "default": "NIST SP 800-171A"
+    },
+    "cmmc_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2"
+      ]
+    },
+    "domain": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string",
+      "description": "CMMC control ID, e.g. AC.L2-3.1.1 or AC.L1-b.1.i."
+    },
+    "source_requirement_id": {
+      "type": "string",
+      "description": "Numeric NIST requirement, e.g. 3.1.1."
+    },
+    "objective_key": {
+      "type": "string",
+      "description": "Globally deterministic key: dataset_key|control_id|objective_id."
+    },
+    "objective_id": {
+      "type": "string",
+      "description": "Normalized NIST objective ID, e.g. 3.1.1[a]."
+    },
+    "source_objective_id_raw": {
+      "type": "string",
+      "description": "Identifier exactly as it appears in the source CSV, before normalization."
+    },
+    "objective_text": {
+      "type": "string"
+    },
+    "examine_objects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "interview_objects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "test_objects": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "sort_order": {
+      "type": "integer",
+      "default": 0
+    },
+    "source_document": {
+      "type": "string"
+    },
+    "source_version": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string"
+    },
+    "content_sha256": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "dataset_key",
+    "cmmc_level",
+    "control_id",
+    "objective_key",
+    "objective_id",
+    "objective_text"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

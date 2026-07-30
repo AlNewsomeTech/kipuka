@@ -83,6 +83,49 @@
     "active": {
       "type": "boolean",
       "default": true
+    },
+    "dataset_key": {
+      "type": "string",
+      "description": "Versioned authoritative dataset this record belongs to, e.g. CMMC-2.13-SP800-171R2-2024-09."
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "source_requirement_id": {
+      "type": "string",
+      "description": "Numeric NIST SP 800-171 requirement this record derives from, e.g. 3.1.1."
+    },
+    "source_document": {
+      "type": "string"
+    },
+    "source_version": {
+      "type": "string"
+    },
+    "source_url": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string"
+    },
+    "crosswalk_requirement_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "All NIST requirement IDs mapped to this control (e.g. PE.L1-b.1.ix maps 3.10.3, 3.10.4, 3.10.5)."
+    },
+    "content_sha256": {
+      "type": "string"
+    },
+    "authoritative": {
+      "type": "boolean",
+      "default": false,
+      "description": "True when requirement text and metadata came from the versioned authoritative import rather than hand-authored seed data."
+    },
+    "superseded_by_control_id": {
+      "type": "string",
+      "description": "Set on legacy records when a newer dataset supersedes them. Legacy records are deactivated, never deleted."
     }
   },
   "required": [

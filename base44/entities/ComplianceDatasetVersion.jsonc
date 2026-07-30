@@ -1,0 +1,73 @@
+{
+  "name": "ComplianceDatasetVersion",
+  "type": "object",
+  "description": "A versioned, auditable record of an authoritative CMMC/NIST dataset import. Tracks counts, source manifest, checksums, and activation state so dataset changes are traceable and reversible.",
+  "properties": {
+    "dataset_key": {
+      "type": "string"
+    },
+    "dataset_version": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Validated",
+        "Active",
+        "Superseded"
+      ],
+      "default": "Draft"
+    },
+    "level1_requirement_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "level2_requirement_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "level1_objective_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "level2_objective_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "source_manifest": {
+      "type": "object",
+      "default": {},
+      "description": "Normative publications, source URLs, checksums, and any recorded normative corrections."
+    },
+    "content_sha256": {
+      "type": "string"
+    },
+    "validation_notes": {
+      "type": "string"
+    },
+    "regulatory_status_note": {
+      "type": "string"
+    },
+    "activated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "imported_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset_key",
+    "dataset_version",
+    "status"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
