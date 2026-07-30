@@ -480,7 +480,7 @@ const AUTHORITATIVE_FIELDS = new Set([
   'dataset_key', 'dataset_version', 'source_requirement_id', 'source_document',
   'source_version', 'source_url', 'source_sha256', 'crosswalk_requirement_ids',
   'content_sha256', 'authoritative', 'active', 'sort_order',
-  'id', 'created_date', 'updated_date', 'created_by_id',
+  'id', 'created_date', 'updated_date', 'created_by_id', 'is_sample',
 ]);
 
 function mergeArrays(a: unknown, b: unknown) {
