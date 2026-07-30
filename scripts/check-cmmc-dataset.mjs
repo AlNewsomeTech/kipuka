@@ -403,13 +403,19 @@ function checkImporter() {
     'validation failures return an error, never success');
   expect(/built\.errors\.length\s*>\s*0/.test(src), 'any validation error blocks the response');
 
-  // Level 1 map.
+  // Level 1 map: independently verify every exact ID, crosswalk and FAR text.
   const missingIds = LEVEL1_IDS.filter((id) => !src.includes(`'${id}'`));
   expect(missingIds.length === 0, `all 15 Level 1 control IDs are hardcoded (missing: ${missingIds.join(',') || 'none'})`);
   const l1Entries = (src.match(/control_id:\s*'[A-Z]{2}\.L1-b\.1\.[ivx]+'/g) || []).length;
   expect(l1Entries === 15, `exactly 15 Level 1 map entries (found ${l1Entries})`);
-  expect(/nist:\s*\['3\.10\.3',\s*'3\.10\.4',\s*'3\.10\.5'\]/.test(src),
-    'PE.L1-b.1.ix maps 3.10.3, 3.10.4 and 3.10.5');
+  for (const expected of LEVEL1_REQUIREMENTS) {
+    const start = src.indexOf(`{ control_id: '${expected.id}'`);
+    const end = start === -1 ? -1 : src.indexOf(' },', start);
+    const block = start === -1 ? '' : src.slice(start, end === -1 ? start + 1000 : end + 2);
+    const expectedNist = `nist: [${expected.nist.map((id) => `'${id}'`).join(', ')}]`;
+    expect(block.includes(expectedNist), `${expected.id} has the exact NIST crosswalk`);
+    expect(block.includes(`text: '${expected.text}'`), `${expected.id} has the exact FAR safeguarding text`);
+  }
   expect(/cuiToFci/.test(src) && /\\bCUI\\b/.test(src), 'Level 1 display substitution of standalone CUI to FCI exists');
   const l2TextUntouched = !/cuiToFci\(o\.text\)[\s\S]{0,200}cmmc_level:\s*'Level 2'/.test(src);
   expect(l2TextUntouched, 'Level 2 source text is not altered by the FCI substitution');
@@ -439,6 +445,40 @@ function checkImporter() {
   expect(/superseded_by_control_id:\s*DATASET_KEY/.test(src), 'legacy records are marked superseded, not deleted');
   expect(/AUTHORITATIVE_FIELDS/.test(src), 'non-authoritative human-authored fields are preserved on merge');
   expect(/mergeLegacyGuidance/.test(src), 'legacy guidance merge with de-duplication exists');
+  expect(
+    /function\s+mergeGuidanceValue/.test(src) &&
+      /result\[key\]\s*=\s*mergeGuidanceValue\(result\[key\],\s*value\)/.test(src),
+    'legacy guidance is merged recursively through nested runbooks',
+  );
+  expect(
+    !/\.map\(\(x\)\s*=>\s*String\(x\)\)/.test(src) &&
+      !/merged\[k\]\s*=\s*\{\s*\.\.\.\(merged\[k\]\s*\|\|\s*\{\}\),\s*\.\.\.v\s*\}/.test(src),
+    'guidance arrays keep object values and nested objects are not shallow-overwritten',
+  );
+  const rowHashCalls = src.match(/content_sha256\s*=\s*await\s+sha256Hex\(stableSerialize\(record\)\)/g) || [];
+  expect(rowHashCalls.length === 4, 'all four authoritative row types hash their complete stable record content');
+  const filterLimits = [...src.matchAll(/\.filter\([\s\S]*?,\s*['"][^'"]*['"]\s*,\s*(\d+)\s*\)/g)]
+    .map((match) => Number(match[1]));
+  expect(
+    filterLimits.length >= 7 && filterLimits.every((limit) => limit <= 500),
+    `every Base44 filter page is bounded at 500 or fewer (found: ${filterLimits.join(',') || 'none'})`,
+  );
+  expect(
+    !/\.filter\([\s\S]*?\)\.catch\(\(\)\s*=>\s*\[\]\)/.test(src),
+    'critical entity read failures are not swallowed as empty datasets',
+  );
+  expect(
+    /persistedErrors/.test(src) &&
+      /const\s+controlFields\s*=/.test(src) &&
+      /const\s+objectiveFields\s*=/.test(src) &&
+      /stableSerialize\(persisted\[field\]\)\s*!==\s*stableSerialize\(expected\[field\]\)/.test(src),
+    'persisted rows are revalidated for uniqueness, authoritative fields and hashes before activation',
+  );
+  expect(
+    /active:\s*existing\?\.active\s*===\s*true/.test(src) &&
+      /active:\s*existing\.active\s*===\s*true/.test(src),
+    'idempotent reruns preserve already-active target controls and objectives during staging',
+  );
   expect(
     !/entities\.ControlAssessment/.test(src),
     'importer does not touch ControlAssessment or project data',
