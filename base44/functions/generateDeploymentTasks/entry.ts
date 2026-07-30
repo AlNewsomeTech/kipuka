@@ -51,6 +51,10 @@ Deno.serve(async (req) => {
     const denied = authorizeClientAccess(user, clientId);
     if (denied) return denied;
 
+    // Confirm the authorized target exists before any task/template reads or writes.
+    const targetClient = await base44.asServiceRole.entities.Client.get(clientId).catch(() => null);
+    if (!targetClient) return Response.json({ error: 'Client not found' }, { status: 404 });
+
     // Don't re-seed the template client itself
     if (clientId === TEMPLATE_CLIENT_ID) {
       return Response.json({ created: 0, skipped: true, reason: 'template_client' });
