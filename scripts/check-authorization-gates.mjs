@@ -176,10 +176,15 @@ function checkGenerateEvidencePackage(src, clean) {
   must(clean, /if\s*\(\s*!\s*orgId\s*\)[\s\S]{0,120}status:\s*404/, 'project without organization_id returns 404');
   must(clean, /user\.organization_id\s*!==\s*orgId[\s\S]{0,160}status:\s*404/,
     'non-staff caller from another organization receives 404');
-  must(clean, /status\s*===\s*'Active'/, "membership status must equal 'Active'");
+  must(clean, /memberships\s*\.\s*filter\s*\([\s\S]{0,80}status\s*===\s*'Active'\s*\)/,
+    "membership set is filtered to status exactly 'Active'");
   mustNot(clean, /status\s*!==\s*'Removed'/, "'not Removed' treated as an active membership");
-  must(clean, /if\s*\(\s*!\s*memberships\s*\.\s*some\s*\([\s\S]{0,160}status:\s*404/,
-    'absent active membership is rejected with 404');
+  must(clean, /if\s*\(\s*active\s*\.\s*length\s*!==\s*1\s*\)[\s\S]{0,160}status:\s*404/,
+    'missing OR ambiguous active membership is rejected with 404');
+  mustNot(clean, /memberships\s*\.\s*some\s*\(/,
+    'membership existence check allows multiple Active rows to pass');
+  mustNot(clean, /active\s*\.\s*length\s*===\s*0/,
+    'membership check only rejects zero memberships (multiple actives would pass)');
 
   // Organization state gating before any package data read.
   const orgGet = must(clean, /entities\s*\.\s*Organization\s*\.\s*get\s*\(\s*orgId\s*\)/, 'owning Organization lookup');
