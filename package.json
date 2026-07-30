@@ -10,6 +10,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "test:security": "node scripts/check-authorization-gates.mjs",
+    "test:cmmc-data": "node scripts/check-cmmc-dataset.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
