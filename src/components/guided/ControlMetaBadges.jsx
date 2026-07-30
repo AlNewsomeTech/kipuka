@@ -9,7 +9,7 @@ export default function ControlMetaBadges({ points, minutes, size = 'sm' }) {
         <Award className="w-3 h-3" /> {points} pt{points !== 1 ? 's' : ''}
       </span>
       <span className={`inline-flex items-center gap-1 rounded-full font-semibold bg-slate-100 text-slate-600 ${txt}`}>
-        <Clock className="w-3 h-3" /> ~{minutes} min
+        <Clock className="w-3 h-3" /> ~{minutes} min walkthrough
       </span>
     </span>
   );
