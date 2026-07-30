@@ -581,11 +581,11 @@ Deno.serve(async (req) => {
     // Reads legacy counts to describe the plan. Performs ZERO entity writes.
     if (mode === 'dry_run') {
       const legacy = await base44.asServiceRole.entities.ControlLibrary
-        .filter({ active: true }, 'control_id', 500).catch(() => []);
+        .filter({ active: true }, 'control_id', 500);
       const legacyL1 = legacy.filter((c: any) => c.cmmc_level === 'Level 1').length;
       const legacyL2 = legacy.filter((c: any) => c.cmmc_level === 'Level 2').length;
       const existingNew = await base44.asServiceRole.entities.ControlLibrary
-        .filter({ dataset_key: DATASET_KEY }, 'control_id', 500).catch(() => []);
+        .filter({ dataset_key: DATASET_KEY }, 'control_id', 500);
 
       return Response.json({
         ok: true,
@@ -616,7 +616,7 @@ Deno.serve(async (req) => {
     // ------------------------------------------------------------- APPLY ----
     // Non-destructive version migration. Not executed in this phase.
     const legacyAll = await base44.asServiceRole.entities.ControlLibrary
-      .filter({}, 'control_id', 1000).catch(() => []);
+      .filter({}, 'control_id', 500);
     const legacyActive = legacyAll.filter((c: any) => c.active !== false && !c.dataset_key);
     const legacyL1 = legacyActive.filter((c: any) => c.cmmc_level === 'Level 1').length;
     const legacyL2 = legacyActive.filter((c: any) => c.cmmc_level === 'Level 2').length;
@@ -655,39 +655,102 @@ Deno.serve(async (req) => {
       );
       const guidance = mergeLegacyGuidance(legacyMatches);
       const title = rec.control_title || legacyMatches[0]?.control_title || rec.control_id;
-      const payload = { ...guidance, ...rec, control_title: title };
       const existing = existingByControlId.get(rec.control_id);
+      const payload = {
+        ...guidance,
+        ...rec,
+        control_title: title,
+        active: existing?.active === true,
+      };
       if (existing) {
         await base44.asServiceRole.entities.ControlLibrary.update(existing.id, payload);
         updated.push(rec.control_id);
       } else {
-        await base44.asServiceRole.entities.ControlLibrary.create(payload);
+        await base44.asServiceRole.entities.ControlLibrary.create({ ...payload, active: false });
         created.push(rec.control_id);
       }
     }
 
     const existingObjectives = await base44.asServiceRole.entities.AssessmentObjectiveLibrary
-      .filter({ dataset_key: DATASET_KEY }, 'objective_key', 1000).catch(() => []);
+      .filter({ dataset_key: DATASET_KEY }, 'objective_key', 500);
     const objByKey = new Map(existingObjectives.map((o: any) => [o.objective_key, o]));
     for (const row of built.allObjectives) {
       const existing = objByKey.get(row.objective_key);
-      if (existing) await base44.asServiceRole.entities.AssessmentObjectiveLibrary.update(existing.id, row);
-      else await base44.asServiceRole.entities.AssessmentObjectiveLibrary.create(row);
+      if (existing) {
+        await base44.asServiceRole.entities.AssessmentObjectiveLibrary.update(existing.id, {
+          ...row,
+          active: existing.active === true,
+        });
+      } else {
+        await base44.asServiceRole.entities.AssessmentObjectiveLibrary.create({ ...row, active: false });
+      }
     }
 
-    // Re-validate persisted counts before any activation.
+    // Re-validate the persisted authoritative fields, hashes and uniqueness
+    // before any legacy record is deactivated or target record is activated.
     const persistedControls = await base44.asServiceRole.entities.ControlLibrary
-      .filter({ dataset_key: DATASET_KEY }, 'control_id', 1000).catch(() => []);
+      .filter({ dataset_key: DATASET_KEY }, 'control_id', 500);
     const persistedObjectives = await base44.asServiceRole.entities.AssessmentObjectiveLibrary
-      .filter({ dataset_key: DATASET_KEY }, 'objective_key', 1000).catch(() => []);
-    if (
-      persistedControls.length !== EXPECT.totalRequirements ||
-      persistedObjectives.length !== EXPECT.totalObjectives
-    ) {
+      .filter({ dataset_key: DATASET_KEY }, 'objective_key', 500);
+    const persistedErrors: string[] = [];
+    if (persistedControls.length !== EXPECT.totalRequirements) {
+      fail(persistedErrors, `Persisted ${persistedControls.length}/${EXPECT.totalRequirements} requirements.`);
+    }
+    if (persistedObjectives.length !== EXPECT.totalObjectives) {
+      fail(persistedErrors, `Persisted ${persistedObjectives.length}/${EXPECT.totalObjectives} objectives.`);
+    }
+    if (new Set(persistedControls.map((r: any) => r.control_id)).size !== EXPECT.totalRequirements) {
+      fail(persistedErrors, 'Persisted control_id values are not unique and complete.');
+    }
+    if (new Set(persistedObjectives.map((r: any) => r.objective_key)).size !== EXPECT.totalObjectives) {
+      fail(persistedErrors, 'Persisted objective_key values are not unique and complete.');
+    }
+
+    const expectedControls = new Map(built.allControls.map((r: any) => [r.control_id, r]));
+    const expectedObjectives = new Map(built.allObjectives.map((r: any) => [r.objective_key, r]));
+    const controlFields = [
+      'dataset_key', 'dataset_version', 'framework', 'cmmc_level', 'domain', 'control_id',
+      'requirement_text', 'source_requirement_id', 'source_document', 'source_version',
+      'source_url', 'source_sha256', 'crosswalk_requirement_ids', 'content_sha256',
+      'authoritative', 'sort_order',
+    ];
+    const objectiveFields = [
+      'dataset_key', 'dataset_version', 'framework', 'cmmc_level', 'domain', 'control_id',
+      'source_requirement_id', 'objective_key', 'objective_id', 'source_objective_id_raw',
+      'objective_text', 'examine_objects', 'interview_objects', 'test_objects',
+      'source_document', 'source_version', 'source_url', 'source_sha256',
+      'content_sha256', 'sort_order',
+    ];
+    for (const persisted of persistedControls) {
+      const expected = expectedControls.get(persisted.control_id);
+      if (!expected) {
+        fail(persistedErrors, `Unexpected persisted control ${persisted.control_id}.`);
+        continue;
+      }
+      for (const field of controlFields) {
+        if (stableSerialize(persisted[field]) !== stableSerialize(expected[field])) {
+          fail(persistedErrors, `Persisted control ${persisted.control_id} differs in ${field}.`);
+        }
+      }
+    }
+    for (const persisted of persistedObjectives) {
+      const expected = expectedObjectives.get(persisted.objective_key);
+      if (!expected) {
+        fail(persistedErrors, `Unexpected persisted objective ${persisted.objective_key}.`);
+        continue;
+      }
+      for (const field of objectiveFields) {
+        if (stableSerialize(persisted[field]) !== stableSerialize(expected[field])) {
+          fail(persistedErrors, `Persisted objective ${persisted.objective_key} differs in ${field}.`);
+        }
+      }
+    }
+    if (persistedErrors.length > 0) {
       return Response.json(
         {
           ok: false,
-          error: `Post-write validation failed: persisted ${persistedControls.length}/${EXPECT.totalRequirements} requirements and ${persistedObjectives.length}/${EXPECT.totalObjectives} objectives. Nothing was activated; legacy data is untouched.`,
+          error: 'Post-write validation failed. Nothing was activated; legacy data is untouched.',
+          validation_errors: persistedErrors,
         },
         { status: 500 },
       );
@@ -712,7 +775,7 @@ Deno.serve(async (req) => {
     }
 
     const versions = await base44.asServiceRole.entities.ComplianceDatasetVersion
-      .filter({ dataset_key: DATASET_KEY }, '-created_date', 10).catch(() => []);
+      .filter({ dataset_key: DATASET_KEY }, '-created_date', 10);
     const versionPayload = {
       dataset_key: DATASET_KEY,
       dataset_version: DATASET_VERSION,
