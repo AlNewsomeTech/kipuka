@@ -55,7 +55,7 @@
     },
     "how_to_implement": {
       "type": "object",
-      "description": "Per-implementation-stack how-to variants keyed by stack: m365_commercial, m365_gcc, m365_gcc_high, google_workspace, generic. Each variant is an object with: where_to_go {name, url}, steps (array of ordered click-by-click strings), setting_to_change (string), screenshot_instructions (string), screenshot_naming (string, CONTROLID_ToolName_Description_YYYY-MM-DD convention), validation_steps (array of strings), common_mistakes (array of strings).",
+      "description": "Per-environment structured runbooks. Each variant includes outcome, responsible_role, before_you_start, where_to_go {name, url}, ordered click-by-click steps, setting_to_change, kipuka_actions, screenshot_instructions, screenshot_naming using CompanyName_ControlType_CONTROLID_ToolName_Description_YYYY-MM-DD, validation_steps, and common_mistakes.",
       "default": {}
     },
     "estimated_minutes": {
