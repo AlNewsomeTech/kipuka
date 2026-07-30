@@ -90,6 +90,25 @@
     "pacsec_internal_notes": {
       "type": "string"
     },
+    "not_applicable_justification": {
+      "type": "string",
+      "description": "Required plain-language explanation of why the security requirement does not apply within the documented CMMC assessment scope."
+    },
+    "not_applicable_scope_evidence": {
+      "type": "string",
+      "description": "Scope artifacts or records that support the Not Applicable finding, such as diagrams, inventories, SSP sections, or provider responsibility records."
+    },
+    "not_applicable_confirmed_by": {
+      "type": "string"
+    },
+    "not_applicable_confirmed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "not_applicable_previous_status": {
+      "type": "string",
+      "description": "The prior status restored if the control becomes applicable again."
+    },
     "last_reviewed_by": {
       "type": "string"
     },
