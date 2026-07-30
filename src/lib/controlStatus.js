@@ -24,7 +24,7 @@ export const CONTROL_FAMILIES = [
 // verified = met + evidence accepted, implemented = implemented pending evidence,
 // in_progress = planned/in progress, not_started = everything else.
 export function statusBucket(status) {
-  if (status === 'Evidence Accepted' || status === 'Ready for Documentation' || status === 'Ready for Assessment') return 'verified';
+  if (status === 'Evidence Accepted' || status === 'Ready for Documentation' || status === 'Ready for Assessment' || status === 'Not Applicable') return 'verified';
   if (status === 'Implemented' || status === 'Implemented Pending Evidence' || status === 'Evidence Uploaded' || status === 'Evidence Needs Review') return 'implemented';
   if (isInProgressStatus(status)) return 'in_progress';
   return 'not_started';
