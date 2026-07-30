@@ -25,7 +25,7 @@ export default function StepCapture({ libEntry, projectStackKey, selectedStack, 
           <Camera className="w-4 h-4 text-[#0F1E3C]" />
           <h3 className="text-sm font-bold text-slate-800">What to capture</h3>
         </div>
-        <p className="text-sm text-slate-700 leading-relaxed">
+        <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
           {variant?.screenshot_instructions || `Capture evidence showing ${libEntry.control_id} is implemented.`}
         </p>
       </div>
