@@ -12,12 +12,14 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilename } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
+import { AUDIT_ACTIONS, logAudit } from '@/lib/auditLog';
 import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
 import StepDo from '@/components/guided/StepDo';
 import StepCapture from '@/components/guided/StepCapture';
 import StepUpload from '@/components/guided/StepUpload';
 import StepVerify from '@/components/guided/StepVerify';
+import ApplicabilityPanel from '@/components/guided/ApplicabilityPanel';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 export default function GuidedWalkthrough() {
@@ -39,6 +41,7 @@ export default function GuidedWalkthrough() {
   const [stuckOpen, setStuckOpen] = useState(false);
   const [stuckNote, setStuckNote] = useState('');
   const [savingStuck, setSavingStuck] = useState(false);
+  const [savingApplicability, setSavingApplicability] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -114,6 +117,87 @@ export default function GuidedWalkthrough() {
     const next = { ...checks, [i]: !checks[i] };
     setChecks(next);
     persist({ verify_checks: next });
+  };
+
+  const markNotApplicable = async ({ justification, scopeEvidence }) => {
+    setSavingApplicability(true);
+    const today = new Date().toISOString().slice(0, 10);
+    const reviewer = user?.full_name || user?.email || '';
+    const patch = {
+      status: 'Not Applicable',
+      not_applicable_justification: justification,
+      not_applicable_scope_evidence: scopeEvidence,
+      not_applicable_confirmed_by: reviewer,
+      not_applicable_confirmed_date: today,
+      not_applicable_previous_status: assessment?.status && assessment.status !== 'Not Applicable' ? assessment.status : 'Not Started',
+      last_reviewed_by: reviewer,
+      last_reviewed_date: today,
+    };
+
+    try {
+      let saved;
+      if (assessment?.id) {
+        saved = await base44.entities.ControlAssessment.update(assessment.id, patch);
+      } else {
+        saved = await base44.entities.ControlAssessment.create({
+          organization_id: project.organization_id,
+          project_id: projectId,
+          control_id: controlId,
+          control_title: libEntry.control_title,
+          domain: libEntry.domain,
+          cmmc_level: libEntry.cmmc_level,
+          evidence_status: 'No Evidence',
+          risk_rating: 'Moderate',
+          ...patch,
+        });
+      }
+      setAssessments((prev) => prev.some((a) => a.id === saved.id)
+        ? prev.map((a) => (a.id === saved.id ? { ...a, ...saved, ...patch } : a))
+        : [...prev, saved]);
+      const allSteps = [1, 2, 3, 4, 5];
+      setCompletedSteps(allSteps);
+      await persist({ completed_steps: allSteps });
+      logAudit({
+        organizationId: project.organization_id,
+        user,
+        actionType: AUDIT_ACTIONS.ASSESSMENT_STATUS_CHANGE,
+        targetEntity: 'ControlAssessment',
+        targetRecordId: saved.id,
+        summary: `${controlId} marked Not Applicable. Justification: ${justification}. Scope evidence: ${scopeEvidence}`,
+      });
+    } catch (error) {
+      window.alert(`Could not mark this control Not Applicable: ${error.message}`);
+    } finally {
+      setSavingApplicability(false);
+    }
+  };
+
+  const restoreApplicable = async () => {
+    if (!assessment?.id) return;
+    setSavingApplicability(true);
+    const restoredStatus = assessment.not_applicable_previous_status || 'Not Started';
+    const today = new Date().toISOString().slice(0, 10);
+    const reviewer = user?.full_name || user?.email || '';
+    try {
+      await base44.entities.ControlAssessment.update(assessment.id, {
+        status: restoredStatus,
+        last_reviewed_by: reviewer,
+        last_reviewed_date: today,
+      });
+      setAssessments((prev) => prev.map((a) => (a.id === assessment.id ? { ...a, status: restoredStatus } : a)));
+      logAudit({
+        organizationId: project.organization_id,
+        user,
+        actionType: AUDIT_ACTIONS.ASSESSMENT_STATUS_CHANGE,
+        targetEntity: 'ControlAssessment',
+        targetRecordId: assessment.id,
+        summary: `${controlId} restored from Not Applicable to ${restoredStatus}.`,
+      });
+    } catch (error) {
+      window.alert(`Could not restore this control: ${error.message}`);
+    } finally {
+      setSavingApplicability(false);
+    }
   };
 
   // VERIFY → write the control done via the simple-status mapping (real taxonomy value).
@@ -214,10 +298,19 @@ export default function GuidedWalkthrough() {
         </div>
       </div>
 
+      <ApplicabilityPanel
+        assessment={assessment}
+        libEntry={libEntry}
+        readOnly={readOnly}
+        saving={savingApplicability}
+        onMarkNotApplicable={markNotApplicable}
+        onRestoreApplicable={restoreApplicable}
+      />
+
       {/* Step content */}
       <div>
         {step === 1 && <StepUnderstand libEntry={libEntry} />}
-        {step === 2 && <StepDo libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} onSelectStack={onSelectStack} />}
+        {step === 2 && <StepDo libEntry={libEntry} project={project} organization={organization} projectStackKey={projectStackKey} selectedStack={selectedStack} onSelectStack={onSelectStack} />}
         {step === 3 && <StepCapture libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} suggestedFilename={suggestedFilename} />}
         {step === 4 && <StepUpload project={project} currentUser={user} controlId={controlId} suggestedFilename={suggestedFilename} onChanged={load} />}
         {step === 5 && (
