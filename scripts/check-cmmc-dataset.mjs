@@ -362,8 +362,9 @@ function checkImporter() {
     const head = src.slice(0, dryStart);
     const writes = head.match(/\.(create|update|delete|bulkCreate|bulkUpdate|deleteMany|updateMany)\s*\(/g) || [];
     expect(writes.length === 0, `no entity write occurs before the dry_run branch (found ${writes.length})`);
-    const dryEnd = src.indexOf('mode === \'apply\'') !== -1 ? src.indexOf('APPLY') : src.length;
-    const dryBody = src.slice(dryStart, dryEnd > dryStart ? dryEnd : src.length);
+    const applyStart = at(/const\s+legacyAll\s*=\s*await\s+base44\.asServiceRole/);
+    expect(applyStart > dryStart, 'the apply path begins after the dry_run branch');
+    const dryBody = src.slice(dryStart, applyStart > dryStart ? applyStart : src.length);
     const dryWrites = dryBody.match(/\.(create|update|delete|bulkCreate|bulkUpdate|deleteMany|updateMany)\s*\(/g) || [];
     expect(dryWrites.length === 0, `dry_run branch itself performs zero entity writes (found ${dryWrites.length})`);
     expect(/writes_performed:\s*0/.test(dryBody), 'dry_run response reports writes_performed: 0');
@@ -386,7 +387,8 @@ function checkImporter() {
     'identifier normalization helper exists');
   expect(src.includes(CORRECTION_3_13_12), 'exact 3.13.12 normative correction text is present');
   expect(/corrections\.push/.test(src), '3.13.12 correction is recorded in validation notes / manifest');
-  expect(/SELECT\s+FROM/i.test(src), 'SELECT FROM method/object lists are parsed');
+  expect(/SELECT(\\s\+|\s+)FROM/i.test(src) && /parseSelectFrom/.test(src),
+    'SELECT FROM method/object lists are parsed into arrays');
   expect(/bom:\s*true/.test(src), 'BOM handling is enabled');
 
   // Counts as hard invariants.
@@ -434,7 +436,7 @@ function checkImporter() {
   expect(/status:\s*409/.test(src), 'failed apply precondition is rejected');
   const del = src.match(/entities\.\w+\.delete\s*\(/g) || [];
   expect(del.length === 0, 'apply never deletes any record');
-  const activateAt = at(/active:\s*true/);
+  const activateAt = at(/update\([^)]*,\s*\{\s*active:\s*true\s*\}\)/);
   const postValidateAt = at(/Post-write validation failed/);
   expect(postValidateAt !== -1, 'apply re-validates persisted counts before activation');
   expect(postValidateAt !== -1 && activateAt > postValidateAt, 'activation happens after post-write validation');
@@ -461,10 +463,11 @@ function checkPackageJson() {
   const extra = actual.filter((s) => !expectedScripts.includes(s));
   expect(extra.length === 0, `no unexpected scripts added (extra: ${extra.join(',') || 'none'})`);
   expect(!pkg.dependencies?.['csv-parse'], 'csv-parse was NOT added to dependencies (Deno npm: import only)');
-  expect(Object.keys(pkg.dependencies || {}).length === 51,
-    `dependency count unchanged at 51 (found ${Object.keys(pkg.dependencies || {}).length})`);
-  expect(Object.keys(pkg.devDependencies || {}).length === 18,
-    `devDependency count unchanged at 18 (found ${Object.keys(pkg.devDependencies || {}).length})`);
+  // Untouched baseline measured from the working tree before this phase.
+  expect(Object.keys(pkg.dependencies || {}).length === 68,
+    `dependency count unchanged at the 68 baseline (found ${Object.keys(pkg.dependencies || {}).length})`);
+  expect(Object.keys(pkg.devDependencies || {}).length === 17,
+    `devDependency count unchanged at the 17 baseline (found ${Object.keys(pkg.devDependencies || {}).length})`);
 }
 
 // ================================================================== main ====
