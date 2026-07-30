@@ -38,8 +38,8 @@ Deno.serve(async (req) => {
         .filter({ organization_id: organizationId, user_email: user.email })
         .catch(() => []);
       const active = memberships.filter((m: any) => m.status === 'Active');
-      if (active.length === 0) {
-        return Response.json({ error: 'You are not an active member of this organization.' }, { status: 403 });
+      if (active.length !== 1) {
+        return Response.json({ error: 'Your organization membership is missing or ambiguous.' }, { status: 403 });
       }
       const role = active[0].role;
       if (READ_ONLY_ORG_ROLES.has(role)) {
@@ -77,6 +77,12 @@ Deno.serve(async (req) => {
       if (projectId && existing.project_id !== projectId) {
         return Response.json({ error: 'Asset not found in this project.' }, { status: 404 });
       }
+      if (existing.project_id) {
+        const storedProject = await base44.asServiceRole.entities.Project.get(existing.project_id).catch(() => null);
+        if (!storedProject || storedProject.organization_id !== organizationId) {
+          return Response.json({ error: 'Asset not found in this organization.' }, { status: 404 });
+        }
+      }
       const updated = await svc.update(assetId, clean);
       return Response.json({ asset: updated });
     }
@@ -89,6 +95,12 @@ Deno.serve(async (req) => {
       }
       if (projectId && existing.project_id !== projectId) {
         return Response.json({ error: 'Asset not found in this project.' }, { status: 404 });
+      }
+      if (existing.project_id) {
+        const storedProject = await base44.asServiceRole.entities.Project.get(existing.project_id).catch(() => null);
+        if (!storedProject || storedProject.organization_id !== organizationId) {
+          return Response.json({ error: 'Asset not found in this organization.' }, { status: 404 });
+        }
       }
       await svc.delete(assetId);
       return Response.json({ ok: true });
