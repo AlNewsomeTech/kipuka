@@ -60,8 +60,8 @@ Deno.serve(async (req) => {
       .filter({ user_email: caller.email, organization_id: org })
       .catch(() => []);
     const active = memberships.filter((m: any) => m.status === 'Active');
-    if (active.length === 0) {
-      return Response.json({ error: 'Your organization membership is not active. Contact your administrator.' }, { status: 403 });
+    if (active.length !== 1) {
+      return Response.json({ error: 'Your organization membership is missing or ambiguous. Contact your administrator.' }, { status: 403 });
     }
     const orgRole = active[0].role;
     if (READ_ONLY_ORG_ROLES.has(orgRole)) {
