@@ -91,7 +91,8 @@ Deno.serve(async (req) => {
       const memberships = await sr.entities.OrganizationUser
         .filter({ user_email: user.email, organization_id: orgId })
         .catch(() => []);
-      if (!memberships.some((m) => m.status === 'Active')) {
+      const active = memberships.filter((m) => m.status === 'Active');
+      if (active.length !== 1) {
         return Response.json({ error: 'Project not found' }, { status: 404 });
       }
     }
