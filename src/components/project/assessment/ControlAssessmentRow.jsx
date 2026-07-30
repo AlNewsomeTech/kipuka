@@ -83,6 +83,21 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
             <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: assessment.evidence_required || libEntry?.example_evidence || '<em>Not specified</em>' }} />
           </Field>
 
+          {assessment.status === 'Not Applicable' && (
+            <Field label="Not Applicable Finding">
+              <div className={`rounded-lg border p-3 space-y-2 ${assessment.not_applicable_justification && assessment.not_applicable_scope_evidence ? 'bg-slate-50 border-slate-200' : 'bg-amber-50 border-amber-200'}`}>
+                <div>
+                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Why it does not apply</div>
+                  <p className="text-xs text-slate-800 whitespace-pre-line">{assessment.not_applicable_justification || 'Missing. Open the guided walkthrough and complete the N/A record.'}</p>
+                </div>
+                <div>
+                  <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Scope evidence</div>
+                  <p className="text-xs text-slate-800 whitespace-pre-line">{assessment.not_applicable_scope_evidence || 'Missing. Identify the scope records that support this finding.'}</p>
+                </div>
+              </div>
+            </Field>
+          )}
+
           {/* Implementation notes */}
           <div className="grid sm:grid-cols-2 gap-3">
             <div>
