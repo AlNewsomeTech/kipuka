@@ -204,7 +204,7 @@ export default function GuidedWalkthrough() {
               <Star className="w-3.5 h-3.5" /> {points} SPRS {points === 1 ? 'point' : 'points'}
             </span>
             <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
-              <Clock className="w-3.5 h-3.5" /> ~{minutes} min
+              <Clock className="w-3.5 h-3.5" /> ~{minutes} min walkthrough
             </span>
           </div>
         </div>
