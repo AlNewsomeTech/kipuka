@@ -50,14 +50,19 @@ Deno.serve(async (req) => {
     }
 
     // Resolve org membership + role server-side.
-    const memberships = await base44.asServiceRole.entities.OrganizationUser
-      .filter({ user_email: caller.email })
-      .catch(() => []);
-    const active = memberships.filter((m: any) => m.status !== 'Removed');
-    if (active.length === 0) {
+    // Tenant resolved from the caller's own user record only, and it must be
+    // backed by an OrganizationUser membership with status exactly 'Active'.
+    const org = caller.organization_id;
+    if (!org) {
       return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
     }
-    const org = active[0].organization_id;
+    const memberships = await base44.asServiceRole.entities.OrganizationUser
+      .filter({ user_email: caller.email, organization_id: org })
+      .catch(() => []);
+    const active = memberships.filter((m: any) => m.status === 'Active');
+    if (active.length === 0) {
+      return Response.json({ error: 'Your organization membership is not active. Contact your administrator.' }, { status: 403 });
+    }
     const orgRole = active[0].role;
     if (READ_ONLY_ORG_ROLES.has(orgRole)) {
       return Response.json({ error: `Your role (${orgRole}) has read-only access and cannot make changes.` }, { status: 403 });
@@ -75,10 +80,21 @@ Deno.serve(async (req) => {
 
     const svc = base44.asServiceRole.entities[entity];
     const clean = stripForbidden(data);
+    // organization_id is never accepted from the client on any operation.
+    delete clean.organization_id;
+
+    // Any project_id referenced by this write must belong to the caller's org.
+    const projectBelongsToOrg = async (projectId: string) => {
+      const p = await base44.asServiceRole.entities.Project.get(projectId).catch(() => null);
+      return !!p && p.organization_id === org;
+    };
 
     if (operation === 'create') {
       // PolicyTemplate: never let clients create master templates.
       if (entity === 'PolicyTemplate') clean.is_master_template = false;
+      if (clean.project_id && !(await projectBelongsToOrg(clean.project_id))) {
+        return Response.json({ error: 'Not found' }, { status: 404 });
+      }
       const record = await svc.create({ ...clean, organization_id: org });
       return Response.json({ record });
     }
@@ -93,8 +109,16 @@ Deno.serve(async (req) => {
     if (entity === 'PolicyTemplate' && existing.is_master_template === true) {
       return Response.json({ error: 'Master templates are read-only.' }, { status: 403 });
     }
-    // organization_id and master flag can never be changed through this path.
-    delete clean.organization_id;
+    // The record's existing project (if any) must belong to the caller's org,
+    // and a newly supplied project_id must too — updates can never move a
+    // record across organizations or projects of another tenant.
+    if (existing.project_id && !(await projectBelongsToOrg(existing.project_id))) {
+      return Response.json({ error: 'Not found' }, { status: 404 });
+    }
+    if (clean.project_id && !(await projectBelongsToOrg(clean.project_id))) {
+      return Response.json({ error: 'Not found' }, { status: 404 });
+    }
+    // organization_id (already stripped above) and master flag can never change.
     if (entity === 'PolicyTemplate') delete clean.is_master_template;
     const record = await svc.update(id, clean);
     return Response.json({ record });

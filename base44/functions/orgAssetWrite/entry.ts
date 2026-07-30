@@ -29,12 +29,17 @@ Deno.serve(async (req) => {
     const isPlatformAdmin = user.role === 'admin';
 
     if (!isPlatformAdmin) {
+      // The requested organizationId is never trusted: it must equal the
+      // caller's own organization, backed by an Active membership.
+      if (!user.organization_id || user.organization_id !== organizationId) {
+        return Response.json({ error: 'You are not a member of this organization.' }, { status: 403 });
+      }
       const memberships = await base44.asServiceRole.entities.OrganizationUser
         .filter({ organization_id: organizationId, user_email: user.email })
         .catch(() => []);
-      const active = memberships.filter((m: any) => m.status !== 'Removed');
+      const active = memberships.filter((m: any) => m.status === 'Active');
       if (active.length === 0) {
-        return Response.json({ error: 'You are not a member of this organization.' }, { status: 403 });
+        return Response.json({ error: 'You are not an active member of this organization.' }, { status: 403 });
       }
       const role = active[0].role;
       if (READ_ONLY_ORG_ROLES.has(role)) {
@@ -44,9 +49,22 @@ Deno.serve(async (req) => {
 
     const svc = base44.asServiceRole.entities.Asset;
 
+    // Any referenced project must belong to the authorized organization.
+    if (projectId) {
+      const project = await base44.asServiceRole.entities.Project.get(projectId).catch(() => null);
+      if (!project || project.organization_id !== organizationId) {
+        return Response.json({ error: 'Project not found in this organization.' }, { status: 404 });
+      }
+    }
+
+    // organization_id / project_id can never be moved by the client payload.
+    const clean = { ...(data || {}) };
+    delete clean.organization_id;
+    delete clean.project_id;
+
     if (action === 'create') {
       if (!projectId) return Response.json({ error: 'projectId is required for create' }, { status: 400 });
-      const created = await svc.create({ ...(data || {}), organization_id: organizationId, project_id: projectId });
+      const created = await svc.create({ ...clean, organization_id: organizationId, project_id: projectId });
       return Response.json({ asset: created });
     }
 
@@ -56,7 +74,10 @@ Deno.serve(async (req) => {
       if (!existing || existing.organization_id !== organizationId) {
         return Response.json({ error: 'Asset not found in this organization.' }, { status: 404 });
       }
-      const updated = await svc.update(assetId, data || {});
+      if (projectId && existing.project_id !== projectId) {
+        return Response.json({ error: 'Asset not found in this project.' }, { status: 404 });
+      }
+      const updated = await svc.update(assetId, clean);
       return Response.json({ asset: updated });
     }
 
@@ -65,6 +86,9 @@ Deno.serve(async (req) => {
       const existing = await svc.get(assetId).catch(() => null);
       if (!existing || existing.organization_id !== organizationId) {
         return Response.json({ error: 'Asset not found in this organization.' }, { status: 404 });
+      }
+      if (projectId && existing.project_id !== projectId) {
+        return Response.json({ error: 'Asset not found in this project.' }, { status: 404 });
       }
       await svc.delete(assetId);
       return Response.json({ ok: true });

@@ -65,17 +65,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Unsupported operation: ${operation}` }, { status: 400 });
     }
 
-    // Resolve the caller's organization server-side from OrganizationUser.
-    // App-level admins (platform owners) are not the target of this gate, but
-    // if one calls it we still resolve via their membership.
-    const memberships = await base44.asServiceRole.entities.OrganizationUser
-      .filter({ user_email: caller.email })
-      .catch(() => []);
-    const active = memberships.filter((m: any) => m.status !== 'Removed');
-    if (active.length === 0) {
+    // The tenant is resolved deterministically from the caller's own user
+    // record — never from anything the client sent — and must be backed by an
+    // OrganizationUser membership with status exactly 'Active'.
+    const org = caller.organization_id;
+    if (!org) {
       return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
     }
-    const org = active[0].organization_id;
+    const memberships = await base44.asServiceRole.entities.OrganizationUser
+      .filter({ user_email: caller.email, organization_id: org })
+      .catch(() => []);
+    const active = memberships.filter((m: any) => m.status === 'Active');
+    if (active.length === 0) {
+      return Response.json({ error: 'Your organization membership is not active. Contact your administrator.' }, { status: 403 });
+    }
 
     // Org gating: fully disabled or expired trial → clean 403.
     const orgRecord = await base44.asServiceRole.entities.Organization.get(org).catch(() => null);

@@ -79,8 +79,37 @@ Deno.serve(async (req) => {
     if (!project) return Response.json({ error: 'Project not found' }, { status: 404 });
 
     const orgId = project.organization_id;
+    if (!orgId) return Response.json({ error: 'Project not found' }, { status: 404 });
+
+    // ---- AUTHORIZATION (before any package data is read) ----
+    const isStaff = user.role === 'admin' || user.role === 'technician';
+    if (!isStaff) {
+      if (user.organization_id !== orgId) {
+        // 404 — do not disclose that another tenant's project exists.
+        return Response.json({ error: 'Project not found' }, { status: 404 });
+      }
+      const memberships = await sr.entities.OrganizationUser
+        .filter({ user_email: user.email, organization_id: orgId })
+        .catch(() => []);
+      if (!memberships.some((m) => m.status === 'Active')) {
+        return Response.json({ error: 'Project not found' }, { status: 404 });
+      }
+    }
+
+    const orgRecord = await sr.entities.Organization.get(orgId).catch(() => null);
+    if (orgRecord?.fully_disabled === true
+      || orgRecord?.subscription_status === 'Suspended'
+      || orgRecord?.subscription_status === 'Cancelled'
+      || orgRecord?.subscription_status === 'Past Due') {
+      return Response.json({ error: 'Your organization\'s access is not active. Contact Pac-Sec support.' }, { status: 403 });
+    }
+    const subEnd = orgRecord?.subscription_end_date;
+    if (subEnd && new Date(subEnd) < new Date(new Date().toDateString())) {
+      return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
+    }
+
     const [org, assessments, evidenceAll, sspList, poams, policiesAll, scopingList] = await Promise.all([
-      orgId ? sr.entities.Organization.get(orgId).catch(() => null) : Promise.resolve(null),
+      Promise.resolve(orgRecord),
       sr.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
       sr.entities.ProjectEvidence.filter({ project_id: projectId }).catch(() => []),
       sr.entities.SystemSecurityPlan.filter({ project_id: projectId }).catch(() => []),
