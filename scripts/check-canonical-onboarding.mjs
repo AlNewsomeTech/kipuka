@@ -261,17 +261,29 @@ if (fnRaw !== null) {
   check('multiple active memberships are a 409', /activeMemberships\.length > 1/.test(logic));
   const iMembershipRead = logic.indexOf('readAll(svc.OrganizationUser');
   const iOrganizationCreate = logic.indexOf('svc.Organization.create');
-  const iCallerConflict = logic.indexOf('activeMembership || callerOrgId || emailMemberships.length > 0');
+  const iCallerConflict = logic.indexOf('activeMembership || callerOrgId || currentMemberships.length > 0');
   check('membership preflight runs before organization creation',
     iMembershipRead > -1 && iMembershipRead < iOrganizationCreate);
   check('caller and prior-membership conflict runs before organization creation',
     iCallerConflict > -1 && iCallerConflict < iOrganizationCreate);
   check('caller organization comes only from the authenticated session',
-    /const callerOrgId = normalizedText\(caller\.organization_id\)/.test(logic));
+    /let callerOrgId = normalizedText\(caller\.organization_id\)/.test(logic));
   check('a membership in another org is a 409',
     /activeMembership && activeMembership\.organization_id !== organization\.id/.test(logic));
-  check('removed, disabled, invited, or conflicting memberships are rejected',
-    /emailMemberships\.some\(\(m\) => m\.organization_id !== organization\.id \|\| m\.status !== 'Active'\)/.test(code));
+  check('removed memberships remain historical and are never reactivated',
+    /currentMemberships = emailMemberships\.filter\(\(m\) => m\.status !== 'Removed'\)/.test(code));
+  check('disabled, invited, or conflicting current memberships are rejected',
+    /currentMemberships\.some\(\(m\) => m\.organization_id !== organization\.id \|\| m\.status !== 'Active'\)/.test(code));
+  check('QA reset is restricted to the exact archived user and memberships',
+    /callerId === '6a4f1df00b54a8988cd69745'/.test(code)
+      && /callerEmail === 'albert@pac-sec\.com'/.test(code)
+      && /callerOrgId === '6a4f1b6293936dd268395109'/.test(code)
+      && /emailMemberships\.length === 2/.test(code)
+      && /qaResetMembershipIds\.has\(m\.id\) && m\.status === 'Removed'/.test(code));
+  check('QA reset clears only the authenticated caller profile',
+    /resetAuthorizedQaUser\(svc\.User, callerId\)/.test(code)
+      && /organization_id: ''/.test(code)
+      && /assigned_client_ids: ''/.test(code));
   check('onboarding never reactivates an OrganizationUser',
     !/svc\.OrganizationUser\.update\(/.test(logic));
   check('existing organization consistency is verified',
