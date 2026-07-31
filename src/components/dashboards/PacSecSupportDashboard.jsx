@@ -4,30 +4,48 @@ import { Loader2, Building2, AlertTriangle, CalendarClock, PauseCircle, Clock, S
 import { base44 } from '@/api/base44Client';
 import { DashCard, StatTile, MiniList } from './dashboardPrimitives';
 import StatusBadge from '@/components/StatusBadge';
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 
 const STALLED_STATUSES = ['On Hold', 'Not Started'];
 
 export default function PacSecSupportDashboard({ organizations, projects }) {
   const [exports, setExports] = useState([]);
+  const [readinessById, setReadinessById] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       const orgIds = organizations.map((o) => o.id);
-      const all = await base44.entities.ReportExport.list('-generated_date', 200).catch(() => []);
+      const [all, objectiveLibrary] = await Promise.all([
+        base44.entities.ReportExport.list('-generated_date', 200).catch(() => []),
+        base44.entities.AssessmentObjectiveLibrary.list('sort_order', 500).catch(() => []),
+      ]);
+      const readinessEntries = await Promise.all(projects.map(async (project) => {
+        const [assessments, objectiveLinks, evidence, poams] = await Promise.all([
+          base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
+        ]);
+        return [project.id, computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams })];
+      }));
       if (!alive) return;
       setExports(all.filter((e) => orgIds.includes(e.organization_id)).slice(0, 12));
+      setReadinessById(Object.fromEntries(readinessEntries));
       setLoading(false);
     })();
     return () => { alive = false; };
-  }, [organizations]);
+  }, [organizations, projects]);
 
   const now = new Date();
   const soon = new Date(); soon.setDate(soon.getDate() + 60);
 
   const clientsNeedingReview = projects.filter((p) => ['Ready for Review', 'Documentation', 'Evidence Collection'].includes(p.project_status));
-  const highRisk = projects.filter((p) => (p.current_readiness_score || 0) < 50 && p.project_status !== 'Complete');
+  const highRisk = projects.filter((p) => {
+    const readiness = readinessById[p.id];
+    return p.project_status !== 'Complete' && (!readiness?.integrity_ok || readiness.readiness_pct < 50);
+  });
   const stalled = projects.filter((p) => STALLED_STATUSES.includes(p.project_status));
   const renewals = organizations
     .filter((o) => o.subscription_end_date && new Date(o.subscription_end_date) <= soon && new Date(o.subscription_end_date) >= now)
@@ -55,7 +73,7 @@ export default function PacSecSupportDashboard({ organizations, projects }) {
                     <div className="text-sm font-semibold text-slate-800 truncate">{p.project_name}</div>
                     <div className="text-xs text-slate-400 truncate">{org?.organization_name || '—'}</div>
                   </div>
-                  <span className="text-xs text-slate-500">{Math.round(p.current_readiness_score || 0)}%</span>
+                  <span className="text-xs text-slate-500">{readinessById[p.id]?.integrity_ok ? `${readinessById[p.id].readiness_pct}%` : 'Integrity check'}</span>
                   <StatusBadge status={p.project_status} size="xs" />
                 </Link>
               );
@@ -69,7 +87,7 @@ export default function PacSecSupportDashboard({ organizations, projects }) {
           <MiniList items={clientsNeedingReview.map((p) => `${p.project_name} — ${p.project_status}`)} empty="No clients awaiting review." />
         </DashCard>
         <DashCard title="High-Risk Projects" icon={AlertTriangle}>
-          <MiniList items={highRisk.map((p) => `${p.project_name} — ${Math.round(p.current_readiness_score || 0)}% readiness`)} empty="No high-risk projects." />
+          <MiniList items={highRisk.map((p) => `${p.project_name} — ${readinessById[p.id]?.integrity_ok ? `${readinessById[p.id].readiness_pct}% readiness` : 'integrity check required'}`)} empty="No high-risk projects." />
         </DashCard>
       </div>
 
