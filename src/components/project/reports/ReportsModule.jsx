@@ -22,9 +22,11 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
   const [pkgResult, setPkgResult] = useState(null); // completeness result after building the ZIP
 
   const load = useCallback(async () => {
-    const [assessments, evidence, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
+    const [assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+      base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+      base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
       base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
       base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
@@ -32,7 +34,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
       base44.entities.PolicyTemplate.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ReportExport.filter({ project_id: project.id }, '-generated_date', 15).catch(() => []),
     ]);
-    setData({ assessments, evidence, poams, scoping: scoping[0] || null, assets, ssp: sspList[0] || null, policies: policies.filter((p) => !p.is_master_template) });
+    setData({ assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping: scoping[0] || null, assets, ssp: sspList[0] || null, policies: policies.filter((p) => !p.is_master_template) });
     setHistory(exports);
   }, [project.id]);
 
