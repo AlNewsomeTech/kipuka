@@ -438,10 +438,10 @@ function checkImporter() {
   expect(/status:\s*409/.test(src), 'failed apply precondition is rejected');
   const del = src.match(/entities\.\w+\.delete\s*\(/g) || [];
   expect(del.length === 0, 'apply never deletes any record');
-  const activateAt = at(/update\([^)]*,\s*\{\s*active:\s*true\s*\}\)/);
+  const activateAt = at(/const\s+controlActivations\s*=/);
   const postValidateAt = at(/Post-write validation failed/);
-  expect(postValidateAt !== -1, 'apply re-validates persisted counts before activation');
-  expect(postValidateAt !== -1 && activateAt > postValidateAt, 'activation happens after post-write validation');
+  expect(postValidateAt !== -1, 'apply re-validates persisted authoritative rows before activation');
+  expect(postValidateAt !== -1 && activateAt > postValidateAt, 'activation staging happens after post-write validation');
   expect(/superseded_by_control_id:\s*DATASET_KEY/.test(src), 'legacy records are marked superseded, not deleted');
   expect(/AUTHORITATIVE_FIELDS/.test(src), 'non-authoritative human-authored fields are preserved on merge');
   expect(/mergeLegacyGuidance/.test(src), 'legacy guidance merge with de-duplication exists');
@@ -463,6 +463,13 @@ function checkImporter() {
     filterLimits.length >= 7 && filterLimits.every((limit) => limit <= 500),
     `every Base44 filter page is bounded at 500 or fewer (found: ${filterLimits.join(',') || 'none'})`,
   );
+  const bulkBatchSizes = [...src.matchAll(/i\s*\+=\s*(\d+)/g)].map((match) => Number(match[1]));
+  expect(
+    bulkBatchSizes.length === 7 && bulkBatchSizes.every((size) => size > 0 && size <= 500),
+    `all seven stage/activation bulk batches are bounded at 500 or fewer (found: ${bulkBatchSizes.join(',') || 'none'})`,
+  );
+  const bulkOperations = src.match(/\.(?:bulkCreate|bulkUpdate)\s*\(/g) || [];
+  expect(bulkOperations.length === 7, 'staging and activation use seven bounded SDK bulk operations');
   expect(
     !/\.filter\([\s\S]*?\)\.catch\(\(\)\s*=>\s*\[\]\)/.test(src),
     'critical entity read failures are not swallowed as empty datasets',
