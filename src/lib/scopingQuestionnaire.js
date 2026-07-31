@@ -1,6 +1,11 @@
 // Plain-English scoping questionnaire that routes a company to CMMC Level 1 (FCI
-// only) or Level 2 (CUI). Pure data + logic. Answers are booleans keyed by `key`
-// and are also persisted onto the ScopingProfile (wizard_answers + handles_fci/cui).
+// only) or Level 2 (CUI). Pure data + logic. Answers are keyed by `key` and each
+// value is exactly true ("Yes"), false ("No"), or null ("Not sure"). The answers
+// are persisted onto the ScopingProfile server-side (wizard_answers preserves
+// "Not sure") — this module only drives the on-screen recommendation.
+//
+// The authoritative track is always re-derived on the server; nothing here is
+// trusted by the backend.
 
 export const SCOPING_QUESTIONNAIRE = [
   {
@@ -47,33 +52,54 @@ export const SCOPING_QUESTIONNAIRE = [
   },
 ];
 
-// answers: map of key → boolean. Returns { track, rationale, handles_fci, handles_cui }.
+export const CUI_SIGNAL_KEYS = ['dfars_7012', 'dfars_7019_7020', 'dfars_7021', 'receives_cui', 'controlled_technical'];
+export const FCI_SIGNAL_KEYS = ['far_52204_21', 'fci_only'];
+
+// answers: map of key → true | false | null. Only an explicit `true` is a
+// signal; `null` ("Not sure") stays unknown and is never read as a No.
+// Returns { track, rationale, handles_fci, handles_cui, conflict }.
 export function determineTrack(answers = {}) {
-  const cuiSignals =
-    answers.dfars_7012 || answers.dfars_7019_7020 || answers.dfars_7021 ||
-    answers.receives_cui || answers.controlled_technical;
+  const cuiSignals = CUI_SIGNAL_KEYS.some((k) => answers[k] === true);
+  const fciSignals = FCI_SIGNAL_KEYS.some((k) => answers[k] === true);
+  const conflict = cuiSignals && answers.fci_only === true;
 
-  const fciSignals = answers.far_52204_21 || answers.fci_only;
-
-  let track = 'Undetermined';
-  let rationale = '';
-
-  if (cuiSignals) {
-    track = 'Level 2';
-    rationale = 'Your answers indicate CUI is (or will be) in scope — DFARS CUI clauses and/or handling of controlled technical or export-controlled information. This typically requires CMMC Level 2 (NIST SP 800-171, 110 practices).';
-  } else if (answers.fci_only || fciSignals) {
-    track = 'Level 1';
-    rationale = 'Your answers indicate you handle Federal Contract Information (FCI) but not CUI. This aligns with CMMC Level 1 (17 practices, self-assessed).';
-  } else {
-    track = 'Undetermined';
-    rationale = 'Your answers do not clearly indicate FCI or CUI in scope. A scoping review is recommended before selecting a track. You can proceed and adjust later.';
+  if (conflict) {
+    return {
+      track: 'Undetermined',
+      conflict: true,
+      rationale: 'Your answers contradict each other: you selected FCI-only, but you also indicated CUI is in scope. Review your answers, or contact Pac-Sec for a scoping review, before continuing.',
+      handles_fci: true,
+      handles_cui: true,
+    };
   }
 
+  if (cuiSignals) {
+    return {
+      track: 'Level 2',
+      conflict: false,
+      rationale: 'Your answers indicate CUI is (or will be) in scope — DFARS CUI clauses and/or handling of controlled technical or export-controlled information. This typically requires CMMC Level 2 (NIST SP 800-171, 110 requirements).',
+      handles_fci: true,
+      handles_cui: true,
+    };
+  }
+
+  if (fciSignals) {
+    return {
+      track: 'Level 1',
+      conflict: false,
+      rationale: 'Your answers indicate you handle Federal Contract Information (FCI) but not CUI. This aligns with CMMC Level 1 (15 FAR 52.204-21 requirements, self-assessed).',
+      handles_fci: true,
+      handles_cui: false,
+    };
+  }
+
+  // Undetermined is never silently downgraded to Level 1.
   return {
-    track,
-    rationale,
-    handles_fci: !!fciSignals || track === 'Level 1' || track === 'Level 2',
-    handles_cui: !!cuiSignals,
+    track: 'Undetermined',
+    conflict: false,
+    rationale: 'Your answers do not clearly establish whether FCI or CUI is in scope. A scoping review is needed before a track can be selected — review your answers, or contact Pac-Sec.',
+    handles_fci: false,
+    handles_cui: false,
   };
 }
 

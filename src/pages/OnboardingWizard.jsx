@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
-import { useOrg } from '@/lib/orgContext';
 import { determineTrack } from '@/lib/scopingQuestionnaire';
 import { completeOnboarding } from '@/lib/onboarding';
 import { cuiHostingRequired, autoHostingForEnvironment } from '@/lib/cuiHosting';
@@ -11,11 +9,10 @@ import OnboardingHostingStep from '@/components/onboarding/OnboardingHostingStep
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 // Mandatory first-run wizard for brand-new self-service signups. Rendered by the
-// OnboardingGate before the main app shell. On finish it auto-creates the org,
-// membership, company profile, default project, scoping profile, and control set.
-export default function OnboardingWizard({ onComplete }) {
-  const { user } = useAuth();
-  const { refreshOrgs, selectOrg } = useOrg();
+// OnboardingGate before the main app shell. It collects company details, the
+// scoping answers, and the CUI hosting decision, then hands everything to the
+// canonical backend function — this page creates no records itself.
+export default function OnboardingWizard() {
   const [step, setStep] = useState(1);
   const [company, setCompany] = useState({ it_environment: '' });
   const [answers, setAnswers] = useState({});
@@ -45,20 +42,22 @@ export default function OnboardingWizard({ onComplete }) {
   };
 
   const finish = async (extraHosting) => {
+    if (submitting) return;
     setSubmitting(true);
     setError('');
     try {
       // GCC / GCC High are already CUI-capable → auto-set and never ask.
       const auto = autoHostingForEnvironment(company.it_environment);
-      const cui_hosting = auto || extraHosting?.hosting || (needsHosting ? undefined : undefined);
-      const { organization } = await completeOnboarding({
-        user, company, answers, trackResult,
-        cuiHosting: auto || extraHosting?.hosting || cui_hosting,
+      await completeOnboarding({
+        company,
+        answers,
+        cuiHosting: auto || extraHosting?.hosting || hosting || '',
         cuiHostingNotes: extraHosting?.notes ?? hostingNotes,
       });
-      await refreshOrgs();
-      selectOrg(organization.id);
-      onComplete?.();
+      // Full same-origin reload so AuthContext re-reads the server-updated
+      // platform role and organization_id instead of a stale in-memory cache.
+      // Stays submitting — the page is being replaced.
+      window.location.replace('/');
     } catch (e) {
       setError(e?.message || 'Something went wrong setting up your workspace. Please try again.');
       setSubmitting(false);
@@ -120,7 +119,8 @@ export default function OnboardingWizard({ onComplete }) {
           </div>
         </div>
       </div>
-      <ConfidentialityFooter />
+      {/* text="" keeps the standard FOOTER_WARNING_TEXT fallback verbatim. */}
+      <ConfidentialityFooter text="" />
     </div>
   );
 }

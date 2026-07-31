@@ -136,6 +136,10 @@
       "type": "boolean",
       "default": false,
       "description": "When true (set by Pac-Sec Admin), the organization has no access at all \u2014 not even read-only."
+    },
+    "onboarding_key": {
+      "type": "string",
+      "description": "Deterministic server-generated key used solely to resume self-service onboarding safely. Derived on the server by the completeSelfServiceOnboarding backend function from a versioned constant and the authenticated caller id (SELF_SERVICE_ONBOARDING_V1|<caller.id>). Never supplied by, or trusted from, the browser. Optional \u2014 organizations created by Pac-Sec staff leave it unset."
     }
   },
   "required": [
