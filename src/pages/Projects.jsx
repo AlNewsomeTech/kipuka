@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
 import { visibleProjects } from '@/lib/projectAccess';
 import { PERMS } from '@/lib/orgRoles';
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 
@@ -14,6 +15,7 @@ export default function Projects() {
   const { user } = useAuth();
   const { selectedOrgId, selectedOrg, orgRole, isPlatformAdmin, memberships, organizations, can } = useOrg();
   const [projects, setProjects] = useState([]);
+  const [readinessById, setReadinessById] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +29,17 @@ export default function Projects() {
       const scoped = visibleProjects(all, {
         orgRole, isPlatformAdmin, selectedOrgId, userEmail: user?.email, supportOrgIds,
       });
-      if (alive) { setProjects(scoped); setLoading(false); }
+      const objectiveLibrary = await base44.entities.AssessmentObjectiveLibrary.list('sort_order', 500).catch(() => []);
+      const readinessEntries = await Promise.all(scoped.map(async (project) => {
+        const [assessments, objectiveLinks, evidence, poams] = await Promise.all([
+          base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+          base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
+        ]);
+        return [project.id, computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams })];
+      }));
+      if (alive) { setProjects(scoped); setReadinessById(Object.fromEntries(readinessEntries)); setLoading(false); }
     })();
     return () => { alive = false; };
   }, [selectedOrgId, orgRole, isPlatformAdmin, memberships, user]);
@@ -72,7 +84,10 @@ export default function Projects() {
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projects.map((p) => (
+          {projects.map((p) => {
+            const readiness = readinessById[p.id];
+            const score = readiness?.integrity_ok ? readiness.readiness_pct : null;
+            return (
             <button
               key={p.id}
               onClick={() => navigate(`/projects/${p.id}`)}
@@ -95,17 +110,18 @@ export default function Projects() {
               <div className="mt-4">
                 <div className="mb-1.5 flex items-center justify-between">
                   <div className="text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-400">Readiness</div>
-                  <span className="metric-value text-sm font-extrabold text-slate-800">{Math.round(p.current_readiness_score || 0)}%</span>
+                  <span className="metric-value text-sm font-extrabold text-slate-800">{score == null ? 'Integrity check required' : `${score}%`}</span>
                 </div>
                 <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-gradient-to-r from-[#479dcf] to-[#2f7eaa]" style={{ width: `${Math.min(100, Math.max(0, Math.round(p.current_readiness_score || 0)))}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-[#479dcf] to-[#2f7eaa]" style={{ width: `${score == null ? 0 : Math.min(100, Math.max(0, score))}%` }} />
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-end">
                 <span className="flex items-center gap-1 text-xs font-extrabold text-blue-600">Open project <ArrowRight className="h-3.5 w-3.5" /></span>
               </div>
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
