@@ -1,0 +1,71 @@
+{
+  "name": "MigrationArchive",
+  "type": "object",
+  "description": "Recoverable pre-migration snapshots. Every row is a byte-faithful copy of a live record captured BEFORE a data migration changed or deleted it, so any migrated entity can be reconstructed and restored. Archive records are never deleted.",
+  "properties": {
+    "migration_key": {
+      "type": "string",
+      "description": "The migration that captured this snapshot, e.g. CANONICAL-PROJECT-MODEL-V1-2026-07-30."
+    },
+    "entity_name": {
+      "type": "string",
+      "description": "The entity the snapshotted record belongs to."
+    },
+    "source_record_id": {
+      "type": "string",
+      "description": "The id of the original live record at snapshot time."
+    },
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "Snapshot",
+        "Updated",
+        "Deleted",
+        "Deduplicated"
+      ],
+      "default": "Snapshot"
+    },
+    "payload": {
+      "type": "object",
+      "description": "The complete original record exactly as it existed before mutation, including system fields, used for recovery.",
+      "default": {}
+    },
+    "content_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the deterministically serialized payload, verified before any live record is changed or deleted."
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "archived_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "migration_key",
+    "entity_name",
+    "source_record_id",
+    "reason",
+    "payload",
+    "content_sha256"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

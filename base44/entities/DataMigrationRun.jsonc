@@ -1,0 +1,69 @@
+{
+  "name": "DataMigrationRun",
+  "type": "object",
+  "description": "One auditable execution record for a platform data migration. Tracks status, dataset version, before/planned/after counts and validation results so a migration is traceable, resumable, and reversible.",
+  "properties": {
+    "migration_key": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Validated",
+        "Applying",
+        "Applied",
+        "Failed"
+      ],
+      "default": "Draft"
+    },
+    "dataset_key": {
+      "type": "string"
+    },
+    "before_counts": {
+      "type": "object",
+      "default": {}
+    },
+    "planned_counts": {
+      "type": "object",
+      "default": {}
+    },
+    "after_counts": {
+      "type": "object",
+      "default": {}
+    },
+    "source_snapshot_sha256": {
+      "type": "string"
+    },
+    "validation_notes": {
+      "type": "string"
+    },
+    "error_details": {
+      "type": "string"
+    },
+    "applied_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "applied_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "migration_key",
+    "status",
+    "dataset_key"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
