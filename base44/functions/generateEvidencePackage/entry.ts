@@ -7,7 +7,8 @@ import JSZip from 'npm:jszip@3.10.1';
 // on the Phase 3+ project entity model (Project, ProjectEvidence, ControlAssessment,
 // SystemSecurityPlan, ProjectPOAM, PolicyTemplate). It packs the ACTUAL evidence
 // binary files organized by NIST control family, plus a README, completeness
-// report, and evidence index CSV. Warnings only — never a hard block.
+// report, and evidence index CSV. Draft packages remain exportable, but canonical
+// assessment readiness is computed fail-closed and is never inferred from workflow status.
 // ---------------------------------------------------------------------------
 
 const BRAND = {
@@ -63,6 +64,66 @@ function stripHtml(html) {
     .replace(/\n{3,}/g, '\n\n').trim();
 }
 
+const CMMC_TOTALS = { 'Level 1': { requirements: 15, objectives: 59 }, 'Level 2': { requirements: 110, objectives: 320 } };
+const IMPLEMENTED = new Set(['Implemented Pending Evidence', 'Evidence Uploaded', 'Evidence Needs Review', 'Evidence Accepted', 'Ready for Documentation', 'Implemented', 'Ready for Assessment']);
+
+function validNa(a) {
+  return a?.status === 'Not Applicable'
+    && !!String(a.not_applicable_justification || '').trim()
+    && !!String(a.not_applicable_scope_evidence || '').trim()
+    && !!String(a.not_applicable_confirmed_by || '').trim()
+    && !!String(a.not_applicable_confirmed_date || '').trim();
+}
+function validEvidence(e, now = new Date()) {
+  if (!e || e.review_status !== 'Accepted' || !String(e.file_url || '').trim() || !String(e.hash_value || '').trim()) return false;
+  if (!e.expiration_date) return true;
+  const expiry = new Date(`${e.expiration_date}T23:59:59.999Z`);
+  return Number.isNaN(expiry.getTime()) || expiry.getTime() >= now.getTime();
+}
+function canonicalSummary(project, assessments, objectiveLibrary, objectiveLinks, evidence) {
+  const expected = CMMC_TOTALS[project?.target_cmmc_level];
+  const objectives = objectiveLibrary.filter((o) => o.active === true && o.cmmc_level === project?.target_cmmc_level);
+  const controlIds = assessments.map((a) => String(a.control_id || '').trim());
+  const objectiveKeys = objectives.map((o) => String(o.objective_key || `${o.control_id}|${o.objective_id}`));
+  const linkKeys = objectiveLinks.map((l) => `${l.control_id}|${l.objective_id}`);
+  const issues = [];
+  if (!expected) issues.push('Project target level is not authoritative.');
+  if (expected && assessments.length !== expected.requirements) issues.push(`Expected ${expected.requirements} requirements; found ${assessments.length}.`);
+  if (expected && objectives.length !== expected.objectives) issues.push(`Expected ${expected.objectives} objectives; found ${objectives.length}.`);
+  if (new Set(controlIds).size !== controlIds.length || controlIds.some((id) => !id)) issues.push('Assessment control IDs are blank or duplicated.');
+  if (new Set(objectiveKeys).size !== objectiveKeys.length) issues.push('Authoritative objective keys are duplicated.');
+  if (new Set(linkKeys).size !== linkKeys.length) issues.push('Objective finding rows are duplicated.');
+  const validEvidenceIds = new Set(evidence.filter((e) => validEvidence(e)).map((e) => e.id));
+  const linkByKey = new Map(objectiveLinks.map((l) => [`${l.control_id}|${l.objective_id}`, l]));
+  const objectivesByControl = new Map();
+  objectives.forEach((o) => {
+    if (!objectivesByControl.has(o.control_id)) objectivesByControl.set(o.control_id, []);
+    objectivesByControl.get(o.control_id).push(o);
+  });
+  const controls = assessments.map((a) => {
+    const required = objectivesByControl.get(a.control_id) || [];
+    const na = validNa(a);
+    const objectiveMet = required.filter((o) => {
+      const link = linkByKey.get(`${a.control_id}|${o.objective_id}`);
+      return link?.status === 'Met' && !!link.evidence_id && validEvidenceIds.has(link.evidence_id);
+    }).length;
+    return { control_id: a.control_id, met: na || (required.length > 0 && objectiveMet === required.length), implemented: na || IMPLEMENTED.has(a.status) };
+  });
+  const integrityOk = issues.length === 0;
+  const met = controls.filter((c) => c.met).length;
+  const implemented = controls.filter((c) => c.implemented).length;
+  return {
+    integrity_ok: integrityOk, integrity_issues: issues,
+    requirements_total: expected?.requirements || assessments.length,
+    objectives_total: expected?.objectives || objectives.length,
+    requirements_met: met,
+    readiness_percent: integrityOk && expected ? Math.round((met / expected.requirements) * 100) : null,
+    implementation_percent: integrityOk && expected ? Math.round((implemented / expected.requirements) * 100) : null,
+    valid_final_evidence: validEvidenceIds.size,
+    assessment_ready: integrityOk && !!expected && met === expected.requirements,
+  };
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -110,7 +171,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
     }
 
-    const [org, assessments, evidenceAll, sspList, poams, policiesAll, scopingList] = await Promise.all([
+    const [org, assessments, evidenceAll, sspList, poams, policiesAll, scopingList, objectiveLibrary, objectiveLinks] = await Promise.all([
       Promise.resolve(orgRecord),
       sr.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
       sr.entities.ProjectEvidence.filter({ project_id: projectId }).catch(() => []),
@@ -118,6 +179,8 @@ Deno.serve(async (req) => {
       sr.entities.ProjectPOAM.filter({ project_id: projectId }).catch(() => []),
       sr.entities.PolicyTemplate.filter({ project_id: projectId }).catch(() => []),
       sr.entities.ScopingProfile.filter({ project_id: projectId }).catch(() => []),
+      sr.entities.AssessmentObjectiveLibrary.list('sort_order', 500).catch(() => []),
+      sr.entities.ObjectiveEvidenceLink.filter({ project_id: projectId }).catch(() => []),
     ]);
 
     // ---- Data isolation: only records for THIS project's organization ----
@@ -199,8 +262,11 @@ Deno.serve(async (req) => {
     const controlsNoEvidence = assessments.filter((a) => !controlsWithEvidence.has(a.control_id));
     const evNotAccepted = evidence.filter((e) => e.review_status !== 'Accepted');
     const evNoFile = evidence.filter((e) => !e.file_url);
+    const canonical = canonicalSummary(project, assessments, objectiveLibrary, objectiveLinks, evidence);
     const openHighRisk = poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !['Closed', 'Accepted Risk'].includes(p.status));
 
+    if (!canonical.integrity_ok) warnings.push(`Canonical assessment integrity failed: ${canonical.integrity_issues.join(' ')}`);
+    if (!canonical.assessment_ready) warnings.push(`Assessment readiness is ${canonical.readiness_percent == null ? 'unavailable' : `${canonical.readiness_percent}%`} (${canonical.requirements_met}/${canonical.requirements_total} requirements MET).`);
     if (evidence.length === 0) warnings.push('No evidence items exist for this project.');
     if (controlsNoEvidence.length) warnings.push(`${controlsNoEvidence.length} control(s) have no linked evidence.`);
     if (evNotAccepted.length) warnings.push(`${evNotAccepted.length} evidence item(s) are not yet Accepted (still Draft / Needs Review / Rejected / Expired).`);
@@ -213,6 +279,14 @@ Deno.serve(async (req) => {
 
     const completeness = {
       controls_total: assessments.length,
+      canonical_integrity_ok: canonical.integrity_ok,
+      canonical_integrity_issues: canonical.integrity_issues,
+      requirements_met: canonical.requirements_met,
+      readiness_percent: canonical.readiness_percent,
+      implementation_percent: canonical.implementation_percent,
+      objectives_total: canonical.objectives_total,
+      valid_final_evidence: canonical.valid_final_evidence,
+      assessment_ready: canonical.assessment_ready,
       controls_with_evidence: assessments.length - controlsNoEvidence.length,
       evidence_total: evidence.length,
       evidence_accepted: evidence.filter((e) => e.review_status === 'Accepted').length,
@@ -294,6 +368,11 @@ function buildReadme({ project, org, date, user, warnings, completeness }) {
   r += `- **02_Policies_and_Procedures** — project policies and procedures\n`;
   r += `- **03_Evidence** — evidence files organized by NIST SP 800-171 control family\n\n`;
   r += `## Contents Summary\n\n`;
+  r += `- Assessment ready: ${completeness.assessment_ready ? 'Yes' : 'No'}\n`;
+  r += `- Requirements MET: ${completeness.requirements_met} / ${completeness.controls_total}\n`;
+  r += `- Canonical readiness: ${completeness.readiness_percent == null ? 'Unavailable (integrity failure)' : `${completeness.readiness_percent}%`}\n`;
+  r += `- Implementation progress: ${completeness.implementation_percent == null ? 'Unavailable' : `${completeness.implementation_percent}%`}\n`;
+  r += `- Valid final evidence: ${completeness.valid_final_evidence}\n`;
   r += `- Controls with evidence: ${completeness.controls_with_evidence} / ${completeness.controls_total}\n`;
   r += `- Evidence items: ${completeness.evidence_total} (${completeness.evidence_accepted} Accepted)\n`;
   r += `- Policies included: ${completeness.policies_included}\n`;
@@ -311,6 +390,12 @@ function buildCompletenessReport({ completeness, warnings, controlsNoEvidence })
   c += `> **${BRAND.confidential}**\n\n`;
   c += `## Coverage\n\n`;
   c += `| Metric | Value |\n|---|---|\n`;
+  c += `| Canonical integrity | ${completeness.canonical_integrity_ok ? 'Pass' : 'Fail'} |\n`;
+  c += `| Assessment ready | ${completeness.assessment_ready ? 'Yes' : 'No'} |\n`;
+  c += `| Requirements MET | ${completeness.requirements_met} / ${completeness.controls_total} |\n`;
+  c += `| Canonical readiness | ${completeness.readiness_percent == null ? 'Unavailable' : `${completeness.readiness_percent}%`} |\n`;
+  c += `| Implementation progress | ${completeness.implementation_percent == null ? 'Unavailable' : `${completeness.implementation_percent}%`} |\n`;
+  c += `| Valid final evidence | ${completeness.valid_final_evidence} |\n`;
   c += `| Controls total | ${completeness.controls_total} |\n`;
   c += `| Controls with evidence | ${completeness.controls_with_evidence} |\n`;
   c += `| Evidence items | ${completeness.evidence_total} |\n`;
