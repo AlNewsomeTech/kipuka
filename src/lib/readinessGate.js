@@ -66,7 +66,7 @@ export function sspPrechecks(r) {
 }
 
 // Build the handoff-package pre-check list.
-export function handoffPrechecks(r, { sspApproved, policiesApproved, evidenceIndexReviewed, sprsUploaded } = {}) {
+export function handoffPrechecks(r, { sspApproved, policiesApproved, evidenceIndexReviewed, sprsUploaded } = { sspApproved: false, policiesApproved: false, evidenceIndexReviewed: false, sprsUploaded: false }) {
   return [
     { label: 'Scope approved', pass: r.scopeFinalized },
     { label: 'Asset inventory finalized', pass: r.inventoryFinalized },
