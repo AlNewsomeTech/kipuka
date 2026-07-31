@@ -12,6 +12,7 @@
     "test:security": "node scripts/check-authorization-gates.mjs",
     "test:cmmc-data": "node scripts/check-cmmc-dataset.mjs",
     "test:canonical-migration": "node scripts/check-canonical-project-migration.mjs",
+    "test:canonical-runtime": "node scripts/check-canonical-runtime.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -25,9 +25,7 @@ import GuidedQueue from '@/pages/project/GuidedQueue';
 import '@/lib/externalLinks'; // force all external links to open in a new tab
 import ClientIntake from '@/pages/ClientIntake';
 import DeploymentBoard from '@/pages/DeploymentBoard';
-import CMMCControls from '@/pages/CMMCControls';
-import ControlDetail from '@/pages/ControlDetail';
-import Level2Readiness from '@/pages/Level2Readiness';
+import CanonicalControlsRedirect from '@/pages/CanonicalControlsRedirect';
 import JiraExport from '@/pages/JiraExport';
 import Microsoft365Setup from '@/pages/Microsoft365Setup';
 import GoogleMigration from '@/pages/GoogleMigration';
@@ -142,9 +140,10 @@ const AuthenticatedApp = () => {
           <Route path="/projects/new" element={<NewProjectWizard />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/board" element={<DeploymentBoard />} />
-          <Route path="/controls" element={<CMMCControls />} />
-          <Route path="/controls/:id" element={<ControlDetail />} />
-          <Route path="/level2" element={<Level2Readiness />} />
+          {/* Retired 17/93 CMMCControl screens — redirect to the canonical project assessment. */}
+          <Route path="/controls" element={<CanonicalControlsRedirect />} />
+          <Route path="/controls/:id" element={<CanonicalControlsRedirect />} />
+          <Route path="/level2" element={<CanonicalControlsRedirect />} />
           <Route path="/jira-export" element={<JiraExport />} />
           <Route path="/m365" element={<Microsoft365Setup />} />
           <Route path="/google" element={<GoogleMigration />} />

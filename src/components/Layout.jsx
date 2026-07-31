@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Layers, Settings2, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
+  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Settings2, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
-  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack, ClipboardList,
+  Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
   Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal,
   Menu, X
@@ -30,11 +30,6 @@ const navSections = [
     { to: '/org-settings', label: 'Organization Settings', icon: Building, clientVisible: true },
     { to: '/org-assets', label: 'Asset Inventory', icon: HardDrive, clientVisible: true },
     { to: '/audit-log', label: 'Audit Log', icon: ScrollText, clientVisible: true },
-  ]},
-  { label: 'CMMC Controls', items: [
-    { to: '/controls', label: 'Level 1 Controls', icon: ShieldCheck },
-    { to: '/level2', label: 'Level 2 Controls', icon: Layers },
-    { to: '/jira-export', label: 'Jira Export', icon: ClipboardList },
   ]},
   { label: 'Implementation', items: [
     { to: '/m365', label: 'Microsoft 365 Setup', icon: Settings2 },
