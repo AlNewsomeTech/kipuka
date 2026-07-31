@@ -465,11 +465,20 @@ function checkImporter() {
   );
   const bulkBatchSizes = [...src.matchAll(/i\s*\+=\s*(\d+)/g)].map((match) => Number(match[1]));
   expect(
-    bulkBatchSizes.length === 7 && bulkBatchSizes.every((size) => size > 0 && size <= 500),
-    `all seven stage/activation bulk batches are bounded at 500 or fewer (found: ${bulkBatchSizes.join(',') || 'none'})`,
+    bulkBatchSizes.length === 4 && bulkBatchSizes.every((size) => size > 0 && size <= 500),
+    `all four staging bulk loops are bounded at 500 or fewer (found: ${bulkBatchSizes.join(',') || 'none'})`,
+  );
+  expect(
+    /controlActivationUpdates\.length\s*>\s*500/.test(src) &&
+      /objectiveActivations\.length\s*>\s*500/.test(src),
+    'both activation batches reject sizes above the SDK limit of 500',
+  );
+  expect(
+    /const\s+controlActivationUpdates\s*=\s*\[\.\.\.legacyDeactivations,\s*\.\.\.controlActivations\]/.test(src),
+    'legacy deactivation and target activation share one ControlLibrary bulk switch',
   );
   const bulkOperations = src.match(/\.(?:bulkCreate|bulkUpdate)\s*\(/g) || [];
-  expect(bulkOperations.length === 7, 'staging and activation use seven bounded SDK bulk operations');
+  expect(bulkOperations.length === 6, 'staging and activation use six bounded SDK bulk operations');
   expect(
     !/\.filter\([\s\S]*?\)\.catch\(\(\)\s*=>\s*\[\]\)/.test(src),
     'critical entity read failures are not swallowed as empty datasets',
