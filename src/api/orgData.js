@@ -17,7 +17,7 @@ import { rawClient } from '@/api/base44Client';
 
 // Entities readable through the read gate.
 export const READ_GATED = new Set([
-  'ControlAssessment', 'Project', 'CompanyProfile', 'ProjectEvidence', 'Asset',
+  'Client', 'ControlAssessment', 'Project', 'CompanyProfile', 'ProjectEvidence', 'Asset',
   'ScopingProfile', 'ProjectPOAM', 'SSPControlStatement', 'SystemSecurityPlan',
   'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan', 'IncidentLog',
   'MockAssessmentSession', 'MockAssessmentObjective', 'ObjectiveEvidenceLink',
