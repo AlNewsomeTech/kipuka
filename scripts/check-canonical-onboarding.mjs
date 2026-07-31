@@ -114,7 +114,7 @@ if (fnRaw !== null) {
 
   // --- structure
   check('function uses createClientFromRequest', /import\s*\{\s*createClientFromRequest\s*\}\s*from\s*'npm:@base44\/sdk@/.test(code));
-  check('function exports the default handler', /export\s+default\s+async\s+function\s*\(\s*req\s*\)/.test(code));
+  check('function uses the required Deno.serve entry point', /Deno\.serve\(async\s*\(\s*req\s*\)\s*=>\s*\{/.test(code));
   check('handler body is wrapped in try/catch', /\btry\s*\{/.test(code) && /\}\s*catch\s*\(\s*error\s*\)\s*\{/.test(code));
 
   // --- authentication precedes authorization precedes service role
