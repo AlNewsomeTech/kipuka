@@ -312,19 +312,32 @@ export default async function (req) {
 
     // Deterministic resume key — derived only from the constant and caller.id.
     const onboardingKey = `${ONBOARDING_KEY_VERSION}|${callerId}`;
+    const wizardAnswers = {};
+    for (const key of QUESTION_KEYS) {
+      wizardAnswers[key] = answers[key] === true ? 'Yes' : answers[key] === false ? 'No' : 'Not sure';
+    }
 
     const svc = base44.asServiceRole.entities;
     let resumed = false;
 
-    // ---- STEP A: Organization ------------------------------------------
+    // ---- STEP A: preflight identity and Organization --------------------
+    // Membership and caller-tenant conflicts must be resolved BEFORE any
+    // organization is created. Otherwise a rejected caller could leave an
+    // orphan tenant behind.
+    const emailMemberships = await readAll(svc.OrganizationUser, { user_email: callerEmail }, 'created_date');
+    const activeMemberships = emailMemberships.filter((m) => m.status === 'Active');
+    if (activeMemberships.length > 1) {
+      throw httpError(409, 'Your account already has multiple active organization memberships. Contact Pac-Sec support.');
+    }
+    const activeMembership = activeMemberships[0] || null;
+    const callerOrgId = normalizedText(caller.organization_id);
+
     const orgMatches = await readAll(svc.Organization, { onboarding_key: onboardingKey }, 'created_date');
     let organization = singleton(orgMatches, 'organization');
-    if (organization) {
-      resumed = true;
-      if (organization.plan_tier !== planTier) {
-        throw httpError(409, 'A workspace already exists for your account with a different CMMC track. Contact Pac-Sec support to change it.');
+    if (!organization) {
+      if (activeMembership || callerOrgId || emailMemberships.length > 0) {
+        throw httpError(409, 'Your account is already linked to an organization or has a prior membership. Contact Pac-Sec support before creating a new workspace.');
       }
-    } else {
       const trialEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
       organization = await svc.Organization.create({
         organization_name: company.company_name,
@@ -340,51 +353,72 @@ export default async function (req) {
         trial_ends_date: trialEnds,
         onboarding_key: onboardingKey,
       });
+    } else {
+      resumed = true;
+      if (activeMembership && activeMembership.organization_id !== organization.id) {
+        throw httpError(409, 'Your account already belongs to another organization. Contact Pac-Sec support.');
+      }
+      if (callerOrgId && callerOrgId !== organization.id) {
+        throw httpError(409, 'Your signed-in account is linked to a different organization. Contact Pac-Sec support.');
+      }
+      if (emailMemberships.some((m) => m.organization_id !== organization.id || m.status !== 'Active')) {
+        throw httpError(409, 'Your account has a removed, disabled, invited, or conflicting membership. Contact Pac-Sec support; onboarding will not reactivate it.');
+      }
+      if (
+        normalizedText(organization.organization_name) !== company.company_name
+        || normalizedText(organization.legal_name) !== company.company_name
+        || normalizedText(organization.primary_contact_email).toLowerCase() !== callerEmail
+        || organization.plan_tier !== planTier
+      ) {
+        throw httpError(409, 'The existing workspace does not match this onboarding request. Contact Pac-Sec support.');
+      }
     }
     if (!organization || !organization.id) throw httpError(500, 'Workspace creation failed.');
     const orgId = organization.id;
     organization = await svc.Organization.get(orgId);
-    if (!organization || organization.onboarding_key !== onboardingKey || organization.plan_tier !== planTier) {
+    if (
+      !organization
+      || organization.onboarding_key !== onboardingKey
+      || organization.plan_tier !== planTier
+      || normalizedText(organization.organization_name) !== company.company_name
+      || normalizedText(organization.primary_contact_email).toLowerCase() !== callerEmail
+    ) {
       throw httpError(500, 'Workspace could not be verified. Please retry.');
     }
 
     // ---- STEP B: OrganizationUser membership ---------------------------
-    const emailMemberships = await readAll(svc.OrganizationUser, { user_email: callerEmail }, 'created_date');
-    const activeMemberships = emailMemberships.filter((m) => m.status === 'Active');
-    if (activeMemberships.length > 1) {
-      throw httpError(409, 'Your account already has multiple active organization memberships. Contact Pac-Sec support.');
-    }
-    if (activeMemberships.length === 1 && activeMemberships[0].organization_id !== orgId) {
-      throw httpError(409, 'Your account already belongs to another organization. Contact Pac-Sec support.');
-    }
-    let membership = activeMemberships[0] || null;
+    let membership = activeMembership;
     if (membership) {
       resumed = true;
+      if (
+        emailMemberships.length !== 1
+        || membership.organization_id !== orgId
+        || membership.role !== 'Organization Owner'
+        || normalizedText(membership.user_email).toLowerCase() !== callerEmail
+      ) {
+        throw httpError(409, 'Your active organization membership is inconsistent. Contact Pac-Sec support.');
+      }
     } else {
-      const orgScoped = emailMemberships.filter((m) => m.organization_id === orgId);
-      if (orgScoped.length > 1) {
-        throw httpError(409, 'Your organization membership records are inconsistent. Contact Pac-Sec support.');
+      if (emailMemberships.length > 0) {
+        throw httpError(409, 'A prior membership exists for your account. Contact Pac-Sec support; onboarding will not reactivate it.');
       }
-      if (orgScoped.length === 1) {
-        resumed = true;
-        membership = await svc.OrganizationUser.update(orgScoped[0].id, {
-          role: 'Organization Owner',
-          status: 'Active',
-          user_name: callerName,
-        });
-      } else {
-        membership = await svc.OrganizationUser.create({
-          organization_id: orgId,
-          user_email: callerEmail,
-          user_name: callerName,
-          role: 'Organization Owner',
-          status: 'Active',
-        });
-      }
+      membership = await svc.OrganizationUser.create({
+        organization_id: orgId,
+        user_email: callerEmail,
+        user_name: callerName,
+        role: 'Organization Owner',
+        status: 'Active',
+      });
     }
     if (!membership || !membership.id) throw httpError(500, 'Membership creation failed.');
     membership = await svc.OrganizationUser.get(membership.id);
-    if (!membership || membership.organization_id !== orgId || membership.status !== 'Active' || membership.user_email !== callerEmail) {
+    if (
+      !membership
+      || membership.organization_id !== orgId
+      || membership.status !== 'Active'
+      || membership.role !== 'Organization Owner'
+      || normalizedText(membership.user_email).toLowerCase() !== callerEmail
+    ) {
       throw httpError(500, 'Membership could not be verified. Please retry.');
     }
 
