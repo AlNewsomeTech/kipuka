@@ -650,6 +650,8 @@ Deno.serve(async (req) => {
     );
     const created: string[] = [];
     const updated: string[] = [];
+    const controlCreates: any[] = [];
+    const controlUpdates: any[] = [];
 
     for (const rec of built.allControls) {
       const legacyMatches = (rec.crosswalk_requirement_ids || []).flatMap(
@@ -665,12 +667,18 @@ Deno.serve(async (req) => {
         active: existing?.active === true,
       };
       if (existing) {
-        await base44.asServiceRole.entities.ControlLibrary.update(existing.id, payload);
+        controlUpdates.push({ id: existing.id, ...payload });
         updated.push(rec.control_id);
       } else {
-        await base44.asServiceRole.entities.ControlLibrary.create({ ...payload, active: false });
+        controlCreates.push({ ...payload, active: false });
         created.push(rec.control_id);
       }
+    }
+    for (let i = 0; i < controlCreates.length; i += 100) {
+      await base44.asServiceRole.entities.ControlLibrary.bulkCreate(controlCreates.slice(i, i + 100));
+    }
+    for (let i = 0; i < controlUpdates.length; i += 100) {
+      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(controlUpdates.slice(i, i + 100));
     }
 
     const existingObjectives = await base44.asServiceRole.entities.AssessmentObjectiveLibrary
@@ -678,16 +686,25 @@ Deno.serve(async (req) => {
     const objByKey = new Map<string, any>(
       existingObjectives.map((o: any) => [o.objective_key, o] as [string, any]),
     );
+    const objectiveCreates: any[] = [];
+    const objectiveUpdates: any[] = [];
     for (const row of built.allObjectives) {
       const existing = objByKey.get(row.objective_key);
       if (existing) {
-        await base44.asServiceRole.entities.AssessmentObjectiveLibrary.update(existing.id, {
-          ...row,
-          active: existing.active === true,
-        });
+        objectiveUpdates.push({ id: existing.id, ...row, active: existing.active === true });
       } else {
-        await base44.asServiceRole.entities.AssessmentObjectiveLibrary.create({ ...row, active: false });
+        objectiveCreates.push({ ...row, active: false });
       }
+    }
+    for (let i = 0; i < objectiveCreates.length; i += 100) {
+      await base44.asServiceRole.entities.AssessmentObjectiveLibrary.bulkCreate(
+        objectiveCreates.slice(i, i + 100),
+      );
+    }
+    for (let i = 0; i < objectiveUpdates.length; i += 100) {
+      await base44.asServiceRole.entities.AssessmentObjectiveLibrary.bulkUpdate(
+        objectiveUpdates.slice(i, i + 100),
+      );
     }
 
     // Re-validate the persisted authoritative fields, hashes and uniqueness
@@ -764,22 +781,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Activation last, idempotent. Legacy records are deactivated, never deleted.
-    for (const rec of legacyActive) {
-      await base44.asServiceRole.entities.ControlLibrary.update(rec.id, {
-        active: false,
-        superseded_by_control_id: DATASET_KEY,
-      });
+    // Activation last, idempotent. Each batch is bounded well below the SDK
+    // limit; a failed batch can be safely resumed by rerunning this importer.
+    const legacyDeactivations = legacyActive.map((rec: any) => ({
+      id: rec.id,
+      active: false,
+      superseded_by_control_id: DATASET_KEY,
+    }));
+    const controlActivations = persistedControls
+      .filter((rec: any) => rec.active !== true)
+      .map((rec: any) => ({ id: rec.id, active: true }));
+    const objectiveActivations = persistedObjectives
+      .filter((row: any) => row.active !== true)
+      .map((row: any) => ({ id: row.id, active: true }));
+    for (let i = 0; i < legacyDeactivations.length; i += 100) {
+      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(
+        legacyDeactivations.slice(i, i + 100),
+      );
     }
-    for (const rec of persistedControls) {
-      if (rec.active !== true) {
-        await base44.asServiceRole.entities.ControlLibrary.update(rec.id, { active: true });
-      }
+    for (let i = 0; i < controlActivations.length; i += 100) {
+      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(
+        controlActivations.slice(i, i + 100),
+      );
     }
-    for (const row of persistedObjectives) {
-      if (row.active !== true) {
-        await base44.asServiceRole.entities.AssessmentObjectiveLibrary.update(row.id, { active: true });
-      }
+    for (let i = 0; i < objectiveActivations.length; i += 100) {
+      await base44.asServiceRole.entities.AssessmentObjectiveLibrary.bulkUpdate(
+        objectiveActivations.slice(i, i + 100),
+      );
     }
 
     const versions = await base44.asServiceRole.entities.ComplianceDatasetVersion
