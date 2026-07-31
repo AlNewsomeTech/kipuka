@@ -342,8 +342,15 @@ assert(
   'deletion is refused without a hash-verified archive snapshot',
 );
 assert(
-  count(fn, /\.delete\(/g) === count(fn, /svc\[entityName\]\.delete\(row\.id\)/g),
-  'the only delete call in the function is the archive-verified deletion path',
+  count(fn, /\.delete\(/g) === 0 &&
+  count(fn, /\.deleteMany\(/g) === 1 &&
+  has(handler, 'svc[entityName].deleteMany({ id: { $in: batchIds } })'),
+  'the only delete operation is exact-id deleteMany inside the archive-verified deletion path',
+);
+assert(
+  has(handler, 'batchIds.length > BULK_BATCH') &&
+  count(handler, /\{ id: \{ \$in: batchIds \} \}/g) >= 3,
+  'archive-verified deletes are batched at the <=500 limit and verified by post-delete reads',
 );
 assert(!/MigrationArchive\.delete|MigrationArchive[^\n]*deleteMany/.test(fn), 'archive records are never deleted');
 assert(
@@ -374,8 +381,14 @@ assert(
   'resume reads archived payloads rather than partially changed live rows',
 );
 assert(
-  has(handler, "filter({ id: row.id }, 'created_date', 1, 0)"),
-  'resume treats an already-deleted, hash-verified row as an idempotent delete',
+  has(handler, "filter(\n            { id: { $in: batchIds } }, 'created_date', BULK_BATCH, 0,") &&
+  has(handler, 'if (remaining.length > 0)'),
+  'resume treats already-deleted hash-verified rows as idempotent and fails if any exact ids remain',
+);
+assert(
+  has(handler, 'if (!plan.canonicalAlready)') &&
+  ordered(handler, ['if (!plan.canonicalAlready)', "deleteVerified('ControlAssessment'", "bulkCreate(svc.ControlAssessment, 'ControlAssessment', canonicalRows)"]) === null,
+  'resume preserves an already-canonical assessment set and continues reference work',
 );
 assert(
   has(handler, "priorRun?.status === 'Applied'") && has(handler, 'idempotent_no_op: true'),
