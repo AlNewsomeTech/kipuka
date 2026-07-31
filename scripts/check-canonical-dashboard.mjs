@@ -222,15 +222,15 @@ if (org !== null) {
   check('OrgDashboard: Level 2 expects 110', /'Level 2'\s*\?\s*110\b/.test(org));
   check('OrgDashboard: states 15 FAR 52.204-21 requirements', /15 FAR 52\.204-21 requirements/.test(org));
   check('OrgDashboard: states 110 NIST SP 800-171 requirements', /110 NIST SP 800-171 requirements/.test(org));
-  check('OrgDashboard: validates the record count', /rows\.length\s*!==\s*expectedTotal/.test(org));
-  check('OrgDashboard: validates unique control IDs', /unique\.size\s*!==\s*expectedTotal/.test(org));
-  check('OrgDashboard: detects duplicates', /unique\.size\s*!==\s*nonBlank\.length/.test(org));
-  check('OrgDashboard: detects blank control IDs', /nonBlank\.length\s*!==\s*ids\.length/.test(org));
-  check('OrgDashboard: validates project ownership', /r\.project_id\s*!==\s*project\.id/.test(org));
+  check('OrgDashboard: delegates integrity to the canonical engine', /computeCanonicalReadiness/.test(org));
+  check('OrgDashboard: passes authoritative objective rows', /objectiveLibrary/.test(org));
+  check('OrgDashboard: passes objective findings', /objectiveLinks/.test(org));
+  check('OrgDashboard: passes final evidence', /computeCanonicalReadiness\s*\(\s*\{[\s\S]*evidence/.test(org));
+  check('OrgDashboard: uses canonical integrity result', /canonical\.integrity_ok/.test(org));
   check('OrgDashboard: suppresses readiness when integrity fails', /integrity\.ok\s*\?/.test(org));
   check('OrgDashboard: shows a visible integrity warning', /Control data integrity issue/.test(org));
-  check('OrgDashboard: met/total claim uses the authoritative denominator',
-    /\{sprs\.met\} of \{expectedTotal\} required controls/.test(org));
+  check('OrgDashboard: met/total claim uses the canonical result and authoritative denominator',
+    /\{canonical\.met\} of \{expectedTotal\} requirements are MET/.test(org));
   check('OrgDashboard: keeps the project workspace link', /to=\{`\/projects\/\$\{project\.id\}`\}/.test(org));
   check('OrgDashboard: keeps the evidence surface', /\/evidence`\}/.test(org));
   check('OrgDashboard: keeps the POA&M surface', /\/poam`\}/.test(org));
