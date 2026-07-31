@@ -1090,25 +1090,47 @@ Deno.serve(async (req) => {
     await svc.DataMigrationRun.update(run.id, { status: 'Applying' });
 
     const deleteVerified = async (entityName: string, rows: any[]) => {
+      // Verify every exact source id before any delete request. Delete in one
+      // exact-id batch per <=500 rows to avoid exhausting the platform request
+      // limit. A post-delete read is the authoritative success check, so an
+      // interrupted prior call remains safely resumable.
       for (const row of rows) {
         const a = archiveByKey.get(archiveKeyOf(entityName, row.id));
         if (!a || a.content_sha256 !== await sha256Hex(stableSerialize(a.payload))) {
           throw new Error(`Refusing to delete ${entityName} ${row.id} without a hash-verified archive snapshot.`);
         }
+      }
+      for (let i = 0; i < rows.length; i += BULK_BATCH) {
+        const batchIds = rows.slice(i, i + BULK_BATCH).map((row: any) => row.id);
+        if (batchIds.length > BULK_BATCH) throw new Error('Batch limit exceeded.');
         try {
-          await svc[entityName].delete(row.id);
+          await svc[entityName].deleteMany({ id: { $in: batchIds } });
         } catch (error) {
-          const remaining = await svc[entityName].filter({ id: row.id }, 'created_date', 1, 0);
-          if (remaining.length > 0) throw error;
+          const remaining = await svc[entityName].filter(
+            { id: { $in: batchIds } }, 'created_date', BULK_BATCH, 0,
+          );
+          if (remaining.length > 0) {
+            throw new Error(`Critical delete failure on ${entityName}: ${(error as Error).message}`);
+          }
+        }
+        const remaining = await svc[entityName].filter(
+          { id: { $in: batchIds } }, 'created_date', BULK_BATCH, 0,
+        );
+        if (remaining.length > 0) {
+          throw new Error(`Critical delete failure on ${entityName}: ${remaining.length} verified rows remain.`);
         }
       }
     };
 
-    // ControlAssessment: delete every original row (all archived), then create
-    // the canonical 440 rows for the four valid projects.
-    await deleteVerified('ControlAssessment', plan.liveAssessments);
-    const canonicalRows = Object.values(plan.plannedByProject).flat();
-    await bulkCreate(svc.ControlAssessment, 'ControlAssessment', canonicalRows);
+    // ControlAssessment: delete every remaining original row (all archived),
+    // then create the canonical 440 rows. If a prior attempt already created
+    // and validated the canonical live shape before failing later, preserve it
+    // and resume only the idempotent reference work below.
+    if (!plan.canonicalAlready) {
+      await deleteVerified('ControlAssessment', plan.liveAssessments);
+      const canonicalRows = Object.values(plan.plannedByProject).flat();
+      await bulkCreate(svc.ControlAssessment, 'ControlAssessment', canonicalRows);
+    }
 
     for (const entityName of Object.keys(plan.referencePlans)) {
       const p = plan.referencePlans[entityName];
