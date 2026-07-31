@@ -85,6 +85,11 @@ Deno.serve(async (req) => {
     const denied = authorizeClientAccess(user, clientId);
     if (denied) return denied;
 
+    return Response.json({
+      error: 'Legacy Client SSP generation is retired. Open the canonical Project workspace and use the project SSP workflow.',
+      code: 'LEGACY_EXPORT_RETIRED',
+    }, { status: 410 });
+
     const sr = base44.asServiceRole;
 
     const [
