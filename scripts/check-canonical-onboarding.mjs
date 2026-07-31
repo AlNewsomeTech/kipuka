@@ -51,7 +51,7 @@ function toLogic(source) {
 }
 
 // ---------------------------------------------------------------------------
-// 0. Scope — exactly these eight files are the intended Phase 3D surface.
+// 0. Scope — eight Builder files plus one independently hardened CUI helper.
 // ---------------------------------------------------------------------------
 const ALLOWED_FILES = [
   'base44/entities/Organization.jsonc',
@@ -61,9 +61,10 @@ const ALLOWED_FILES = [
   'src/lib/scopingQuestionnaire.js',
   'src/components/onboarding/OnboardingScopingStep.jsx',
   'src/components/onboarding/OnboardingGate.jsx',
+  'src/lib/cuiHosting.js',
   'scripts/check-canonical-onboarding.mjs',
 ];
-check('Phase 3D declares exactly eight allowed files', ALLOWED_FILES.length === 8, `found ${ALLOWED_FILES.length}`);
+check('Phase 3D declares eight Builder files plus one hand-hardening file', ALLOWED_FILES.length === 9, `found ${ALLOWED_FILES.length}`);
 for (const file of ALLOWED_FILES) {
   check(`allowed file exists: ${file}`, existsSync(join(ROOT, file)));
 }
@@ -228,6 +229,15 @@ if (fnRaw !== null) {
   check('final rows are ownership + level post-validated',
     /row\.organization_id !== orgId \|\| row\.project_id !== projectId \|\| row\.cmmc_level !== level/.test(logic));
   check('final id set is post-validated', /finalIds\.size !== expectedCount/.test(logic));
+  check('existing assessment title and domain match the authoritative row',
+    /canonicalRows\.get\(row\.control_id\)/.test(logic)
+      && /normalizedText\(row\.control_title\) !== normalizedText\(canonicalRow\.control_title\)/.test(logic)
+      && /normalizedText\(row\.domain\) !== normalizedText\(canonicalRow\.domain\)/.test(logic));
+  check('all five singleton entity types are re-read after assessment creation',
+    /const \[\s*finalOrganizations,\s*finalMemberships,\s*finalProjects,\s*finalProfiles,\s*finalScopes,\s*\] = await Promise\.all/.test(code));
+  for (const finalName of ['finalOrganizations', 'finalMemberships', 'finalProjects', 'finalProfiles', 'finalScopes']) {
+    check(`final singleton is enforced for ${finalName}`, new RegExp(`singleton\\(${finalName},`).test(code));
+  }
   const iComplete = logic.indexOf('onboarding_status: ');
   const iFinalCount = logic.indexOf('finalAssessments.length !== expectedCount');
   check('profile is only completed AFTER the assessment postcondition',
@@ -249,14 +259,40 @@ if (fnRaw !== null) {
   }
   check('409 is used for conflicts', /httpError\(409/.test(logic));
   check('multiple active memberships are a 409', /activeMemberships\.length > 1/.test(logic));
+  const iMembershipRead = logic.indexOf('readAll(svc.OrganizationUser');
+  const iOrganizationCreate = logic.indexOf('svc.Organization.create');
+  const iCallerConflict = logic.indexOf('activeMembership || callerOrgId || emailMemberships.length > 0');
+  check('membership preflight runs before organization creation',
+    iMembershipRead > -1 && iMembershipRead < iOrganizationCreate);
+  check('caller and prior-membership conflict runs before organization creation',
+    iCallerConflict > -1 && iCallerConflict < iOrganizationCreate);
+  check('caller organization comes only from the authenticated session',
+    /const callerOrgId = normalizedText\(caller\.organization_id\)/.test(logic));
   check('a membership in another org is a 409',
-    /activeMemberships\[0\]\.organization_id !== orgId/.test(logic));
-  check('existing org with a different track is a 409',
-    /organization\.plan_tier !== planTier/.test(logic));
-  check('existing project with a different level is a 409',
-    /project\.target_cmmc_level !== level/.test(logic));
-  check('existing profile with a different track is a 409',
-    /companyProfile\.cmmc_track !== level/.test(logic));
+    /activeMembership && activeMembership\.organization_id !== organization\.id/.test(logic));
+  check('removed, disabled, invited, or conflicting memberships are rejected',
+    /emailMemberships\.some\(\(m\) => m\.organization_id !== organization\.id \|\| m\.status !== 'Active'\)/.test(code));
+  check('onboarding never reactivates an OrganizationUser',
+    !/svc\.OrganizationUser\.update\(/.test(logic));
+  check('existing organization consistency is verified',
+    /normalizedText\(organization\.organization_name\) !== company\.company_name/.test(logic)
+      && /normalizedText\(organization\.primary_contact_email\)\.toLowerCase\(\) !== callerEmail/.test(logic)
+      && /organization\.plan_tier !== planTier/.test(logic));
+  check('existing project consistency is verified',
+    /normalizedText\(project\.project_name\) !== expectedProjectName/.test(logic)
+      && /project\.project_type !== expectedProjectType/.test(logic)
+      && /project\.assessment_path !== expectedAssessmentPath/.test(logic)
+      && /project\.implementation_stack !== implementationStack/.test(logic));
+  check('existing company profile consistency is verified',
+    /profileMatchesRequest\(companyProfile\)/.test(logic)
+      && /companyProfile\.active_project_id !== projectId/.test(logic));
+  check('existing scope consistency is verified',
+    /scopeMatchesRequest\(scopingProfile\)/.test(logic)
+      && /answersMatch\(scope\.wizard_answers, wizardAnswers\)/.test(logic));
+  check('incomplete workspace retains Trial and full-access invariants',
+    /organization\.subscription_status !== 'Trial'/.test(code)
+      && /organization\.subscription_tier !== 'Trial'/.test(code)
+      && /organization\.trial_full_access !== true/.test(logic));
   check('resumed flag is reported', /let resumed = false/.test(code) && /resumed = true/.test(logic));
 
   // --- record shape
@@ -301,12 +337,31 @@ if (fnRaw !== null) {
     /entity\.filter\(query, sort, PAGE_LIMIT, skip\)/.test(code));
   check('no page/batch literal above 500',
     !/\.filter\([^)]*,\s*(5[0-9]{2,}|[6-9][0-9]{2}|[0-9]{4,})\s*[,)]/.test(logic));
-  check('errors map to a status', /error\.status \? error\.status : 500/.test(logic));
+  check('errors map to an integer status', /Number\.isInteger\(error\.status\) \? error\.status : 500/.test(logic));
+  check('server errors return a generic safe message',
+    /status >= 500/.test(logic)
+      && /Workspace setup failed\. Your progress is saved/.test(fnRaw)
+      && !/status === 500\s*\?\s*\(error && error\.message/.test(logic));
   check('no success is returned after a failure', /ok: true/.test(code) && logic.indexOf('ok: true') < iUserUpdate === false || logic.indexOf('ok: true') > iUserUpdate);
 }
 
 // ---------------------------------------------------------------------------
-// 3. src/lib/onboarding.js — no writes, no seeds, no ControlProgress.
+// 3. src/lib/cuiHosting.js — GCC is not silently treated as GCC High.
+// ---------------------------------------------------------------------------
+const cuiRaw = read('src/lib/cuiHosting.js');
+if (cuiRaw !== null) {
+  const code = stripComments(cuiRaw);
+  check('only GCC High auto-maps to GCC High hosting',
+    /if \(itEnvironment === 'Microsoft 365 GCC High'\) return CUI_HOSTING\.GCC_HIGH/.test(code)
+      && !/if \(itEnvironment === 'Microsoft 365 GCC'\) return CUI_HOSTING\.GCC_HIGH/.test(code));
+  check('Microsoft 365 GCC requires an explicit CUI architecture decision',
+    /CUI_INCAPABLE_ENVIRONMENTS[\s\S]*'Microsoft 365 GCC'/.test(code));
+  check('Unknown requires an explicit CUI architecture decision',
+    /CUI_INCAPABLE_ENVIRONMENTS[\s\S]*'Unknown'/.test(code));
+}
+
+// ---------------------------------------------------------------------------
+// 4. src/lib/onboarding.js — no writes, no seeds, no ControlProgress.
 // ---------------------------------------------------------------------------
 const libRaw = read('src/lib/onboarding.js');
 if (libRaw !== null) {
