@@ -27,12 +27,13 @@ export function OrgProvider({ children }) {
         base44.entities.OrganizationUser.filter({ user_email: user.email }).catch(() => []),
       ]);
 
-      // App-level admins are treated as Pac-Sec Admins (platform owners).
+      // Only an exactly Active membership can grant organization access or
+      // elevate an app user to Pac-Sec Admin. Invited, Disabled, and Removed
+      // rows are non-authoritative until an explicit activation workflow runs.
+      const activeMemberships = myMemberships.filter((m) => m.status === 'Active');
       const platformAdmin = user.role === 'admin' ||
-        myMemberships.some((m) => m.role === 'Pac-Sec Admin');
+        activeMemberships.some((m) => m.role === 'Pac-Sec Admin');
       setIsPlatformAdmin(platformAdmin);
-
-      const activeMemberships = myMemberships.filter((m) => m.status !== 'Removed');
       setMemberships(activeMemberships);
 
       let accessible;
