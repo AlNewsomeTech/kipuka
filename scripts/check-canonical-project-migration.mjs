@@ -357,12 +357,25 @@ assert(
   'content hashes are computed from a deterministic serialization',
 );
 assert(
+  has(fn, '[...sourceAssessments].sort') && !has(fn, 'sourceAssessments.map((r: any) => ({ id: r.id'),
+  'source snapshot hash covers every field of every source assessment in deterministic order',
+);
+assert(
+  has(handler, 'expectedContentHash') && has(handler, 'archivedPayloadHash') &&
+  has(handler, 'a.content_sha256 !== expectedContentHash || archivedPayloadHash !== expectedContentHash'),
+  'archive hash is compared to the original live payload and the stored archive payload',
+);
+assert(
   has(handler, 'resumeSources') && has(fn, 'buildPlan(base44, resumeSources)'),
   'a resumed run rebuilds the plan from archived original payloads',
 );
 assert(
   has(fn, 'list.push(a.payload)'),
   'resume reads archived payloads rather than partially changed live rows',
+);
+assert(
+  has(handler, "filter({ id: row.id }, 'created_date', 1, 0)"),
+  'resume treats an already-deleted, hash-verified row as an idempotent delete',
 );
 assert(
   has(handler, "priorRun?.status === 'Applied'") && has(handler, 'idempotent_no_op: true'),
@@ -440,6 +453,11 @@ assert(has(pv, 'references an invalid project_id'), 'reference post-validation r
 assert(
   has(pv, 'Duplicate SSPControlStatement for') && has(pv, 'unique rows, expected'),
   'post-validation proves exactly 110 unique SSP statements per project',
+);
+assert(
+  has(fn, 'sspOwningProjectIds') && has(fn, 'plans ${plannedUnique} unique rows') &&
+  has(pv, 'for (const pid of plan.sspOwningProjectIds)'),
+  'SSP 110-row ownership invariant is enforced before mutation and after apply, including a missing entire set',
 );
 assert(has(pv, 'activeAnyIds.has(id)'), 'projectless PolicyTemplate refs must be active authoritative L1/L2 IDs');
 assert(has(pv, 'Project count changed'), 'post-validation proves Project stays at 4');
