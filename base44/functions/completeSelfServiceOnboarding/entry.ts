@@ -249,6 +249,15 @@ function resolveCuiHosting({ handlesCui, itEnvironment, hosting, notes }) {
   throw httpError(422, 'A compatible CUI hosting architecture must be selected before setup can continue.');
 }
 
+async function resetAuthorizedQaUser(User, callerId) {
+  await User.update(callerId, {
+    role: 'client',
+    organization_id: '',
+    assigned_client_ids: '',
+  });
+  return User.get(callerId);
+}
+
 // --- handler ---------------------------------------------------------------
 
 Deno.serve(async (req) => {
@@ -343,12 +352,7 @@ Deno.serve(async (req) => {
       && emailMemberships.every((m) => qaResetMembershipIds.has(m.id) && m.status === 'Removed')
     );
     if (isAuthorizedQaReset) {
-      await svc.User.update(callerId, {
-        role: 'client',
-        organization_id: '',
-        assigned_client_ids: '',
-      });
-      const resetUser = await svc.User.get(callerId);
+      const resetUser = await resetAuthorizedQaUser(svc.User, callerId);
       if (
         !resetUser
         || resetUser.id !== callerId
