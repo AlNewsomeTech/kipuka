@@ -39,13 +39,18 @@ export function ClientProvider({ children }) {
 
   const selectedClient = clients.find((c) => c.id === selectedClientId) || null;
 
-  // Keep the org context in lock-step with the active client so every
-  // org-gated part of the app (tier features, permissions, usage limits)
-  // re-scopes to the selected client's organization — no stale caching.
+  // Self-service client accounts are bound directly to their authenticated
+  // organization and do not require a legacy Client record. Platform staff
+  // continue to scope organization context through the selected Client.
   useEffect(() => {
+    const selfServiceOrgId = user?.role === 'client' ? user?.organization_id : null;
+    if (selfServiceOrgId) {
+      selectOrg(selfServiceOrgId);
+      return;
+    }
     selectOrg(selectedClient?.organization_id || null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClientId, selectedClient?.organization_id]);
+  }, [user?.role, user?.organization_id, selectedClientId, selectedClient?.organization_id]);
 
   const refreshClients = async () => {
     if (!user) return [];
