@@ -12,7 +12,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 //
 // WHITELIST of org-scoped entities readable through the gate.
 const READ_WHITELIST = new Set([
-  'ControlAssessment', 'Project', 'CompanyProfile', 'ProjectEvidence', 'Asset',
+  'Client', 'ControlAssessment', 'Project', 'CompanyProfile', 'ProjectEvidence', 'Asset',
   'ScopingProfile', 'ProjectPOAM', 'SSPControlStatement', 'SystemSecurityPlan',
   'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan', 'IncidentLog',
   'MockAssessmentSession', 'MockAssessmentObjective', 'ObjectiveEvidenceLink',
