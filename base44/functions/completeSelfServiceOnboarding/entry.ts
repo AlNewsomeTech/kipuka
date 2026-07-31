@@ -325,17 +325,55 @@ Deno.serve(async (req) => {
     // organization is created. Otherwise a rejected caller could leave an
     // orphan tenant behind.
     const emailMemberships = await readAll(svc.OrganizationUser, { user_email: callerEmail }, 'created_date');
-    const activeMemberships = emailMemberships.filter((m) => m.status === 'Active');
+    let callerOrgId = normalizedText(caller.organization_id);
+
+    // One-time, exact-scope QA reset authorized by Albert Newsome on 2026-07-31.
+    // The original User and both historical memberships were archived under
+    // PROFILE-CLEANUP-ALBERT-PAC-SEC-2026-07-30 before either membership was
+    // marked Removed. No other user, tenant link, or membership set can match.
+    const qaResetMembershipIds = new Set([
+      '6a519958fbc5b17116e47893',
+      '6a4f1e3f204b3ef3197350c4',
+    ]);
+    const isAuthorizedQaReset = (
+      callerId === '6a4f1df00b54a8988cd69745'
+      && callerEmail === 'albert@pac-sec.com'
+      && callerOrgId === '6a4f1b6293936dd268395109'
+      && emailMemberships.length === 2
+      && emailMemberships.every((m) => qaResetMembershipIds.has(m.id) && m.status === 'Removed')
+    );
+    if (isAuthorizedQaReset) {
+      await svc.User.update(callerId, {
+        role: 'client',
+        organization_id: '',
+        assigned_client_ids: '',
+      });
+      const resetUser = await svc.User.get(callerId);
+      if (
+        !resetUser
+        || resetUser.id !== callerId
+        || normalizedText(resetUser.organization_id)
+        || normalizedText(resetUser.assigned_client_ids)
+        || resetUser.role !== 'client'
+      ) {
+        throw httpError(500, 'The authorized QA profile reset could not be verified.');
+      }
+      callerOrgId = '';
+    }
+
+    // Removed rows remain as historical records and can never be reactivated.
+    // They do not represent a current organization assignment.
+    const currentMemberships = emailMemberships.filter((m) => m.status !== 'Removed');
+    const activeMemberships = currentMemberships.filter((m) => m.status === 'Active');
     if (activeMemberships.length > 1) {
       throw httpError(409, 'Your account already has multiple active organization memberships. Contact Pac-Sec support.');
     }
     const activeMembership = activeMemberships[0] || null;
-    const callerOrgId = normalizedText(caller.organization_id);
 
     const orgMatches = await readAll(svc.Organization, { onboarding_key: onboardingKey }, 'created_date');
     let organization = singleton(orgMatches, 'organization');
     if (!organization) {
-      if (activeMembership || callerOrgId || emailMemberships.length > 0) {
+      if (activeMembership || callerOrgId || currentMemberships.length > 0) {
         throw httpError(409, 'Your account is already linked to an organization or has a prior membership. Contact Pac-Sec support before creating a new workspace.');
       }
       const trialEnds = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
@@ -361,7 +399,7 @@ Deno.serve(async (req) => {
       if (callerOrgId && callerOrgId !== organization.id) {
         throw httpError(409, 'Your signed-in account is linked to a different organization. Contact Pac-Sec support.');
       }
-      if (emailMemberships.some((m) => m.organization_id !== organization.id || m.status !== 'Active')) {
+      if (currentMemberships.some((m) => m.organization_id !== organization.id || m.status !== 'Active')) {
         throw httpError(409, 'Your account has a removed, disabled, invited, or conflicting membership. Contact Pac-Sec support; onboarding will not reactivate it.');
       }
       if (
@@ -391,7 +429,7 @@ Deno.serve(async (req) => {
     if (membership) {
       resumed = true;
       if (
-        emailMemberships.length !== 1
+        currentMemberships.length !== 1
         || membership.organization_id !== orgId
         || membership.role !== 'Organization Owner'
         || normalizedText(membership.user_email).toLowerCase() !== callerEmail
@@ -399,7 +437,7 @@ Deno.serve(async (req) => {
         throw httpError(409, 'Your active organization membership is inconsistent. Contact Pac-Sec support.');
       }
     } else {
-      if (emailMemberships.length > 0) {
+      if (currentMemberships.length > 0) {
         throw httpError(409, 'A prior membership exists for your account. Contact Pac-Sec support; onboarding will not reactivate it.');
       }
       membership = await svc.OrganizationUser.create({
@@ -675,7 +713,7 @@ Deno.serve(async (req) => {
       finalScopes,
     ] = await Promise.all([
       readAll(svc.Organization, { onboarding_key: onboardingKey }, 'created_date'),
-      readAll(svc.OrganizationUser, { user_email: callerEmail }, 'created_date'),
+      readAll(svc.OrganizationUser, { user_email: callerEmail, status: 'Active' }, 'created_date'),
       readAll(svc.Project, { organization_id: orgId }, 'created_date'),
       readAll(svc.CompanyProfile, { organization_id: orgId }, 'created_date'),
       readAll(svc.ScopingProfile, { project_id: projectId }, 'created_date'),
