@@ -624,6 +624,15 @@ async function buildPlan(base44: any, resumeSources: Map<string, any[]> | null) 
       control_title: target?.control_title,
     });
   }
+  const sspOwningProjectIds = new Set<string>(
+    ssp.filter((r: any) => validProjectIds.has(clean(r.project_id))).map((r: any) => clean(r.project_id)),
+  );
+  for (const projectId of sspOwningProjectIds) {
+    const plannedUnique = [...sspBuckets.keys()].filter((key) => key.startsWith(`${projectId}|`)).length;
+    if (plannedUnique !== CANONICAL_PER_PROJECT) {
+      fail(errors, `SSPControlStatement for project ${projectId} plans ${plannedUnique} unique rows, expected ${CANONICAL_PER_PROJECT}.`);
+    }
+  }
   referencePlans.SSPControlStatement = { updates: sspUpdates, deletes: sspDeletes, rows: ssp };
 
   // ToolControlMapping — map control_id / control_title.
@@ -716,7 +725,7 @@ async function buildPlan(base44: any, resumeSources: Map<string, any[]> | null) 
   };
 
   const snapshotHash = await sha256Hex(stableSerialize(
-    sourceAssessments.map((r: any) => ({ id: r.id, project_id: r.project_id, control_id: r.control_id })),
+    [...sourceAssessments].sort((a: any, b: any) => String(a.id).localeCompare(String(b.id))),
   ));
 
   return {
@@ -733,6 +742,7 @@ async function buildPlan(base44: any, resumeSources: Map<string, any[]> | null) 
     sourceAssessments,
     plannedByProject,
     referencePlans,
+    sspOwningProjectIds,
     orphanGroups,
     unmappable,
     duplicateTargets: [...new Set(duplicateTargets)],
@@ -816,7 +826,8 @@ async function postValidate(base44: any, plan: any) {
     set.add(row.control_id);
     sspByProject.set(row.project_id, set);
   }
-  for (const [pid, set] of sspByProject) {
+  for (const pid of plan.sspOwningProjectIds) {
+    const set = sspByProject.get(pid) || new Set<string>();
     if (set.size !== CANONICAL_PER_PROJECT || ssp.filter((r: any) => r.project_id === pid).length !== CANONICAL_PER_PROJECT) {
       problems.push(`SSPControlStatement for project ${pid} is ${set.size} unique rows, expected ${CANONICAL_PER_PROJECT}.`);
     }
@@ -1048,8 +1059,13 @@ Deno.serve(async (req) => {
       }
       archiveByKey.set(key, a);
     }
+    const sourceAssessmentIds = new Set(plan.sourceAssessments.map((r: any) => r.id));
+    const assessmentArchiveSources = [
+      ...plan.sourceAssessments,
+      ...plan.liveAssessments.filter((r: any) => !sourceAssessmentIds.has(r.id)),
+    ];
     const expectArchived: [string, any[]][] = [
-      ['ControlAssessment', plan.liveAssessments],
+      ['ControlAssessment', assessmentArchiveSources],
       ...Object.keys(plan.referencePlans).map((e) => [e, plan.referencePlans[e].rows] as [string, any[]]),
     ];
     for (const [entityName, rows] of expectArchived) {
@@ -1058,9 +1074,10 @@ Deno.serve(async (req) => {
         if (!a) {
           return Response.json({ ok: false, error: `Missing archive snapshot for ${entityName} ${row.id}. Nothing was mutated.` }, { status: 500 });
         }
-        const expectedHash = await sha256Hex(stableSerialize(a.payload));
-        if (a.content_sha256 !== expectedHash) {
-          return Response.json({ ok: false, error: `Archive hash mismatch for ${entityName} ${row.id}. Nothing was mutated.` }, { status: 500 });
+        const expectedContentHash = await sha256Hex(stableSerialize(row));
+        const archivedPayloadHash = await sha256Hex(stableSerialize(a.payload));
+        if (a.content_sha256 !== expectedContentHash || archivedPayloadHash !== expectedContentHash) {
+          return Response.json({ ok: false, error: `Archive hash mismatch or byte-equivalence failure for ${entityName} ${row.id}. Nothing was mutated.` }, { status: 500 });
         }
       }
     }
@@ -1078,7 +1095,12 @@ Deno.serve(async (req) => {
         if (!a || a.content_sha256 !== await sha256Hex(stableSerialize(a.payload))) {
           throw new Error(`Refusing to delete ${entityName} ${row.id} without a hash-verified archive snapshot.`);
         }
-        await svc[entityName].delete(row.id);
+        try {
+          await svc[entityName].delete(row.id);
+        } catch (error) {
+          const remaining = await svc[entityName].filter({ id: row.id }, 'created_date', 1, 0);
+          if (remaining.length > 0) throw error;
+        }
       }
     };
 
