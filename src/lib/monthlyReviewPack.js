@@ -7,7 +7,7 @@ import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName } from '@/lib/reportBranding';
 import { ACOLYTE_BRAND, OPEN_FINDING_STATUSES, OPEN_REMEDIATION_STATUSES, isRemediationOverdue } from '@/lib/acolyte';
 import { POSTURE_DOMAINS, scoreBand } from '@/lib/postureAssessment';
-import { computeSprs } from '@/lib/sprsScoring';
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 
 const DAY = 24 * 60 * 60 * 1000;
 const SEV_PRIORITY_ORDER = { Urgent: 4, High: 3, Medium: 2, Low: 1 };
@@ -98,15 +98,21 @@ export async function generateMonthlyReviewPack({ project, org, generatedBy }) {
   pdf.label('Overdue', overdueR);
   pdf.label('Open total', openR.length);
 
-  // ---- SPRS (computed from ControlAssessment, same engine as the dashboard) ----
+  // ---- SPRS and readiness (canonical objective/evidence engine) ----
   pdf.heading('SPRS Score');
-  const assessments = await base44.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []);
-  const sprsScore = computeSprs(assessments);
-  const doneStatuses = ['Ready for Assessment', 'Ready for Documentation', 'Implemented', 'Evidence Accepted'];
-  const controlsDone = assessments.filter((a) => doneStatuses.includes(a.status)).length;
-  pdf.label('Current SPRS score', sprsScore.current);
-  pdf.label('Projected (all met)', sprsScore.projected);
-  pdf.label('Controls complete', `${controlsDone} of ${assessments.length}`);
+  const [assessments, objectiveLibrary, objectiveLinks, projectEvidence] = await Promise.all([
+    base44.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
+    base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+    base44.entities.ObjectiveEvidenceLink.filter({ project_id: projectId }, 'objective_id', 500).catch(() => []),
+    base44.entities.ProjectEvidence.filter({ project_id: projectId }).catch(() => []),
+  ]);
+  const canonical = computeCanonicalReadiness({
+    project, assessments, objectiveLibrary, objectiveLinks, evidence: projectEvidence, poams,
+  });
+  pdf.label('Current SPRS score', canonical.integrity_ok ? canonical.sprs_current : 'Unavailable');
+  pdf.label('Assessment readiness', canonical.integrity_ok ? `${canonical.readiness_pct}%` : 'Unavailable');
+  pdf.label('Requirements MET', canonical.integrity_ok ? `${canonical.met} of ${canonical.expected_requirements}` : 'Unavailable');
+  pdf.label('Implementation complete', canonical.integrity_ok ? `${canonical.implemented} of ${canonical.expected_requirements}` : 'Unavailable');
 
   // ---- Open POA&M summary ----
   pdf.heading('Open POA&M Summary');
