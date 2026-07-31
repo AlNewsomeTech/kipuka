@@ -17,11 +17,10 @@ export function ClientProvider({ children }) {
     setLoading(true);
     base44.entities.Client.list()
       .then((data) => {
-        let filtered = data;
-        if (user.role === 'client') {
-          const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
-          filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
-        }
+        // Client-role reads are already forced to caller.organization_id by
+        // orgScopedData. Do not re-authorize with the retired cross-client
+        // assigned_client_ids string in the browser.
+        const filtered = data;
         setClients(filtered);
         if (filtered.length > 0 && !selectedClientId) {
           if (user.role === 'admin' || (user.role === 'technician' && filtered.length > 1)) {
@@ -50,12 +49,9 @@ export function ClientProvider({ children }) {
 
   const refreshClients = async () => {
     if (!user) return [];
-    const data = await base44.entities.Client.list();
-    let filtered = data;
-    if (user.role === 'client') {
-      const assignedIds = (user.assigned_client_ids || '').split(',').filter(Boolean);
-      filtered = data.filter((c) => assignedIds.includes(c.id) || c.created_by_id === user.id);
-    }
+    // Client-role rows are tenant-scoped by orgScopedData before they reach
+    // this context; admin and technician reads remain direct.
+    const filtered = await base44.entities.Client.list();
     setClients(filtered);
     return filtered;
   };
