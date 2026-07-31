@@ -2,8 +2,8 @@
 /**
  * KIPUKA authorization regression harness (static, dependency-free).
  *
- * Reads the deployed source of the eight security-relevant backend functions and
- * asserts that each authorization invariant is PRESENT and ORDERED correctly.
+ * Reads the deployed backend and frontend authorization surfaces and asserts
+ * that each security invariant is PRESENT and ORDERED correctly.
  * Fails closed: any missing or mis-ordered gate exits non-zero.
  *
  * LIMITATION: this is static source analysis, not a runtime test. It proves the
@@ -233,6 +233,8 @@ function checkOrgScopedShared(clean) {
 function checkOrgScopedData(src, clean) {
   assertAuthenticationGate(src, clean);
   checkOrgScopedShared(clean);
+  must(clean, /READ_WHITELIST\s*=\s*new\s+Set\s*\(\s*\[[\s\S]{0,120}'Client'/,
+    'Client records are routed through the server-side organization read gate');
   must(clean, /const\s+scoped\s*=\s*\{[\s\S]{0,120}organization_id:\s*org\s*\}/,
     'organization_id forced onto every list/filter query');
   must(clean, /record\.organization_id\s*!==\s*org[\s\S]{0,160}status:\s*404/,
@@ -328,8 +330,63 @@ function checkOrgAssetWrite(src, clean) {
   }
 }
 
+// -------------------------------------------- frontend authorization checks ----
+function checkOrgContext(_src, clean) {
+  const active = must(
+    clean,
+    /const\s+activeMemberships\s*=\s*myMemberships\.filter\s*\(\s*\(m\)\s*=>\s*m\.status\s*===\s*'Active'\s*\)/,
+    "organization memberships are filtered to status exactly 'Active'",
+  );
+  const platformAdmin = must(
+    clean,
+    /const\s+platformAdmin\s*=\s*user\.role\s*===\s*'admin'\s*\|\|[\s\S]{0,120}activeMemberships\.some\s*\([\s\S]{0,100}m\.role\s*===\s*'Pac-Sec Admin'/,
+    'Pac-Sec Admin elevation uses only active memberships',
+  );
+  if (active !== -1 && platformAdmin !== -1 && active > platformAdmin) {
+    fail('active membership filtering must precede Pac-Sec Admin elevation');
+  }
+  must(clean, /setMemberships\s*\(\s*activeMemberships\s*\)/,
+    'only active memberships are published to the application');
+  mustNot(clean, /myMemberships\.some\s*\([\s\S]{0,100}Pac-Sec Admin/,
+    'an unfiltered membership set can grant Pac-Sec Admin');
+  mustNot(clean, /status\s*!==\s*'Removed'/,
+    "'not Removed' treated as an active frontend membership");
+}
+
+function checkOnboardingState(_src, clean) {
+  must(
+    clean,
+    /const\s+activeMemberships\s*=\s*\(memberships\s*\|\|\s*\[\]\)\.filter\s*\(\s*\(m\)\s*=>\s*m\.status\s*===\s*'Active'\s*\)/,
+    "onboarding memberships are filtered to status exactly 'Active'",
+  );
+  must(clean, /const\s+isPacSecMember\s*=\s*activeMemberships\.some\s*\(/,
+    'Pac-Sec onboarding exemption uses only active memberships');
+  must(clean, /if\s*\(\s*activeMemberships\.length\s*>\s*0\s*\)/,
+    'existing-organization onboarding bypass requires an active membership');
+  mustNot(clean, /status\s*!==\s*'Removed'/,
+    "'not Removed' treated as an active onboarding membership");
+  mustNot(clean, /const\s+isPacSecMember\s*=\s*\(memberships\s*\|\|\s*\[\]\)\.some/,
+    'unfiltered memberships can exempt a caller from onboarding');
+}
+
+function checkOrgDataClientGate(_src, clean) {
+  must(clean, /READ_GATED\s*=\s*new\s+Set\s*\(\s*\[[\s\S]{0,120}'Client'/,
+    'client-role Client reads are routed through orgScopedData');
+}
+
+function checkClientContext(_src, clean) {
+  must(clean, /base44\.entities\.Client\.list\s*\(\s*\)/,
+    'client context loads Client records through the role-aware entity proxy');
+  mustNot(clean, /assigned_client_ids/,
+    'browser-side assigned_client_ids is used as a tenant authorization source');
+}
+
 // --------------------------------------------------------------- registry ----
 const CHECKS = [
+  { file: 'src/lib/orgContext.jsx', run: checkOrgContext },
+  { file: 'src/lib/onboarding.js', run: checkOnboardingState },
+  { file: 'src/api/orgData.js', run: checkOrgDataClientGate },
+  { file: 'src/lib/clientContext.jsx', run: checkClientContext },
   {
     file: 'base44/functions/generateEvidencePackage/entry.ts',
     run: checkGenerateEvidencePackage,
@@ -425,5 +482,5 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`\nAll ${CHECKS.length} functions passed every authorization invariant.`);
+console.log(`\nAll ${CHECKS.length} authorization surfaces passed every invariant.`);
 console.log('Note: static source analysis only — no runtime authorization test was executed.');
