@@ -1,3 +1,5 @@
+import { validNotApplicable } from '@/lib/canonicalReadiness';
+
 // SPRS (Supplier Performance Risk System) scoring engine.
 //
 // Single source of truth for control status = ControlAssessment records on the
@@ -38,15 +40,15 @@ export const SPRS_POINT_VALUES = {
   '3.11.1': 3, '3.11.2': 5, '3.11.3': 1,
   '3.12.1': 5, '3.12.2': 3, '3.12.3': 5, '3.12.4': 3,
   '3.13.1': 5, '3.13.2': 5, '3.13.3': 1, '3.13.4': 1, '3.13.5': 5, '3.13.6': 5, '3.13.7': 1,
-  '3.13.8': 3, '3.13.9': 1, '3.13.10': 1, '3.13.11': 3, '3.13.12': 1, '3.13.13': 1,
+  '3.13.8': 3, '3.13.9': 1, '3.13.10': 1, '3.13.11': 5, '3.13.12': 1, '3.13.13': 1,
   '3.13.14': 1, '3.13.15': 5, '3.13.16': 1,
   '3.14.1': 5, '3.14.2': 5, '3.14.3': 5, '3.14.4': 5, '3.14.5': 5, '3.14.6': 5, '3.14.7': 3,
 };
 
 // Partial-credit practices: when partially implemented, use the reduced deduction.
 const PARTIAL_CREDIT = {
-  '3.5.3': 3,    // MFA partial → subtract 3 instead of 5
-  '3.13.11': 1,  // FIPS crypto partial → subtract 1 instead of 3
+  '3.5.3': 3,     // MFA partial → subtract 3 instead of 5
+  '3.13.11': 3,  // non-FIPS encryption → subtract 3 instead of 5
 };
 
 export const SPRS_MAX = 110;
@@ -54,13 +56,7 @@ export const SPRS_FLOOR = -203;
 
 // ControlAssessment statuses that receive no deduction. Under 32 CFR 170.24,
 // a supported Not Applicable finding is equivalent to MET for scoring.
-const MET_STATUSES = new Set([
-  'Evidence Accepted',
-  'Ready for Documentation',
-  'Implemented',
-  'Ready for Assessment',
-  'Not Applicable',
-]);
+const MET_STATUSES = new Set(['Met']);
 
 // Statuses that represent "in progress" — not yet MET, but moving toward it.
 // Used for the projected score (assume these will complete).
@@ -89,16 +85,22 @@ export function isMetStatus(status) {
   return MET_STATUSES.has(status);
 }
 
+function isMetAssessment(assessment) {
+  return assessment?.finding === 'Met'
+    || isMetStatus(assessment?.status)
+    || validNotApplicable(assessment);
+}
+
 export function isInProgressStatus(status) {
   return IN_PROGRESS_STATUSES.has(status);
 }
 
 // Deduction for a single assessment given its status.
 // Partial credit applies only when status is "Partially Implemented".
-function deductionFor(sid, status) {
+function deductionFor(sid, assessment) {
   const full = SPRS_POINT_VALUES[sid] || 0;
-  if (isMetStatus(status)) return 0;
-  if (status === 'Partially Implemented' && PARTIAL_CREDIT[sid] != null) {
+  if (isMetAssessment(assessment)) return 0;
+  if (assessment?.status === 'Partially Implemented' && PARTIAL_CREDIT[sid] != null) {
     return PARTIAL_CREDIT[sid];
   }
   return full;
@@ -117,7 +119,7 @@ export function computeSprs(assessments = []) {
     const sid = shortId(a.control_id);
     if (!sid || SPRS_POINT_VALUES[sid] == null) continue;
     // Prefer a MET status over a non-met one if duplicates exist.
-    if (!byId[sid] || (isMetStatus(a.status) && !isMetStatus(byId[sid].status))) {
+    if (!byId[sid] || (isMetAssessment(a) && !isMetAssessment(byId[sid]))) {
       byId[sid] = a;
     }
   }
@@ -129,10 +131,10 @@ export function computeSprs(assessments = []) {
   for (const sid of Object.keys(SPRS_POINT_VALUES)) {
     const a = byId[sid];
     const status = a?.status || 'Not Started';
-    const d = deductionFor(sid, status);
+    const d = deductionFor(sid, a);
     currentDeduction += d;
 
-    if (isMetStatus(status)) met += 1;
+    if (isMetAssessment(a)) met += 1;
     else if (isInProgressStatus(status)) inProgress += 1;
     else notMet += 1;
 
@@ -167,7 +169,7 @@ export function nextRecommendedControls(assessments = [], limit = 5) {
   for (const sid of Object.keys(SPRS_POINT_VALUES)) {
     const a = byId[sid];
     const status = a?.status || 'Not Started';
-    if (!isMetStatus(status)) {
+    if (!isMetAssessment(a)) {
       notMet.push({
         short_id: sid,
         control_id: a?.control_id || sid,
