@@ -1,17 +1,18 @@
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
+
 // Shared readiness pre-check logic for gating FINAL document generation.
 // Draft generation is never gated; only final outputs surface these warnings.
 // All checks are advisory (warnings, not hard blocks) so users may continue anyway.
 
 // Compute a set of readiness signals from already-loaded project data.
 // Pass in whatever is available; missing arrays default to empty and read as "not ready".
-export function computeReadiness({ assessments = [], evidence = [], poams = [], assets = [], scoping = null, sprs = null, project = null } = {}) {
-  const total = assessments.length;
-  const implemented = assessments.filter((a) =>
-    ['Implemented', 'Ready for Documentation', 'Ready for Assessment'].includes(a.status)
-  ).length;
-  const reviewed = assessments.filter((a) =>
-    ['Ready for Documentation', 'Ready for Assessment'].includes(a.status)
-  ).length;
+export function computeReadiness({ assessments = [], objectiveLibrary = [], objectiveLinks = [], evidence = [], poams = [], assets = [], scoping = null, sprs = null, project = null } = {}) {
+  const canonical = computeCanonicalReadiness({
+    project, assessments, objectiveLibrary, objectiveLinks, evidence, poams,
+  });
+  const total = canonical.expected_requirements || 0;
+  const implemented = canonical.implemented;
+  const reviewed = canonical.met;
 
   const evTotal = evidence.length;
   const evAccepted = evidence.filter((e) => e.review_status === 'Accepted').length;
@@ -29,12 +30,18 @@ export function computeReadiness({ assessments = [], evidence = [], poams = [], 
   const inventoryFinalized = project?.inventory_status === 'Finalized';
   const scopeFinalized = scoping?.scope_status === 'Approved';
 
-  const controlPct = total ? Math.round((implemented / total) * 100) : 0;
-  const reviewPct = total ? Math.round((reviewed / total) * 100) : 0;
+  const controlPct = canonical.integrity_ok ? canonical.implementation_pct : null;
+  const reviewPct = canonical.integrity_ok ? canonical.readiness_pct : null;
   const evidenceAcceptPct = evTotal ? Math.round((evAccepted / evTotal) * 100) : 0;
 
   return {
     total, implemented, reviewed, controlPct, reviewPct,
+    canonicalIntegrityOk: canonical.integrity_ok,
+    canonicalIntegrityIssues: canonical.integrity_issues,
+    met: canonical.met,
+    notMet: canonical.not_met,
+    evidenceIncomplete: canonical.evidence_incomplete,
+    notAssessed: canonical.not_assessed,
     evTotal, evAccepted, evReviewed, evidenceAcceptPct,
     openHighRiskPoam, unlinkedGaps,
     inventoryFinalized, scopeFinalized,
@@ -47,7 +54,8 @@ export function computeReadiness({ assessments = [], evidence = [], poams = [], 
 // Build the SSP pre-check list (question + passed boolean).
 export function sspPrechecks(r) {
   return [
-    { label: 'Are controls reviewed?', pass: r.total > 0 && r.reviewed >= r.total },
+    { label: 'Is the canonical requirement/objective set valid?', pass: r.canonicalIntegrityOk },
+    { label: 'Are all applicable objectives MET from final evidence?', pass: r.total > 0 && r.met >= r.total },
     { label: 'Are implementation statements complete?', pass: r.total > 0 && r.implemented >= r.total },
     { label: 'Is evidence uploaded?', pass: r.evTotal > 0 },
     { label: 'Is evidence reviewed?', pass: r.evTotal > 0 && r.evReviewed >= r.evTotal },
