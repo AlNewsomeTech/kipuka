@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, Image, FileWarning, Layers, ArrowRight, HardDrive, AlertTriangle } from 'lucide-react';
-import { computeSprs } from '@/lib/sprsScoring';
-import { readinessPct } from '@/lib/controlStatus';
+import { canonicalSprsView, computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 import { useOrgDashboardData } from '@/lib/useOrgDashboardData';
 import SprsScoreWidget from './SprsScoreWidget';
 import ControlStatusDonut from './ControlStatusDonut';
@@ -14,10 +13,13 @@ import EmptyState from '@/components/EmptyState';
 // Self-service organization dashboard. Reads exclusively from the active
 // project's ControlAssessment records (single source of truth).
 export default function OrgDashboard({ organizationId, orgName }) {
-  const { loading, company, project, assessments, evidence, poams, assets } = useOrgDashboardData(organizationId);
+  const { loading, company, project, assessments, evidence, objectiveLibrary, objectiveLinks, poams, assets } = useOrgDashboardData(organizationId);
 
-  const sprs = useMemo(() => computeSprs(assessments), [assessments]);
-  const readiness = useMemo(() => readinessPct(assessments), [assessments]);
+  const canonical = useMemo(() => computeCanonicalReadiness({
+    project, assessments, objectiveLibrary, objectiveLinks, evidence, poams,
+  }), [project, assessments, objectiveLibrary, objectiveLinks, evidence, poams]);
+  const sprs = useMemo(() => canonicalSprsView(canonical), [canonical]);
+  const readiness = canonical.readiness_pct;
 
   // Project.target_cmmc_level is the sole target-level authority. CompanyProfile
   // cmmc_track is never allowed to override it.
@@ -26,25 +28,12 @@ export default function OrgDashboard({ organizationId, orgName }) {
   // Authoritative denominators: Level 1 = 15, Level 2 = 110. Never 125.
   const expectedTotal = targetLevel === 'Level 1' ? 15 : targetLevel === 'Level 2' ? 110 : null;
 
-  // Structural validation — malformed or failed data must never render as zero progress.
-  const integrity = useMemo(() => {
-    const rows = assessments || [];
-    const issues = [];
-    if (!project) issues.push('No project is linked to this organization.');
-    if (!expectedTotal) issues.push(`Project target level "${targetLevel || 'Unknown'}" is not an authoritative CMMC level.`);
-    const ids = rows.map((r) => String(r.control_id || '').trim());
-    const nonBlank = ids.filter(Boolean);
-    const unique = new Set(nonBlank);
-    if (nonBlank.length !== ids.length) issues.push(`${ids.length - nonBlank.length} control record(s) have a blank control ID.`);
-    if (unique.size !== nonBlank.length) issues.push('Duplicate control IDs exist in this project.');
-    if (expectedTotal && rows.length !== expectedTotal) issues.push(`Expected ${expectedTotal} control records, found ${rows.length}.`);
-    if (expectedTotal && unique.size !== expectedTotal) issues.push(`Expected ${expectedTotal} unique control IDs, found ${unique.size}.`);
-    if (project && rows.some((r) => r.project_id !== project.id)) issues.push('Some control records belong to a different project.');
-    return { ok: issues.length === 0, issues };
-  }, [assessments, project, expectedTotal, targetLevel]);
+  // Canonical engine validates both the requirement set and objective library.
+  // Any incomplete or malformed read fails closed and hides readiness/SPRS claims.
+  const integrity = { ok: canonical.integrity_ok, issues: canonical.integrity_issues };
   const openPoams = poams.filter((p) => p.status !== 'Closed' && p.status !== 'Resolved' && p.status !== 'Complete').length;
   const closedPoams = poams.length - openPoams;
-  const acceptedEvidence = evidence.filter((e) => e.review_status === 'Accepted').length;
+  const acceptedEvidence = canonical.valid_evidence;
   const totalAssets = (assets || []).length;
   const categorizedAssets = (assets || []).filter((a) => a.scope_category && a.scope_category !== 'Unknown').length;
   const assetPct = totalAssets ? Math.round((categorizedAssets / totalAssets) * 100) : 0;
@@ -92,10 +81,11 @@ export default function OrgDashboard({ organizationId, orgName }) {
             <>
               <div className="flex items-end gap-3 mb-2">
                 <span className="text-4xl font-bold text-slate-900">{readiness}%</span>
-                <span className="text-xs text-slate-500 mb-1.5">controls met</span>
+                <span className="text-xs text-slate-500 mb-1.5">assessment-ready</span>
               </div>
               <ProgressBar value={readiness} label={null} color="green" size="md" />
-              <p className="mt-2 text-xs text-slate-500">{sprs.met} of {expectedTotal} required controls are verified or implemented.</p>
+              <p className="mt-2 text-xs text-slate-500">{canonical.met} of {expectedTotal} requirements are MET from objective-level findings and final evidence.</p>
+              <p className="mt-1 text-xs text-slate-500">Implementation progress: {canonical.implemented} of {expectedTotal} ({canonical.implementation_pct}%).</p>
             </>
           ) : (
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
