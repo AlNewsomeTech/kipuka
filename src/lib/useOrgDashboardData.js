@@ -10,6 +10,8 @@ export function useOrgDashboardData(organizationId) {
   const [project, setProject] = useState(null);
   const [assessments, setAssessments] = useState([]);
   const [evidence, setEvidence] = useState([]);
+  const [objectiveLibrary, setObjectiveLibrary] = useState([]);
+  const [objectiveLinks, setObjectiveLinks] = useState([]);
   const [poams, setPoams] = useState([]);
   const [assets, setAssets] = useState([]);
 
@@ -36,18 +38,22 @@ export function useOrgDashboardData(organizationId) {
       setProject(proj);
 
       if (proj) {
-        const [asmt, ev, pm, as] = await Promise.all([
+        const [asmt, ev, objectives, links, pm, as] = await Promise.all([
           base44.entities.ControlAssessment.filter({ project_id: proj.id }).catch(() => []),
           base44.entities.ProjectEvidence.filter({ project_id: proj.id }).catch(() => []),
+          base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: proj.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+          base44.entities.ObjectiveEvidenceLink.filter({ project_id: proj.id }, 'objective_id', 500).catch(() => []),
           base44.entities.ProjectPOAM.filter({ project_id: proj.id }).catch(() => []),
           base44.entities.Asset.filter({ project_id: proj.id }, '-created_date', 1000).catch(() => []),
         ]);
         setAssessments(asmt);
         setEvidence(ev);
+        setObjectiveLibrary(objectives);
+        setObjectiveLinks(links);
         setPoams(pm);
         setAssets(as);
       } else {
-        setAssessments([]); setEvidence([]); setPoams([]); setAssets([]);
+        setAssessments([]); setEvidence([]); setObjectiveLibrary([]); setObjectiveLinks([]); setPoams([]); setAssets([]);
       }
     } finally {
       setLoading(false);
@@ -56,5 +62,5 @@ export function useOrgDashboardData(organizationId) {
 
   useEffect(() => { load(); }, [load]);
 
-  return { loading, company, project, assessments, evidence, poams, assets, reload: load };
+  return { loading, company, project, assessments, evidence, objectiveLibrary, objectiveLinks, poams, assets, reload: load };
 }
