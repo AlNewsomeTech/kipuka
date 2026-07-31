@@ -60,9 +60,14 @@ const IT_ENVIRONMENTS = [
   'Google Workspace', 'On-Premises', 'Hybrid', 'Unknown',
 ];
 // Environments that are already CUI-capable — hosting is fixed by the environment.
-const CUI_CAPABLE_ENVIRONMENTS = new Set(['Microsoft 365 GCC', 'Microsoft 365 GCC High']);
-// Environments that cannot hold CUI and therefore demand an explicit decision.
-const CUI_INCAPABLE_ENVIRONMENTS = new Set(['Microsoft 365 Commercial', 'Google Workspace', 'On-Premises', 'Hybrid']);
+const CUI_CAPABLE_ENVIRONMENTS = new Set(['Microsoft 365 GCC High']);
+// Environments that cannot be accepted as the CUI boundary without an explicit
+// architecture decision. GCC is not silently treated as GCC High, and an
+// Unknown environment must be resolved before CUI onboarding can complete.
+const CUI_INCAPABLE_ENVIRONMENTS = new Set([
+  'Microsoft 365 Commercial', 'Microsoft 365 GCC', 'Google Workspace',
+  'On-Premises', 'Hybrid', 'Unknown',
+]);
 const CUI_HOSTING_VALUES = new Set(['preveil_enclave', 'gcc_high', 'other_fedramp', 'undecided']);
 const CUI_HOSTING_DECIDED = new Set(['preveil_enclave', 'gcc_high', 'other_fedramp']);
 
@@ -232,8 +237,7 @@ function resolveCuiHosting({ handlesCui, itEnvironment, hosting, notes }) {
     }
     return { hosting, notes };
   }
-  // Unknown environment: the decision is deferred and recorded as undecided.
-  return { hosting: hosting || 'undecided', notes };
+  throw httpError(422, 'A compatible CUI hosting architecture must be selected before setup can continue.');
 }
 
 // --- handler ---------------------------------------------------------------
