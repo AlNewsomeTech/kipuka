@@ -191,6 +191,11 @@ Deno.serve(async (req) => {
     const denied = authorizeClientAccess(user, clientId);
     if (denied) return denied;
 
+    return Response.json({
+      error: 'Legacy Client package generation is retired. Open the canonical Project workspace and use the C3PAO Evidence Package export.',
+      code: 'LEGACY_EXPORT_RETIRED',
+    }, { status: 410 });
+
     const level = body.level || 'Level 1';
     const exportMode = body.export_mode || 'Ready-only';
     const includeDrafts = exportMode === 'Draft' || exportMode === 'Full archive' || body.include_drafts === true;
