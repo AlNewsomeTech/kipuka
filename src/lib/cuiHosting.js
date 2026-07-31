@@ -22,15 +22,17 @@ export const CUI_HOSTING_BANNER =
 // hold CUI on their own and therefore require a hosting decision.
 const CUI_INCAPABLE_ENVIRONMENTS = new Set([
   'Microsoft 365 Commercial',
+  'Microsoft 365 GCC',
   'Google Workspace',
   'On-Premises',
   'Hybrid',
+  'Unknown',
 ]);
 
-// GCC / GCC High are already CUI-capable; auto-map and skip the step.
+// Only GCC High auto-resolves this decision. Microsoft 365 GCC is not GCC High
+// and must not be silently accepted as the DFARS-regulated CUI boundary.
 export function autoHostingForEnvironment(itEnvironment) {
   if (itEnvironment === 'Microsoft 365 GCC High') return CUI_HOSTING.GCC_HIGH;
-  if (itEnvironment === 'Microsoft 365 GCC') return CUI_HOSTING.GCC_HIGH;
   return null;
 }
 
