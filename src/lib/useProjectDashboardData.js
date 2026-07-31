@@ -62,7 +62,7 @@ export function deriveMetrics(project, d) {
   if (project.target_completion_date) upcoming.push({ label: 'Target completion', date: project.target_completion_date });
   if (d.sprs?.expiration_date) upcoming.push({ label: 'SPRS affirmation expires', date: d.sprs.expiration_date });
   d.maintenance.filter((m) => m.due_date && m.status !== 'Complete').forEach((m) => upcoming.push({ label: m.task_title, date: m.due_date }));
-  upcoming.sort((a, b) => new Date(a.date) - new Date(b.date));
+  upcoming.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   return {
     total, implemented,
