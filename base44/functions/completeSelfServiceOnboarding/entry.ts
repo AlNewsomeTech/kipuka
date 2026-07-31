@@ -423,20 +423,31 @@ export default async function (req) {
     }
 
     // ---- STEP C: Project ------------------------------------------------
+    const expectedProjectName = `${company.company_name} — CMMC ${level}`;
+    const expectedProjectType = level === 'Level 2' ? 'CMMC Level 2 Self-Assessment' : 'CMMC Level 1';
+    const expectedAssessmentPath = level === 'Level 2' ? 'Level 2 Self-Assessment' : 'Level 1 Self-Assessment';
     const projectMatches = await readAll(svc.Project, { organization_id: orgId }, 'created_date');
     let project = singleton(projectMatches, 'project');
     if (project) {
       resumed = true;
-      if (project.target_cmmc_level !== level) {
-        throw httpError(409, 'An existing project targets a different CMMC level. Contact Pac-Sec support.');
+      if (
+        project.organization_id !== orgId
+        || normalizedText(project.project_name) !== expectedProjectName
+        || project.target_cmmc_level !== level
+        || project.project_type !== expectedProjectType
+        || project.assessment_path !== expectedAssessmentPath
+        || project.implementation_stack !== implementationStack
+        || normalizedText(project.project_owner_email).toLowerCase() !== callerEmail
+      ) {
+        throw httpError(409, 'The existing project does not match this onboarding request. Contact Pac-Sec support.');
       }
     } else {
       project = await svc.Project.create({
         organization_id: orgId,
-        project_name: `${company.company_name} — CMMC ${level}`,
-        project_type: level === 'Level 2' ? 'CMMC Level 2 Self-Assessment' : 'CMMC Level 1',
+        project_name: expectedProjectName,
+        project_type: expectedProjectType,
         target_cmmc_level: level,
-        assessment_path: level === 'Level 2' ? 'Level 2 Self-Assessment' : 'Level 1 Self-Assessment',
+        assessment_path: expectedAssessmentPath,
         implementation_stack: implementationStack,
         project_status: 'Project Setup',
         project_owner_name: callerName,
@@ -447,20 +458,42 @@ export default async function (req) {
     if (!project || !project.id) throw httpError(500, 'Project creation failed.');
     const projectId = project.id;
     project = await svc.Project.get(projectId);
-    if (!project || project.organization_id !== orgId || project.target_cmmc_level !== level) {
+    if (
+      !project
+      || project.organization_id !== orgId
+      || normalizedText(project.project_name) !== expectedProjectName
+      || project.target_cmmc_level !== level
+      || project.project_type !== expectedProjectType
+      || project.assessment_path !== expectedAssessmentPath
+      || project.implementation_stack !== implementationStack
+      || normalizedText(project.project_owner_email).toLowerCase() !== callerEmail
+    ) {
       throw httpError(500, 'Project could not be verified. Please retry.');
     }
 
     // ---- STEP D: CompanyProfile (stays incomplete until step G) ---------
     const profileMatches = await readAll(svc.CompanyProfile, { organization_id: orgId }, 'created_date');
     let companyProfile = singleton(profileMatches, 'company profile');
+    const profileMatchesRequest = (profile) => (
+      profile
+      && profile.organization_id === orgId
+      && normalizedText(profile.company_name) === company.company_name
+      && normalizedText(profile.cage_code) === company.cage_code
+      && normalizedText(profile.duns_uei) === company.duns_uei
+      && normalizedText(profile.dod_contracts) === company.dod_contracts
+      && Number(profile.employee_count) === company.employee_count
+      && profile.it_environment === company.it_environment
+      && profile.implementation_stack === implementationStack
+      && profile.uses_msp === company.uses_msp
+      && normalizedText(profile.msp_name) === company.msp_name
+      && profile.has_existing_ssp === company.has_existing_ssp
+      && profile.cmmc_track === level
+      && (!profile.active_project_id || profile.active_project_id === projectId)
+    );
     if (companyProfile) {
       resumed = true;
-      if (companyProfile.cmmc_track !== level) {
-        throw httpError(409, 'An existing company profile records a different CMMC track. Contact Pac-Sec support.');
-      }
-      if (companyProfile.active_project_id && companyProfile.active_project_id !== projectId) {
-        throw httpError(409, 'An existing company profile points at a different project. Contact Pac-Sec support.');
+      if (!profileMatchesRequest(companyProfile)) {
+        throw httpError(409, 'The existing company profile does not match this onboarding request. Contact Pac-Sec support.');
       }
       if (!companyProfile.active_project_id) {
         companyProfile = await svc.CompanyProfile.update(companyProfile.id, { active_project_id: projectId });
@@ -486,28 +519,45 @@ export default async function (req) {
     if (!companyProfile || !companyProfile.id) throw httpError(500, 'Company profile creation failed.');
     const companyProfileId = companyProfile.id;
     companyProfile = await svc.CompanyProfile.get(companyProfileId);
-    if (!companyProfile || companyProfile.organization_id !== orgId || companyProfile.active_project_id !== projectId || companyProfile.cmmc_track !== level) {
+    if (!profileMatchesRequest(companyProfile) || companyProfile.active_project_id !== projectId) {
       throw httpError(500, 'Company profile could not be verified. Please retry.');
+    }
+    if (
+      companyProfile.onboarding_status !== 'Complete'
+      && (
+        organization.subscription_status !== 'Trial'
+        || organization.subscription_tier !== 'Trial'
+        || organization.trial_full_access !== true
+      )
+    ) {
+      throw httpError(409, 'The incomplete workspace no longer has its original onboarding trial state. Contact Pac-Sec support.');
     }
 
     // ---- STEP E: ScopingProfile ----------------------------------------
+    const expectedScopeName = `${company.company_name} — Assessment Scope`;
+    const scopeMatchesRequest = (scope) => (
+      scope
+      && scope.organization_id === orgId
+      && scope.project_id === projectId
+      && normalizedText(scope.scope_name) === expectedScopeName
+      && scope.handles_fci === derived.handles_fci
+      && scope.handles_cui === derived.handles_cui
+      && normalizedText(scope.cui_hosting) === cui.hosting
+      && normalizedText(scope.cui_hosting_notes) === cui.notes
+      && answersMatch(scope.wizard_answers, wizardAnswers)
+    );
     const scopeMatches = await readAll(svc.ScopingProfile, { project_id: projectId }, 'created_date');
     let scopingProfile = singleton(scopeMatches, 'scoping profile');
     if (scopingProfile) {
       resumed = true;
-      if (scopingProfile.organization_id !== orgId) {
-        throw httpError(409, 'An existing scope record belongs to another organization. Contact Pac-Sec support.');
+      if (!scopeMatchesRequest(scopingProfile)) {
+        throw httpError(409, 'The existing scope record does not match this onboarding request. Contact Pac-Sec support.');
       }
     } else {
-      // "Not sure" (null) is preserved verbatim — never collapsed into "No".
-      const wizardAnswers = {};
-      for (const key of QUESTION_KEYS) {
-        wizardAnswers[key] = answers[key] === true ? 'Yes' : answers[key] === false ? 'No' : 'Not sure';
-      }
       scopingProfile = await svc.ScopingProfile.create({
         organization_id: orgId,
         project_id: projectId,
-        scope_name: `${company.company_name} — Assessment Scope`,
+        scope_name: expectedScopeName,
         handles_fci: derived.handles_fci,
         handles_cui: derived.handles_cui,
         environment_type: 'Unknown',
@@ -519,7 +569,7 @@ export default async function (req) {
     }
     if (!scopingProfile || !scopingProfile.id) throw httpError(500, 'Scope record creation failed.');
     scopingProfile = await svc.ScopingProfile.get(scopingProfile.id);
-    if (!scopingProfile || scopingProfile.project_id !== projectId || scopingProfile.organization_id !== orgId) {
+    if (!scopeMatchesRequest(scopingProfile)) {
       throw httpError(500, 'Scope record could not be verified. Please retry.');
     }
 
