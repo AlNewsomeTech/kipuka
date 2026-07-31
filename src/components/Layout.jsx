@@ -288,8 +288,9 @@ export default function Layout() {
             <div className="hidden items-center border-r border-slate-200 pr-3 dark:border-slate-700 2xl:flex">
               <OrgSelector />
             </div>
-            <div className="min-w-0">
-              <label htmlFor="active-client" className="sr-only">Active client</label>
+            {user?.role !== 'client' && (
+              <div className="min-w-0">
+                <label htmlFor="active-client" className="sr-only">Active client</label>
               <select
                 id="active-client"
                 value={selectedClientId || ''}
@@ -302,8 +303,9 @@ export default function Layout() {
                 {clients.map((c) => (
                   <option key={c.id} value={c.id}>{c.legal_name}</option>
                 ))}
-              </select>
-            </div>
+                </select>
+              </div>
+            )}
             {selectedClient && (
               <span className="app-pill hidden xl:inline-flex">
                 <span className={`h-1.5 w-1.5 rounded-full ${selectedClient.project_status === 'Complete' ? 'bg-emerald-500' : selectedClient.project_status === 'In Progress' ? 'bg-[#479dcf]' : 'bg-slate-400'}`} />
