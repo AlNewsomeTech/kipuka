@@ -377,6 +377,10 @@ function checkOrgDataClientGate(_src, clean) {
 function checkClientContext(_src, clean) {
   must(clean, /base44\.entities\.Client\.list\s*\(\s*\)/,
     'client context loads Client records through the role-aware entity proxy');
+  must(clean, /const\s+selfServiceOrgId\s*=\s*user\?\.role\s*===\s*'client'\s*\?\s*user\?\.organization_id\s*:\s*null/,
+    'self-service client organization context comes from the authenticated user');
+  must(clean, /if\s*\(\s*selfServiceOrgId\s*\)\s*\{\s*selectOrg\s*\(\s*selfServiceOrgId\s*\)\s*;\s*return\s*;/,
+    'self-service organization selection cannot be cleared by an absent legacy Client record');
   mustNot(clean, /assigned_client_ids/,
     'browser-side assigned_client_ids is used as a tenant authorization source');
 }
