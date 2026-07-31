@@ -154,7 +154,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
             <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
               <span>Section completion</span><span>{completion.done}/{completion.total} ({completion.pct}%)</span>
             </div>
-            <ProgressBar value={completion.pct} />
+            <ProgressBar value={completion.pct} label={null} />
           </div>
         )}
       </div>
@@ -196,7 +196,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
                   <input className="form-input" value={ssp[s.key] || ''} disabled={readOnly}
                     onChange={(e) => saveSection(s.key, e.target.value)} onBlur={() => commitSection(s.key)} />
                 ) : (
-                  <RichTextField value={ssp[s.key]} disabled={readOnly}
+                  <RichTextField label={null} value={ssp[s.key]} placeholder="" disabled={readOnly}
                     onChange={(v) => saveSection(s.key, v)} onBlur={() => commitSection(s.key)} />
                 )}
                 {savingKey === s.key && <span className="text-[11px] text-slate-400 flex items-center gap-1 mt-1"><Loader2 className="w-3 h-3 animate-spin" /> Saving…</span>}
@@ -227,7 +227,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </div>
             </div>
             <div className="mt-3">
-              <RichTextField label="Revision History" value={ssp.revision_history} disabled={readOnly}
+              <RichTextField label="Revision History" value={ssp.revision_history} placeholder="" disabled={readOnly}
                 onChange={(v) => setSsp((s) => ({ ...s, revision_history: v }))} onBlur={() => commitSection('revision_history')} />
             </div>
           </div>
