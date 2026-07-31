@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
 import { nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
-import { computeSprs } from '@/lib/sprsScoring';
+import { canonicalSprsView, computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 import { stepLink } from '@/lib/guidanceLinks';
 import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
 import StatusBadge from '@/components/StatusBadge';
@@ -56,13 +56,15 @@ export default function ProjectDashboard() {
     let alive = true;
     (async () => {
       const levels = targetLevelsFor(project);
-      const [poams, ssps, assessments, evidence, mockSessions, library, sprsRecs, scopingList, reportExports, assets, profiles] = await Promise.all([
+      const [poams, ssps, assessments, evidence, mockSessions, library, objectiveLibrary, objectiveLinks, sprsRecs, scopingList, reportExports, assets, profiles] = await Promise.all([
         base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
         base44.entities.MockAssessmentSession.filter({ project_id: project.id }, '-created_date', 1).catch(() => []),
         base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
+        base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+        base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
         base44.entities.SPRSRecord.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
         base44.entities.ReportExport.filter({ project_id: project.id }).catch(() => []),
@@ -87,19 +89,12 @@ export default function ProjectDashboard() {
       });
       setCuiBanner(needsCuiHosting ? { scoping } : null);
       const closed = ['Closed', 'Accepted Risk'];
-      // Statuses that count a control as complete — matches what the control pages write.
-      const doneStatuses = ['Ready for Assessment', 'Ready for Documentation', 'Implemented', 'Evidence Accepted'];
-      const evByControl = {};
-      evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
-      const doneCount = assessments.filter((a) => doneStatuses.includes(a.status)).length;
-      // Live readiness computed from actual control status — never a stale stored value.
-      const readiness = assessments.length
-        ? Math.round((doneCount / assessments.length) * 100)
-        : Math.round(project.current_readiness_score || 0);
-      // Keep the stored score in sync for anything else that reads it (reports, consultant views).
-      if (assessments.length && readiness !== Math.round(project.current_readiness_score || 0)) {
-        base44.entities.Project.update(project.id, { current_readiness_score: readiness }).catch(() => {});
-      }
+      const canonical = computeCanonicalReadiness({
+        project, assessments, objectiveLibrary, objectiveLinks, evidence, poams,
+      });
+      // Readiness is objective-based and fail-closed. Implementation progress is
+      // reported separately and is never written back as an assessment result.
+      const readiness = canonical.integrity_ok ? canonical.readiness_pct : null;
       const sprs = sprsRecs[0] || null;
       const sprsStatus = !sprs ? 'Not Started'
         : sprs.affirmed_date ? 'Affirmed'
@@ -109,10 +104,12 @@ export default function ProjectDashboard() {
         openPoam: poams.filter((p) => !closed.includes(p.status)).length,
         highRisk: poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length,
         sspStatus: ssps[0]?.approval_status || 'Not Started',
-        controlsComplete: assessments.length ? `${doneCount}/${assessments.length}` : '—',
-        controlsNeedEvidence: assessments.filter((a) => !evByControl[a.control_id]).length,
+        controlsComplete: canonical.integrity_ok ? `${canonical.met}/${canonical.expected_requirements}` : '—',
+        controlsImplemented: canonical.integrity_ok ? `${canonical.implemented}/${canonical.expected_requirements}` : '—',
+        controlsNeedEvidence: canonical.integrity_ok ? canonical.controls_needing_final_evidence : '—',
         mockVerdict: mockSessions[0]?.overall_verdict || null,
         readiness,
+        readinessIntegrityIssues: canonical.integrity_issues,
         sprsStatus,
         autoChecklist: deriveAutoChecklist({
           project, scoping: scopingList[0] || null, assessments, evidence, poams,
@@ -124,7 +121,7 @@ export default function ProjectDashboard() {
       const inScopeLib = library.filter((c) => levels.includes(c.cmmc_level));
       const next = nextIncomplete(inScopeLib, assessments, project);
       const { done, total } = queueCounts(inScopeLib, assessments, project);
-      const sprsScore = computeSprs(assessments);
+      const sprsScore = canonicalSprsView(canonical);
       setDoNext({
         hasAssessments: assessments.length > 0,
         allDone: total > 0 && done >= total,
@@ -186,7 +183,7 @@ export default function ProjectDashboard() {
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
           <ProjectMeta label="Target level" value={project.target_cmmc_level} />
           <ProjectMeta label="Assessment path" value={project.assessment_path} />
-          <ProjectMeta label="Overall readiness" value={`${counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%`} accent />
+          <ProjectMeta label="Assessment readiness" value={counts?.readiness == null ? '—' : `${counts.readiness}%`} accent />
         </div>
       </div>
 
@@ -206,13 +203,13 @@ export default function ProjectDashboard() {
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={TrendingUp} label="Overall Readiness" value={`${counts?.readiness ?? Math.round(project.current_readiness_score || 0)}%`} tone="blue" />
+        <Metric icon={TrendingUp} label="Assessment Readiness" value={counts?.readiness == null ? '—' : `${counts.readiness}%`} tone="blue" />
         <Metric icon={AlertTriangle} label="Open POA&M" value={counts?.openPoam ?? '—'} tone="amber" />
         <Metric icon={AlertTriangle} label="High-Risk Gaps" value={counts?.highRisk ?? '—'} tone="red" />
         <Metric icon={FileStack} label="SSP Status" value={counts?.sspStatus ?? '—'} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={ClipboardCheck} label="Controls Complete" value={counts?.controlsComplete ?? '—'} tone="green" />
+        <Metric icon={ClipboardCheck} label="Requirements MET" value={counts?.controlsComplete ?? '—'} tone="green" />
         <Metric icon={ListChecks} label="Controls Needing Evidence" value={counts?.controlsNeedEvidence ?? '—'} tone="amber" />
         <Link to={`/projects/${project.id}/mock`} className="block">
           <Metric icon={Gavel} label="Mock Assessment"
