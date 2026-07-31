@@ -2,7 +2,7 @@
 // User-triggered load only; no polling.
 import { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
-import { isMetStatus } from '@/lib/sprsScoring';
+import { computeCanonicalReadiness, isImplementationComplete } from '@/lib/canonicalReadiness';
 
 export function useProjectDashboardData(projectId) {
   const [data, setData] = useState(null);
@@ -11,7 +11,7 @@ export function useProjectDashboardData(projectId) {
   const load = useCallback(async () => {
     if (!projectId) { setLoading(false); return; }
     setLoading(true);
-    const [assessments, evidence, poams, scoping, assets, sspList, policies, sprsList, maintenance, exports] = await Promise.all([
+    const [assessments, evidence, poams, scoping, assets, sspList, policies, sprsList, maintenance, exports, objectiveLibrary, objectiveLinks] = await Promise.all([
       base44.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
       base44.entities.ProjectEvidence.filter({ project_id: projectId }).catch(() => []),
       base44.entities.ProjectPOAM.filter({ project_id: projectId }).catch(() => []),
@@ -22,6 +22,8 @@ export function useProjectDashboardData(projectId) {
       base44.entities.SPRSRecord.filter({ project_id: projectId }).catch(() => []),
       base44.entities.MaintenanceTask.filter({ project_id: projectId }).catch(() => []),
       base44.entities.ReportExport.filter({ project_id: projectId }, '-generated_date', 10).catch(() => []),
+      base44.entities.AssessmentObjectiveLibrary.list('sort_order', 500).catch(() => []),
+      base44.entities.ObjectiveEvidenceLink.filter({ project_id: projectId }).catch(() => []),
     ]);
     setData({
       assessments, evidence, poams,
@@ -29,7 +31,7 @@ export function useProjectDashboardData(projectId) {
       ssp: sspList[0] || null,
       policies: policies.filter((p) => !p.is_master_template),
       sprs: sprsList[0] || null,
-      maintenance, exports,
+      maintenance, exports, objectiveLibrary, objectiveLinks,
     });
     setLoading(false);
   }, [projectId]);
@@ -43,8 +45,12 @@ const CLOSED_POAM = ['Closed', 'Accepted Risk'];
 // Derived metrics shared across dashboards.
 export function deriveMetrics(project, d) {
   if (!d) return {};
-  const total = d.assessments.length;
-  const implemented = d.assessments.filter((a) => isMetStatus(a.status) || a.status === 'Not Applicable').length;
+  const canonical = computeCanonicalReadiness({
+    project, assessments: d.assessments, objectiveLibrary: d.objectiveLibrary,
+    objectiveLinks: d.objectiveLinks, evidence: d.evidence, poams: d.poams,
+  });
+  const total = canonical.expected_requirements || d.assessments.length;
+  const implemented = canonical.implemented;
   const evByControl = {};
   d.evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
   const needEvidence = d.assessments.filter((a) => !evByControl[a.control_id]);
@@ -60,7 +66,9 @@ export function deriveMetrics(project, d) {
 
   return {
     total, implemented,
-    readiness: total ? Math.round((implemented / total) * 100) : Math.round(project.current_readiness_score || 0),
+    readiness: canonical.readiness_pct,
+    implementation: canonical.implementation_pct,
+    canonical,
     needEvidence, openPoam, highRisk,
     sspStatus: d.ssp?.approval_status || 'Not Started',
     poamOpenCount: openPoam.length,
@@ -77,7 +85,7 @@ export function byDomain(assessments) {
     const dom = a.domain || 'Other';
     map[dom] = map[dom] || { total: 0, done: 0 };
     map[dom].total += 1;
-    if (isMetStatus(a.status) || a.status === 'Not Applicable') map[dom].done += 1;
+    if (isImplementationComplete(a)) map[dom].done += 1;
   });
   return Object.entries(map).map(([domain, v]) => ({ domain, ...v }));
 }
