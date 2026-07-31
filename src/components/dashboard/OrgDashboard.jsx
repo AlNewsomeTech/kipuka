@@ -94,7 +94,7 @@ export default function OrgDashboard({ organizationId, orgName }) {
                 <span className="text-4xl font-bold text-slate-900">{readiness}%</span>
                 <span className="text-xs text-slate-500 mb-1.5">controls met</span>
               </div>
-              <ProgressBar value={readiness} color="green" size="md" />
+              <ProgressBar value={readiness} label={null} color="green" size="md" />
               <p className="mt-2 text-xs text-slate-500">{sprs.met} of {expectedTotal} required controls are verified or implemented.</p>
             </>
           ) : (
