@@ -251,7 +251,7 @@ function resolveCuiHosting({ handlesCui, itEnvironment, hosting, notes }) {
 
 // --- handler ---------------------------------------------------------------
 
-export default async function (req) {
+Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
@@ -742,4 +742,4 @@ export default async function (req) {
       : (error && error.message ? error.message : 'The onboarding request could not be completed.');
     return Response.json({ error: message }, { status });
   }
-}
+});
