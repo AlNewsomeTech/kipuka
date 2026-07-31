@@ -2,9 +2,7 @@
 // download client-side. No automation, no external calls.
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, BRAND, stripHtml, safeFileName } from '@/lib/reportBranding';
-import { isMetStatus } from '@/lib/sprsScoring';
-
-function pct(done, total) { return total ? Math.round((done / total) * 100) : 0; }
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 
 async function logExport(project, report_type, report_title, generatedBy) {
   await base44.entities.ReportExport.create({
@@ -29,10 +27,11 @@ function downloadCsv(rows, filename) {
 }
 
 // 1. Executive Readiness Report
-export async function generateExecutiveReadiness({ project, org, assessments, poams, evidence, generatedBy }) {
-  const total = assessments.length;
-  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
-  const readiness = pct(implemented, total);
+export async function generateExecutiveReadiness({ project, org, assessments, objectiveLibrary, objectiveLinks, poams, evidence, generatedBy }) {
+  const canonical = computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams });
+  const total = canonical.expected_requirements;
+  const implemented = canonical.implemented;
+  const readiness = canonical.integrity_ok ? canonical.readiness_pct : null;
   const openPoams = poams.filter((p) => !['Closed', 'Accepted Risk'].includes(p.status));
   const blockers = assessments.filter((a) => a.status === 'Not Implemented' && ['High', 'Critical'].includes(a.risk_rating));
 
@@ -40,7 +39,8 @@ export async function generateExecutiveReadiness({ project, org, assessments, po
   r.heading('Assessment Overview');
   r.label('Target CMMC Level', project.target_cmmc_level);
   r.label('Assessment Path', project.assessment_path);
-  r.label('Overall Readiness', `${readiness}% (${implemented} of ${total} controls implemented)`);
+  r.label('Assessment Readiness', readiness == null ? 'Unavailable — canonical data integrity issue' : `${readiness}% (${canonical.met} of ${total} requirements MET)`);
+  r.label('Implementation Progress', canonical.integrity_ok ? `${canonical.implementation_pct}% (${implemented} of ${total})` : 'Unavailable');
   r.label('Project Status', project.project_status);
 
   r.heading('Major Blockers');
@@ -61,7 +61,7 @@ export async function generateExecutiveReadiness({ project, org, assessments, po
   if (blockers.length) steps.push('Remediate high/critical not-implemented controls listed above.');
   if (openPoams.length) steps.push('Drive open POA&M items to closure with owners and due dates.');
   if (evidence.filter((e) => ['Draft', 'Needs Review'].includes(e.review_status)).length) steps.push('Complete review of draft/pending evidence.');
-  if (readiness < 100) steps.push('Continue control implementation toward 100% readiness.');
+  if (readiness == null || readiness < 100) steps.push('Complete objective-level findings and final evidence before claiming assessment readiness.');
   if (!steps.length) steps.push('Prepare for assessment submission and final package generation.');
   steps.forEach((s) => r.text(`• ${s}`));
 
@@ -71,12 +71,12 @@ export async function generateExecutiveReadiness({ project, org, assessments, po
 }
 
 // 2. Gap Assessment Report
-export async function generateGapAssessment({ project, org, assessments, evidence, poams, generatedBy }) {
+export async function generateGapAssessment({ project, org, assessments, objectiveLibrary, objectiveLinks, evidence, poams, generatedBy }) {
   const by = (s) => assessments.filter((a) => a.status === s);
-  const evByControl = {};
-  evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
-  const evidenceGaps = assessments.filter((a) => !evByControl[a.control_id]);
-  const highRisk = assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && !isMetStatus(a.status));
+  const canonical = computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams });
+  const evidenceGaps = canonical.controls.filter((row) => !row.has_valid_final_evidence && !row.valid_not_applicable).map((row) => row.assessment);
+  const findingByControl = new Map(canonical.controls.map((row) => [row.control_id, row.finding]));
+  const highRisk = assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && findingByControl.get(a.control_id) !== 'Met');
 
   const r = createReportPdf({ title: 'Gap Assessment Report', project, org, generatedBy });
   r.heading('Control Implementation Status');
@@ -145,12 +145,16 @@ export async function generatePolicyPackage({ project, org, policies, generatedB
 }
 
 // 5. C3PAO Handoff Package (Premium) — comprehensive PDF
-export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp, assessments, evidence, poams, policies, generatedBy }) {
+export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp, assessments, objectiveLibrary, objectiveLinks, evidence, poams, policies, generatedBy }) {
   const r = createReportPdf({ title: 'C3PAO Handoff Package', project, org, generatedBy });
 
   r.heading('Executive Summary');
-  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
-  r.text(`${org?.organization_name || 'The organization'} is pursuing ${project.target_cmmc_level} via ${project.assessment_path}. ${implemented} of ${assessments.length} in-scope controls are implemented. This package consolidates scope, assets, SSP, POA&M, evidence, controls, and policies for C3PAO review.`);
+  const canonical = computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams });
+  const findingByControl = new Map(canonical.controls.map((row) => [row.control_id, row.finding]));
+  const readinessText = canonical.integrity_ok
+    ? `${canonical.met} of ${canonical.expected_requirements} requirements are MET; ${canonical.implemented} are implementation-complete.`
+    : `Assessment readiness is unavailable because canonical data integrity checks failed: ${canonical.integrity_issues.join(' ')}`;
+  r.text(`${org?.organization_name || 'The organization'} is pursuing ${project.target_cmmc_level} via ${project.assessment_path}. ${readinessText} This package consolidates scope, assets, SSP, POA&M, evidence, controls, and policies for C3PAO review.`);
 
   r.heading('Scope Summary');
   if (scoping) {
@@ -187,7 +191,7 @@ export async function generateC3PAOHandoff({ project, org, scoping, assets, ssp,
   r.text('Confirm SPRS score entry and PIEE affirmation via the SPRS / PIEE module before submission.');
 
   r.heading('Open Risks');
-  assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && !isMetStatus(a.status))
+  assessments.filter((a) => ['High', 'Critical'].includes(a.risk_rating) && findingByControl.get(a.control_id) !== 'Met')
     .forEach((a) => r.text(`• ${a.control_id} — ${a.risk_rating} (${a.status})`));
 
   r.heading('Contact Sheet');
