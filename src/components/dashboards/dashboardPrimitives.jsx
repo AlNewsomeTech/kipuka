@@ -1,5 +1,5 @@
 // Shared, presentational primitives for the Phase 5 role dashboards.
-export function DashCard({ title, icon: Icon, children, action }) {
+export function DashCard({ title, icon: Icon, children, action = null }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <div className="flex items-center justify-between mb-3">
