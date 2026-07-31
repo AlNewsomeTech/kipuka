@@ -31,7 +31,7 @@ export async function generateMonthlyReviewPack({ project, org, generatedBy }) {
   ]);
 
   const completed = postureRows.filter((p) => p.status === 'completed')
-    .sort((a, b) => new Date(a.assessment_date || a.created_date) - new Date(b.assessment_date || b.created_date));
+    .sort((a, b) => new Date(a.assessment_date || a.created_date).getTime() - new Date(b.assessment_date || b.created_date).getTime());
   const latest = completed[completed.length - 1] || null;
   const previous = completed[completed.length - 2] || null;
   const delta = latest && previous ? Math.round(latest.overall_score) - Math.round(previous.overall_score) : null;
