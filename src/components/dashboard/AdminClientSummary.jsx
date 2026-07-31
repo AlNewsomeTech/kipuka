@@ -48,7 +48,7 @@ export default function AdminClientSummary() {
   if (loading) return <div className="flex justify-center py-20"><div className="w-8 h-8 border-4 border-slate-200 border-t-[#0F1E3C] rounded-full animate-spin" /></div>;
 
   if (clients.length === 0) {
-    return <EmptyState icon={Building2} title="No clients yet" description="Create a client in the Clients section to get started." />;
+    return <EmptyState icon={Building2} title="No clients yet" description="Create a client in the Clients section to get started." action={null} />;
   }
 
   return (
@@ -112,7 +112,7 @@ export default function AdminClientSummary() {
                       <span className="text-xs font-bold text-slate-700">{completed}/{expectedTotal}</span>
                     </div>
                   </div>
-                  <ProgressBar value={pct} color="green" size="sm" />
+                  <ProgressBar value={pct} label={null} color="green" size="sm" />
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
                     <span className="text-[10px] text-slate-400">Canonical project progress</span>
                     <span className="text-[10px] font-semibold text-slate-500">{startedCount} in progress</span>
