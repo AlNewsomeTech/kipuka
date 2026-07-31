@@ -497,6 +497,7 @@ if (pkgRaw !== null) {
       'test:canonical-migration': 'node scripts/check-canonical-project-migration.mjs',
       'test:canonical-runtime': 'node scripts/check-canonical-runtime.mjs',
       'test:canonical-dashboard': 'node scripts/check-canonical-dashboard.mjs',
+      'test:canonical-readiness': 'node scripts/check-canonical-readiness.mjs',
       preview: 'vite preview',
     };
     const scripts = pkg.scripts || {};
