@@ -5,6 +5,8 @@
 
 import { pointValueFor, isMetStatus } from '@/lib/sprsScoring';
 
+export const CANONICAL_DATASET_KEY = 'CMMC-2.13-SP800-171R2-2024-09';
+
 const FAMILY_ORDER = ['AC', 'AT', 'AU', 'CM', 'IA', 'IR', 'MA', 'MP', 'PS', 'PE', 'RA', 'CA', 'SC', 'SI'];
 
 export function familyOf(controlId = '') {
@@ -26,9 +28,9 @@ export function estimatedMinutes(libEntry, controlId) {
 
 // Which library levels are in scope for the project's target level.
 export function targetLevelsFor(project) {
-  if (project?.target_cmmc_level === 'Level 2') return ['Level 1', 'Level 2'];
-  if (project?.target_cmmc_level === 'Level 3') return ['Level 1', 'Level 2', 'Level 3'];
-  return ['Level 1'];
+  if (project?.target_cmmc_level === 'Level 1') return ['Level 1'];
+  if (project?.target_cmmc_level === 'Level 2') return ['Level 2'];
+  return [];
 }
 
 // Build the full prioritized queue.
@@ -39,7 +41,12 @@ export function buildGuidedQueue(library, assessments, project) {
   const asmtByControl = {};
   for (const a of assessments) asmtByControl[a.control_id] = a;
 
-  const inScope = library.filter((c) => levels.includes(c.cmmc_level));
+  const inScope = library.filter((c) =>
+    c.active === true
+    && c.authoritative === true
+    && c.dataset_key === CANONICAL_DATASET_KEY
+    && levels.includes(c.cmmc_level)
+  );
 
   const items = inScope.map((c) => {
     const a = asmtByControl[c.control_id];
