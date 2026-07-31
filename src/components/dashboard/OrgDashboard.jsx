@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, Image, FileWarning, Layers, ArrowRight, HardDrive } from 'lucide-react';
+import { ShieldCheck, Image, FileWarning, Layers, ArrowRight, HardDrive, AlertTriangle } from 'lucide-react';
 import { computeSprs } from '@/lib/sprsScoring';
 import { readinessPct } from '@/lib/controlStatus';
 import { useOrgDashboardData } from '@/lib/useOrgDashboardData';
@@ -19,7 +19,29 @@ export default function OrgDashboard({ organizationId, orgName }) {
   const sprs = useMemo(() => computeSprs(assessments), [assessments]);
   const readiness = useMemo(() => readinessPct(assessments), [assessments]);
 
-  const isLevel2 = (company?.cmmc_track === 'Level 2') || project?.target_cmmc_level === 'Level 2';
+  // Project.target_cmmc_level is the sole target-level authority. CompanyProfile
+  // cmmc_track is never allowed to override it.
+  const targetLevel = project?.target_cmmc_level || null;
+  const isLevel2 = targetLevel === 'Level 2';
+  // Authoritative denominators: Level 1 = 15, Level 2 = 110. Never 125.
+  const expectedTotal = targetLevel === 'Level 1' ? 15 : targetLevel === 'Level 2' ? 110 : null;
+
+  // Structural validation — malformed or failed data must never render as zero progress.
+  const integrity = useMemo(() => {
+    const rows = assessments || [];
+    const issues = [];
+    if (!project) issues.push('No project is linked to this organization.');
+    if (!expectedTotal) issues.push(`Project target level "${targetLevel || 'Unknown'}" is not an authoritative CMMC level.`);
+    const ids = rows.map((r) => String(r.control_id || '').trim());
+    const nonBlank = ids.filter(Boolean);
+    const unique = new Set(nonBlank);
+    if (nonBlank.length !== ids.length) issues.push(`${ids.length - nonBlank.length} control record(s) have a blank control ID.`);
+    if (unique.size !== nonBlank.length) issues.push('Duplicate control IDs exist in this project.');
+    if (expectedTotal && rows.length !== expectedTotal) issues.push(`Expected ${expectedTotal} control records, found ${rows.length}.`);
+    if (expectedTotal && unique.size !== expectedTotal) issues.push(`Expected ${expectedTotal} unique control IDs, found ${unique.size}.`);
+    if (project && rows.some((r) => r.project_id !== project.id)) issues.push('Some control records belong to a different project.');
+    return { ok: issues.length === 0, issues };
+  }, [assessments, project, expectedTotal, targetLevel]);
   const openPoams = poams.filter((p) => p.status !== 'Closed' && p.status !== 'Resolved' && p.status !== 'Complete').length;
   const closedPoams = poams.length - openPoams;
   const acceptedEvidence = evidence.filter((e) => e.review_status === 'Accepted').length;
@@ -50,7 +72,7 @@ export default function OrgDashboard({ organizationId, orgName }) {
           <div className="page-kicker">Organization readiness</div>
           <h1 className="page-title mt-2">{company?.company_name || orgName || 'Dashboard'}</h1>
           <p className="page-subtitle mt-2">
-            CMMC {isLevel2 ? 'Level 2' : 'Level 1'} readiness
+            CMMC {targetLevel || 'target level not set'} readiness
             {project?.project_name ? ` · ${project.project_name}` : ''}
           </p>
         </div>
@@ -66,12 +88,26 @@ export default function OrgDashboard({ organizationId, orgName }) {
             <ShieldCheck className="w-5 h-5 text-green-600" />
             <h3 className="text-sm font-semibold text-slate-800">Overall Readiness</h3>
           </div>
-          <div className="flex items-end gap-3 mb-2">
-            <span className="text-4xl font-bold text-slate-900">{readiness}%</span>
-            <span className="text-xs text-slate-500 mb-1.5">controls met</span>
-          </div>
-          <ProgressBar value={readiness} color="green" size="md" />
-          <p className="mt-2 text-xs text-slate-500">{sprs.met} of {assessments.length} tracked controls are verified or implemented.</p>
+          {integrity.ok ? (
+            <>
+              <div className="flex items-end gap-3 mb-2">
+                <span className="text-4xl font-bold text-slate-900">{readiness}%</span>
+                <span className="text-xs text-slate-500 mb-1.5">controls met</span>
+              </div>
+              <ProgressBar value={readiness} color="green" size="md" />
+              <p className="mt-2 text-xs text-slate-500">{sprs.met} of {expectedTotal} required controls are verified or implemented.</p>
+            </>
+          ) : (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800">
+                <AlertTriangle className="w-4 h-4 flex-shrink-0" /> Control data integrity issue
+              </div>
+              <ul className="mt-1.5 space-y-1 text-[11px] leading-4 text-amber-700">
+                {integrity.issues.map((issue) => <li key={issue}>• {issue}</li>)}
+              </ul>
+              <p className="mt-2 text-[10px] text-amber-600">Readiness is hidden until the canonical control set is valid.</p>
+            </div>
+          )}
         </div>
         {isLevel2 && <SprsScoreWidget sprs={sprs} />}
       </div>
@@ -101,8 +137,14 @@ export default function OrgDashboard({ organizationId, orgName }) {
         </Link>
         <div className="app-surface p-5">
           <div className="flex items-center gap-2 mb-2"><Layers className="w-5 h-5 text-slate-600" /><h3 className="text-sm font-semibold text-slate-800">Track</h3></div>
-          <div className="text-2xl font-bold text-slate-900">CMMC {isLevel2 ? 'Level 2' : 'Level 1'}</div>
-          <p className="text-xs text-slate-500 mt-1">{isLevel2 ? '110 NIST SP 800-171 practices' : '17 FAR 52.204-21 practices'}</p>
+          <div className="text-2xl font-bold text-slate-900">CMMC {targetLevel || '—'}</div>
+          <p className="text-xs text-slate-500 mt-1">
+            {targetLevel === 'Level 2'
+              ? '110 NIST SP 800-171 requirements'
+              : targetLevel === 'Level 1'
+                ? '15 FAR 52.204-21 requirements'
+                : 'Target level not set on the project'}
+          </p>
         </div>
       </div>
 
