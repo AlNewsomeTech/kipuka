@@ -585,6 +585,7 @@ export default async function (req) {
       throw httpError(500, `The authoritative ${level} requirement set is unavailable (expected ${expectedCount}, found ${libraryRows.length}). Setup cannot continue.`);
     }
     const canonicalIds = new Set();
+    const canonicalRows = new Map();
     for (const row of libraryRows) {
       const controlId = typeof row.control_id === 'string' ? row.control_id.trim() : '';
       if (!controlId) throw httpError(500, 'The authoritative requirement set contains a blank requirement id.');
@@ -592,6 +593,7 @@ export default async function (req) {
       if (!row.control_title || !row.domain) throw httpError(500, `The authoritative requirement ${controlId} is missing a title or domain.`);
       if (row.cmmc_level !== level) throw httpError(500, `The authoritative requirement ${controlId} is not ${level}.`);
       canonicalIds.add(controlId);
+      canonicalRows.set(controlId, row);
     }
     if (canonicalIds.size !== expectedCount) {
       throw httpError(500, 'The authoritative requirement set failed its uniqueness check.');
@@ -606,8 +608,13 @@ export default async function (req) {
       if (!canonicalIds.has(row.control_id)) {
         throw httpError(409, `An unexpected requirement record (${row.control_id || 'blank'}) already exists on this project. Contact Pac-Sec support.`);
       }
-      if (row.cmmc_level !== level) {
-        throw httpError(409, `Requirement ${row.control_id} is recorded at the wrong CMMC level. Contact Pac-Sec support.`);
+      const canonicalRow = canonicalRows.get(row.control_id);
+      if (
+        row.cmmc_level !== level
+        || normalizedText(row.control_title) !== normalizedText(canonicalRow.control_title)
+        || normalizedText(row.domain) !== normalizedText(canonicalRow.domain)
+      ) {
+        throw httpError(409, `Requirement ${row.control_id} does not match the authoritative library row. Contact Pac-Sec support.`);
       }
       if (seenIds.has(row.control_id)) {
         throw httpError(409, `Requirement ${row.control_id} is duplicated on this project. Contact Pac-Sec support.`);
@@ -643,13 +650,58 @@ export default async function (req) {
       if (row.organization_id !== orgId || row.project_id !== projectId || row.cmmc_level !== level) {
         throw httpError(500, 'Requirement records failed verification. Please retry.');
       }
-      if (!canonicalIds.has(row.control_id) || finalIds.has(row.control_id)) {
+      const canonicalRow = canonicalRows.get(row.control_id);
+      if (
+        !canonicalRow
+        || finalIds.has(row.control_id)
+        || normalizedText(row.control_title) !== normalizedText(canonicalRow.control_title)
+        || normalizedText(row.domain) !== normalizedText(canonicalRow.domain)
+      ) {
         throw httpError(500, 'Requirement records failed verification. Please retry.');
       }
       finalIds.add(row.control_id);
     }
     if (finalIds.size !== expectedCount) {
       throw httpError(500, 'Requirement records failed verification. Please retry.');
+    }
+
+    // Re-query every singleton after all creates. This detects duplicate rows
+    // produced by concurrent retries before onboarding is marked complete.
+    const [
+      finalOrganizations,
+      finalMemberships,
+      finalProjects,
+      finalProfiles,
+      finalScopes,
+    ] = await Promise.all([
+      readAll(svc.Organization, { onboarding_key: onboardingKey }, 'created_date'),
+      readAll(svc.OrganizationUser, { user_email: callerEmail }, 'created_date'),
+      readAll(svc.Project, { organization_id: orgId }, 'created_date'),
+      readAll(svc.CompanyProfile, { organization_id: orgId }, 'created_date'),
+      readAll(svc.ScopingProfile, { project_id: projectId }, 'created_date'),
+    ]);
+    organization = singleton(finalOrganizations, 'organization');
+    membership = singleton(finalMemberships, 'organization membership');
+    project = singleton(finalProjects, 'project');
+    companyProfile = singleton(finalProfiles, 'company profile');
+    scopingProfile = singleton(finalScopes, 'scoping profile');
+    if (
+      !organization
+      || organization.id !== orgId
+      || organization.onboarding_key !== onboardingKey
+      || !membership
+      || membership.organization_id !== orgId
+      || membership.status !== 'Active'
+      || membership.role !== 'Organization Owner'
+      || normalizedText(membership.user_email).toLowerCase() !== callerEmail
+      || !project
+      || project.id !== projectId
+      || project.organization_id !== orgId
+      || !profileMatchesRequest(companyProfile)
+      || companyProfile.active_project_id !== projectId
+      || !scopeMatchesRequest(scopingProfile)
+    ) {
+      throw httpError(500, 'Workspace singleton verification failed. Please retry.');
     }
 
     if (companyProfile.onboarding_status !== 'Complete') {
@@ -684,10 +736,10 @@ export default async function (req) {
       },
     });
   } catch (error) {
-    const status = error && error.status ? error.status : 500;
-    const message = status === 500
-      ? (error && error.message ? error.message : 'Workspace setup failed. Your progress is saved — please retry.')
-      : error.message;
+    const status = error && Number.isInteger(error.status) ? error.status : 500;
+    const message = status >= 500
+      ? 'Workspace setup failed. Your progress is saved — please retry.'
+      : (error && error.message ? error.message : 'The onboarding request could not be completed.');
     return Response.json({ error: message }, { status });
   }
 }
