@@ -794,20 +794,16 @@ Deno.serve(async (req) => {
     const objectiveActivations = persistedObjectives
       .filter((row: any) => row.active !== true)
       .map((row: any) => ({ id: row.id, active: true }));
-    for (let i = 0; i < legacyDeactivations.length; i += 100) {
-      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(
-        legacyDeactivations.slice(i, i + 100),
-      );
+    const controlActivationUpdates = [...legacyDeactivations, ...controlActivations];
+    if (controlActivationUpdates.length > 500 || objectiveActivations.length > 500) {
+      throw new Error('Activation batch exceeded the Base44 SDK limit of 500 records.');
     }
-    for (let i = 0; i < controlActivations.length; i += 100) {
-      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(
-        controlActivations.slice(i, i + 100),
-      );
+    // Switch legacy and target ControlLibrary active states in one bounded SDK call.
+    if (controlActivationUpdates.length > 0) {
+      await base44.asServiceRole.entities.ControlLibrary.bulkUpdate(controlActivationUpdates);
     }
-    for (let i = 0; i < objectiveActivations.length; i += 100) {
-      await base44.asServiceRole.entities.AssessmentObjectiveLibrary.bulkUpdate(
-        objectiveActivations.slice(i, i + 100),
-      );
+    if (objectiveActivations.length > 0) {
+      await base44.asServiceRole.entities.AssessmentObjectiveLibrary.bulkUpdate(objectiveActivations);
     }
 
     const versions = await base44.asServiceRole.entities.ComplianceDatasetVersion
