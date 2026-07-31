@@ -122,6 +122,15 @@ function readBoolean(obj, key) {
   return raw;
 }
 
+function normalizedText(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function answersMatch(actual, expected) {
+  if (!isPlainObject(actual)) return false;
+  return QUESTION_KEYS.every((key) => actual[key] === expected[key]);
+}
+
 // Exactly one record is permitted per singleton entity on this onboarding
 // boundary. Zero means "create it"; more than one is a hard conflict.
 function singleton(rows, label) {
