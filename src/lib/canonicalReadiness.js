@@ -26,6 +26,10 @@ export function expectedCmmcTotals(targetLevel) {
   return CMMC_TOTALS[targetLevel] || null;
 }
 
+export function isImplementationComplete(assessment) {
+  return IMPLEMENTED_STATUSES.has(assessment?.status) || validNotApplicable(assessment);
+}
+
 export function validNotApplicable(assessment) {
   return assessment?.status === 'Not Applicable'
     && Boolean(String(assessment.not_applicable_justification || '').trim())
@@ -79,7 +83,7 @@ export const SPRS_POINT_VALUES = Object.freeze({
   '3.8.1': 3, '3.8.2': 3, '3.8.3': 5, '3.8.4': 1, '3.8.5': 1, '3.8.6': 1, '3.8.7': 5,
   '3.8.8': 3, '3.8.9': 1, '3.9.1': 3, '3.9.2': 5, '3.10.1': 5, '3.10.2': 5, '3.10.3': 1,
   '3.10.4': 1, '3.10.5': 1, '3.10.6': 1, '3.11.1': 3, '3.11.2': 5, '3.11.3': 1, '3.12.1': 5,
-  '3.12.2': 3, '3.12.3': 5, '3.12.4': 3, '3.13.1': 5, '3.13.2': 5, '3.13.3': 1, '3.13.4': 1,
+  '3.12.2': 3, '3.12.3': 5, '3.12.4': 1, '3.13.1': 5, '3.13.2': 5, '3.13.3': 1, '3.13.4': 1,
   '3.13.5': 5, '3.13.6': 5, '3.13.7': 1, '3.13.8': 3, '3.13.9': 1, '3.13.10': 1, '3.13.11': 5,
   '3.13.12': 1, '3.13.13': 1, '3.13.14': 1, '3.13.15': 5, '3.13.16': 1, '3.14.1': 5,
   '3.14.2': 5, '3.14.3': 5, '3.14.4': 5, '3.14.5': 3, '3.14.6': 5, '3.14.7': 3,
@@ -159,7 +163,7 @@ export function computeCanonicalReadiness({
       status: assessment.status || 'Not Started',
       finding,
       valid_not_applicable: na,
-      implemented: IMPLEMENTED_STATUSES.has(assessment.status) || na,
+      implemented: isImplementationComplete(assessment),
       objective_total: objectives.length,
       objective_met: objectiveFindings.filter((row) => row.finding === 'Met').length,
       objective_not_met: objectiveFindings.filter((row) => row.finding === 'Not Met').length,
