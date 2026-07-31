@@ -2,27 +2,30 @@
 // open POA&M items, and latest SPRS score. User-triggered only.
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName, BRAND } from '@/lib/reportBranding';
-import { isMetStatus } from '@/lib/sprsScoring';
+import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 
 const CLOSED_POAM = ['Closed', 'Accepted Risk'];
 
 export async function generateProjectStatusReport({ project, org, generatedBy }) {
-  const [assessments, poams, sprsList, evidence] = await Promise.all([
+  const [assessments, poams, sprsList, evidence, objectiveLibrary, objectiveLinks] = await Promise.all([
     base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
     base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
     base44.entities.SPRSRecord.filter({ project_id: project.id }).catch(() => []),
     base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+    base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+    base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
   ]);
 
-  const total = assessments.length;
-  const implemented = assessments.filter((a) => isMetStatus(a.status)).length;
+  const canonical = computeCanonicalReadiness({
+    project, assessments, objectiveLibrary, objectiveLinks, evidence, poams,
+  });
+  const total = canonical.expected_requirements;
+  const implemented = canonical.implemented;
+  const met = canonical.met;
   const partial = assessments.filter((a) => a.status === 'Partially Implemented').length;
-  const notImplemented = assessments.filter((a) => a.status === 'Not Implemented').length;
-  const readiness = total ? Math.round((implemented / total) * 100) : Math.round(project.current_readiness_score || 0);
-
-  const evByControl = {};
-  evidence.forEach((e) => (e.control_ids || []).forEach((c) => (evByControl[c] = true)));
-  const needEvidence = assessments.filter((a) => !evByControl[a.control_id]).length;
+  const notImplemented = canonical.not_met + canonical.evidence_incomplete + canonical.not_assessed;
+  const readiness = canonical.integrity_ok ? canonical.readiness_pct : null;
+  const needEvidence = canonical.controls_needing_final_evidence;
 
   const openPoams = poams
     .filter((p) => !CLOSED_POAM.includes(p.status))
@@ -33,6 +36,9 @@ export async function generateProjectStatusReport({ project, org, generatedBy })
   const highRisk = openPoams.filter((p) => ['High', 'Critical'].includes(p.risk_rating)).length;
 
   const sprs = sprsList[0] || null;
+  const canonicalSprs = canonical.integrity_ok && project.target_cmmc_level === 'Level 2'
+    ? canonical.sprs_current
+    : null;
 
   const pdf = createReportPdf({
     title: 'CMMC Status Report',
@@ -44,11 +50,12 @@ export async function generateProjectStatusReport({ project, org, generatedBy })
   pdf.label('Target CMMC Level', project.target_cmmc_level);
   pdf.label('Assessment Path', project.assessment_path);
   pdf.label('Project Status', project.project_status);
-  pdf.label('Overall Readiness', `${readiness}%`);
+  pdf.label('Assessment Readiness', readiness == null ? 'Unavailable — canonical data integrity issue' : `${readiness}%`);
   pdf.space(6);
-  pdf.label('Controls Implemented', total ? `${implemented} of ${total}` : '—');
+  pdf.label('Requirements MET', canonical.integrity_ok ? `${met} of ${total}` : '—');
+  pdf.label('Implementation Complete', canonical.integrity_ok ? `${implemented} of ${total}` : '—');
   pdf.label('Partially Implemented', partial);
-  pdf.label('Not Implemented', notImplemented);
+  pdf.label('Not MET / Not Assessed', notImplemented);
   pdf.label('Controls Needing Evidence', needEvidence);
 
   // ---- Open POA&M items ----
@@ -69,8 +76,12 @@ export async function generateProjectStatusReport({ project, org, generatedBy })
     pdf.disclaimerNote(BRAND.poamDisclaimer);
   }
 
-  // ---- Latest SPRS ----
-  pdf.heading('Latest SPRS Score');
+  // ---- Canonical SPRS calculation and latest submitted record ----
+  pdf.heading('SPRS Score');
+  pdf.label('Canonical calculated score', canonicalSprs == null ? 'Unavailable' : canonicalSprs);
+  pdf.label('Calculated from', 'Objective-level findings and final evidence');
+  pdf.space(4);
+  pdf.heading('Latest Submitted SPRS Record');
   if (!sprs) {
     pdf.text('No SPRS record has been created for this project yet.');
   } else {
