@@ -13,6 +13,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [statements, setStatements] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [evidence, setEvidence] = useState([]);
+  const [objectiveLibrary, setObjectiveLibrary] = useState([]);
+  const [objectiveLinks, setObjectiveLinks] = useState([]);
   const [ctx, setCtx] = useState({ scoping: null, assets: [], poams: [], providers: [], diagrams: [] });
   const [loading, setLoading] = useState(true);
   const [building, setBuilding] = useState(false);
@@ -20,11 +22,13 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [sspList, stmts, asmt, ev, scope, assets, poams, providers, diagrams] = await Promise.all([
+    const [sspList, stmts, asmt, ev, objectives, links, scope, assets, poams, providers, diagrams] = await Promise.all([
       base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
       base44.entities.SSPControlStatement.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
+      base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
+      base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
       base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
       base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
@@ -35,6 +39,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     setStatements(stmts);
     setAssessments(asmt);
     setEvidence(ev);
+    setObjectiveLibrary(objectives);
+    setObjectiveLinks(links);
     setCtx({ scoping: scope[0] || null, assets, poams, providers, diagrams });
     setLoading(false);
   }, [project.id]);
@@ -54,8 +60,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const controlsNoEvidence = useMemo(() => assessments.filter((a) => !evByControl[a.control_id]), [assessments, evByControl]);
 
   const readiness = useMemo(
-    () => computeReadiness({ assessments, evidence, poams: ctx.poams, assets: ctx.assets, scoping: ctx.scoping, project }),
-    [assessments, evidence, ctx]
+    () => computeReadiness({ assessments, objectiveLibrary, objectiveLinks, evidence, poams: ctx.poams, assets: ctx.assets, scoping: ctx.scoping, project }),
+    [assessments, objectiveLibrary, objectiveLinks, evidence, ctx, project]
   );
   const checks = useMemo(() => sspPrechecks(readiness), [readiness]);
   const finalReady = allPass(checks);
