@@ -15,16 +15,16 @@ import { base44 } from '@/api/base44Client';
 export async function resolveOnboardingState({ user, memberships, isPlatformAdmin }) {
   if (!user) return { needsWizard: false };
 
-  // Platform super-admins and Pac-Sec staff are exempt from the wizard.
+  // Platform super-admins and active Pac-Sec staff are exempt from the
+  // wizard. Invited, Disabled, and Removed memberships grant no privilege.
   if (isPlatformAdmin) return { needsWizard: false };
-  const isPacSecMember = (memberships || []).some(
+  const activeMemberships = (memberships || []).filter((m) => m.status === 'Active');
+  const isPacSecMember = activeMemberships.some(
     (m) => m.role === 'Pac-Sec Admin' || m.role === 'Pac-Sec Support'
   );
   if (isPacSecMember) return { needsWizard: false };
 
-  // Users who were invited into an existing org (any membership) never see the
-  // wizard — they join with their assigned role.
-  const activeMemberships = (memberships || []).filter((m) => m.status !== 'Removed');
+  // Users with one active membership join their assigned organization.
   if (activeMemberships.length > 0) {
     const orgId = activeMemberships[0].organization_id;
     const profiles = await base44.entities.CompanyProfile.filter({ organization_id: orgId });
