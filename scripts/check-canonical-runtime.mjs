@@ -196,6 +196,7 @@ if (pkgRaw !== null) {
       'test:cmmc-data': 'node scripts/check-cmmc-dataset.mjs',
       'test:canonical-migration': 'node scripts/check-canonical-project-migration.mjs',
       'test:canonical-runtime': 'node scripts/check-canonical-runtime.mjs',
+      'test:canonical-dashboard': 'node scripts/check-canonical-dashboard.mjs',
       preview: 'vite preview',
     };
     const scripts = pkg.scripts || {};
