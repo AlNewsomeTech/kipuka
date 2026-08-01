@@ -193,6 +193,9 @@
     "last_transition_id": {
       "type": "string"
     },
+    "last_transition_action": {
+      "type": "string"
+    },
     "notes": {
       "type": "string"
     }
