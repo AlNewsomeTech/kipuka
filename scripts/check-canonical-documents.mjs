@@ -149,7 +149,7 @@ ok(lifecycle.includes('source_state_sha256') && lifecycle.includes('currentState
 ok(lifecycle.includes('rebuiltSnapshotSha !== snapshot.snapshot_sha256'), 'approval verifies immutable source snapshot contents');
 indexBefore(lifecycle, 'UploadPrivateFile', 'ProjectDocument.update(doc.id, updates)', 'approval uploads verified final bytes before document transition');
 ok(lifecycle.includes('draft_file_uri') && lifecycle.includes('draft_output_sha256'), 'approval preserves original draft URI and hash');
-ok(lifecycle.includes("document_version: '1.0'") && lifecycle.includes("missing_approval_fields: []"), 'first approval becomes complete version 1.0');
+ok(lifecycle.includes("approvalVersion = Number(draftVersionMatch[1]) === 0 ? '1.0'") && lifecycle.includes('document_version: approvalVersion') && lifecycle.includes('missing_approval_fields: []'), 'first approval becomes 1.0 and later approved revisions retain their release version');
 ok(lifecycle.includes('ProjectDocumentEvent.create') && lifecycle.includes('event_sha256'), 'lifecycle appends hash-verified audit events');
 ok(lifecycle.includes('last_transition_action !== action'), 'idempotency key cannot be replayed for a different action');
 ok(!lifecycle.includes("caller.role !== 'technician' && !allowedRoles.includes"), 'platform technician designation cannot bypass lifecycle organization-role approvals');
@@ -187,6 +187,7 @@ ok(configFn.includes('logo_sha256') && configFn.includes("redirect: 'error'") &&
 
 const generator4d = read('base44/functions/generateProjectDocument/entry.ts');
 ok(generator4d.includes('source_state_sha256') && generator4d.includes('logo_sha256'), 'draft generation pins source state and logo hash');
+ok(generator4d.includes('function nextDraftVersion') && generator4d.includes('released[0].minor + 1') && generator4d.includes('nextDraftVersion(existingDocs)'), 'draft versioning advances from 0.x to ongoing 1.1, 1.2 releases after initial approval');
 ok(generator4d.includes('embedLogo') && generator4d.includes('word/media/kipuka-organization-logo'), 'draft generator embeds logo into DOCX OOXML');
 const preflight4d = read('base44/functions/preflightProjectDocument/entry.ts');
 ok(preflight4d.includes('config?.logo_sha256'), 'preflight treats unverified logo as missing information');
