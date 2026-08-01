@@ -12,7 +12,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 //
 // WHITELIST of entities client-role users may write.
 const WRITE_WHITELIST = new Set([
-  'ControlAssessment', 'ProjectEvidence', 'Asset', 'ScopingProfile', 'ProjectPOAM',
+  'ControlAssessment', 'Asset', 'ScopingProfile', 'ProjectPOAM',
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
   'IncidentLog', 'MockAssessmentSession', 'MockAssessmentObjective',
   'ObjectiveEvidenceLink', 'SPRSRecord', 'MaintenanceTask', 'RemediationComment',
