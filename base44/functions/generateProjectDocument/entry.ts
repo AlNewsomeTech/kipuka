@@ -139,6 +139,19 @@ function sanitizeNamePart(value: any): string {
 function sanitizeControlPart(value: any): string {
   return String(value || '').replace(/[^A-Za-z0-9.-]+/g, '').slice(0, 40);
 }
+function nextDraftVersion(existingDocs: any[]): string {
+  const parsed = (existingDocs || []).map((doc: any) => {
+    const match = String(doc.document_version || '').match(/^(\d+)\.(\d+)$/);
+    return match ? { major: Number(match[1]), minor: Number(match[2]) } : null;
+  }).filter(Boolean) as Array<{ major: number, minor: number }>;
+  const released = parsed.filter((v) => v.major >= 1);
+  if (!released.length) {
+    const highestDraftMinor = Math.max(0, ...parsed.filter((v) => v.major === 0).map((v) => v.minor));
+    return `0.${highestDraftMinor + 1}`;
+  }
+  released.sort((a, b) => b.major - a.major || b.minor - a.minor);
+  return `${released[0].major}.${released[0].minor + 1}`;
+}
 
 function put(fields: Record<string, any>, tag: string, value: any, provenance: string) {
   const v = value == null ? '' : String(value).trim();
@@ -296,7 +309,7 @@ Deno.serve(async (req) => {
 
     // --- Resolve fields (deterministic, canonical data only) ---
     const generatedBy = caller.full_name || caller.email || 'System';
-    const plannedVersion = `0.${existingDocs.length + 1}`;
+    const plannedVersion = nextDraftVersion(existingDocs);
     const fields = resolveFields({
       template, project, organization, companyProfile: companyProfiles[0] || null,
       scoping, components, tools, config, plannedVersion, generatedBy,
