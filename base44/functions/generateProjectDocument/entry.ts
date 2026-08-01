@@ -96,7 +96,8 @@ async function loadVerifiedLogo(sr: any, config: any) {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:' || privateHost(parsed.hostname)) throw new Error('Logo URL must be public HTTPS or a private Base44 file URI.');
   }
-  const response = await fetch(url, { redirect: 'error' });
+  const response = await fetch(url, { redirect: 'manual' });
+  if (response.status >= 300 && response.status < 400) throw new Error('Configured logo redirects are not allowed.');
   if (!response.ok) throw new Error('Configured logo could not be fetched.');
   const bytes = new Uint8Array(await response.arrayBuffer());
   const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
