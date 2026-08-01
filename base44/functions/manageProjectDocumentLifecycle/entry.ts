@@ -120,6 +120,9 @@ async function installLogoAsset(zip: any, logo: any) {
 function xmlEscape(s: any): string {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+function normalizeGeneratedPhrasing(xml: string): string {
+  return xml.replace(/Initial approved issue\s*\/\s*/g, '');
+}
 function normalizeFooterPageFields(xml: string): string {
   const pageField = /<w:instrText[^>]*>\s*PAGE\s*<\/w:instrText>/i.exec(xml);
   const numPagesField = /<w:instrText[^>]*>\s*NUMPAGES\s*<\/w:instrText>/i.exec(xml);
@@ -375,6 +378,7 @@ Deno.serve(async (req) => {
       for (const part of parts) {
         let xml = await zip.files[part].async('string');
         if (logo) xml = await embedLogo(zip, part, xml, logo);
+        xml = normalizeGeneratedPhrasing(xml);
         if (part.startsWith('word/footer')) xml = normalizeFooterPageFields(xml);
         for (const [tag, field]: any of Object.entries(fields)) {
           if (tag === 'org.logo' && logo) continue;
