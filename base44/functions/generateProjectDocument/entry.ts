@@ -152,6 +152,35 @@ async function installLogoAsset(zip: any, logo: any) {
 function xmlEscape(s: string): string {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+function normalizeFooterPageFields(xml: string): string {
+  const pageField = /<w:instrText[^>]*>\s*PAGE\s*<\/w:instrText>/i.exec(xml);
+  const numPagesField = /<w:instrText[^>]*>\s*NUMPAGES\s*<\/w:instrText>/i.exec(xml);
+  if (!pageField || !numPagesField) return xml;
+
+  const prefixStart = xml.lastIndexOf('<w:t', pageField.index);
+  const prefixOpenEnd = prefixStart >= 0 ? xml.indexOf('>', prefixStart) : -1;
+  const prefixClose = prefixOpenEnd >= 0 ? xml.indexOf('</w:t>', prefixOpenEnd) : -1;
+  if (prefixStart >= 0 && prefixOpenEnd >= 0 && prefixClose >= 0 && prefixClose < pageField.index) {
+    const prefix = xml.slice(prefixOpenEnd + 1, prefixClose);
+    if (/Page\s+1\s+of\s+1\s*$/.test(prefix)) {
+      const normalized = prefix.replace(/Page\s+1\s+of\s+1\s*$/, 'Page ');
+      xml = xml.slice(0, prefixOpenEnd + 1) + normalized + xml.slice(prefixClose);
+    }
+  }
+
+  const refreshedNumPages = /<w:instrText[^>]*>\s*NUMPAGES\s*<\/w:instrText>/i.exec(xml);
+  if (!refreshedNumPages) return xml;
+  const separatorStart = xml.lastIndexOf('<w:t', refreshedNumPages.index);
+  const separatorOpenEnd = separatorStart >= 0 ? xml.indexOf('>', separatorStart) : -1;
+  const separatorClose = separatorOpenEnd >= 0 ? xml.indexOf('</w:t>', separatorOpenEnd) : -1;
+  if (separatorStart >= 0 && separatorOpenEnd >= 0 && separatorClose >= 0 && separatorClose < refreshedNumPages.index) {
+    const separator = xml.slice(separatorOpenEnd + 1, separatorClose);
+    if (!separator.trim()) {
+      xml = xml.slice(0, separatorOpenEnd + 1) + ' of ' + xml.slice(separatorClose);
+    }
+  }
+  return xml;
+}
 function sanitizeNamePart(value: any): string {
   return String(value || '').normalize('NFKD').replace(/[^A-Za-z0-9-]+/g, '').slice(0, 60);
 }
@@ -350,6 +379,7 @@ Deno.serve(async (req) => {
     for (const part of renderParts) {
       let xml = await zip.files[part].async('string');
       if (logo) xml = await embedLogo(zip, part, xml, logo);
+      if (part.startsWith('word/footer')) xml = normalizeFooterPageFields(xml);
       for (const tag of Object.keys(fields)) {
         if (tag === 'org.logo' && logo) continue;
         const token = `{{${tag}}}`;
