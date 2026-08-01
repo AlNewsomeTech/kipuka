@@ -151,7 +151,7 @@ function resolveFields({ template, project, organization, companyProfile, scopin
 
   put(fields, 'org.legal_name', orgName, 'Organization.legal_name/organization_name');
   put(fields, 'org.short_name', config?.filename_short_name || organization?.short_name, 'DocumentConfiguration.filename_short_name/Organization.short_name');
-  put(fields, 'org.logo', config?.logo_url, 'DocumentConfiguration.logo_url (hash-verified image asset)');
+  put(fields, 'org.logo', config?.logo_url && /^[a-f0-9]{64}$/i.test(config?.logo_sha256 || '') ? config.logo_url : '', 'DocumentConfiguration.logo_url + logo_sha256');
 
   put(fields, 'doc.template_key', template?.template_key, 'DocumentTemplate.template_key');
   put(fields, 'doc.document_id', template?.document_id, 'DocumentTemplate.document_id');
