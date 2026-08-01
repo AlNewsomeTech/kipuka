@@ -14,6 +14,10 @@
       "type": "string",
       "description": "Organization logo used in the document logo area."
     },
+    "logo_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the configured PNG/JPEG logo bytes, verified at save and generation time."
+    },
     "classification": {
       "type": "string",
       "enum": [
