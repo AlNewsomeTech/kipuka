@@ -102,6 +102,18 @@ ok(!/WRITE_WHITELIST[\s\S]*?'ProjectEvidence'/.test(writeGate), 'generic client 
 const writeBlock = orgData.slice(orgData.indexOf('export const WRITE_GATED'), orgData.indexOf('async function readGate'));
 ok(!writeBlock.includes("'ProjectEvidence'"), 'client proxy cannot route evidence through generic writes');
 
+const cleanup = read('base44/functions/reconcileFulcrumAssessmentDrift/entry.ts');
+before(cleanup, 'base44.auth.me()', 'base44.asServiceRole', 'Fulcrum reconciliation authenticates before service-role use');
+ok(cleanup.includes("caller.role !== 'admin'"), 'Fulcrum reconciliation is platform-admin only');
+ok(cleanup.includes("body.mode === 'apply' ? 'apply' : 'dry_run'"), 'Fulcrum reconciliation defaults to dry run');
+ok(cleanup.includes("const CONFIRMATION = 'DELETE_EXACT_ARCHIVED_FULCRUM_STRAY'"), 'Fulcrum reconciliation requires the exact confirmation token');
+ok(cleanup.includes("projectRows.length === 111") && cleanup.includes("level2.length === 110") && cleanup.includes("level1.length === 1"), 'Fulcrum reconciliation pins the exact pre-delete counts');
+ok(cleanup.includes('archivePayloadHash === EXPECTED_HASH'), 'Fulcrum reconciliation re-hashes the archive payload');
+ok(cleanup.includes('service.entities.ControlAssessment.delete(TARGET_ID)'), 'Fulcrum reconciliation deletes only the pinned target ID');
+ok(cleanup.includes("remaining.length !== 110") && cleanup.includes("remainingLevel2.length !== 110") && cleanup.includes("remainingLevel1.length !== 0"), 'Fulcrum reconciliation verifies exact post-delete counts');
+const documentLibrary = read('src/pages/DocumentLibrary.jsx');
+ok(!documentLibrary.includes('runVerifiedFulcrumCleanup'), 'temporary Fulcrum maintenance control is absent from the customer UI');
+
 if (failures.length) {
   console.error(`Canonical evidence gate failed: ${passed} passed, ${failures.length} failed`);
   failures.forEach((failure) => console.error(` - ${failure}`));
