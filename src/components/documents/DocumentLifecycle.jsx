@@ -8,7 +8,7 @@ const actionFor = {
   'Changes Requested': [{ id: 'resubmit', label: 'Resubmit', icon: RotateCcw }],
   'In Review': [
     { id: 'request_changes', label: 'Request Changes', icon: AlertTriangle },
-    { id: 'approve', label: 'Approve v1.0', icon: CheckCircle2 },
+    { id: 'approve', label: 'Approve', icon: CheckCircle2 },
   ],
   Approved: [{ id: 'publish', label: 'Publish', icon: UploadCloud }],
   Published: [],
@@ -63,7 +63,7 @@ export default function DocumentLifecycle({ docs, events, onChanged }) {
           </div>
           <div className="flex flex-wrap items-start gap-2">
             {actions.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => transition(doc, id)} disabled={Boolean(busy)} className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F1E3C] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
-              <Icon className="h-3.5 w-3.5" />{busy === doc.id + id ? 'Working…' : label}
+              <Icon className="h-3.5 w-3.5" />{busy === doc.id + id ? 'Working…' : id === 'approve' ? `Approve v${String(doc.document_version || '').startsWith('0.') ? '1.0' : doc.document_version}` : label}
             </button>)}
             <button onClick={() => transition(doc, 'archive')} disabled={Boolean(busy)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-50"><Archive className="h-3.5 w-3.5" />Archive</button>
           </div>
