@@ -2,6 +2,13 @@
   "name": "SystemComponent",
   "type": "object",
   "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Canonical owning Project. Legacy client_id is retained only for pre-migration records."
+    },
     "client_id": {
       "type": "string"
     },
