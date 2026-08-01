@@ -186,10 +186,14 @@ ok(!configFn.includes("'organization_id'") || configFn.includes("k !== 'project_
 ok(configFn.includes('logo_sha256') && configFn.includes('fetchSafeHttps') && configFn.includes("redirect: 'manual'") && configFn.includes('privateHost') && configFn.includes('hop < 4'), 'configuration hash-verifies logos and follows only bounded public-HTTPS redirects');
 ok(lifecycle.includes('fetchSafeHttps') && lifecycle.includes("redirect: 'manual'") && lifecycle.includes('privateHost') && lifecycle.includes('hop < 4'), 'approval logo fetch follows only bounded public-HTTPS redirects');
 ok(lifecycle.includes('function normalizeFooterPageFields') && lifecycle.includes("part.startsWith('word/footer')"), 'approval renderer preserves dynamic PAGE and NUMPAGES footer fields without cached-number duplication');
+ok(lifecycle.includes('function normalizeGeneratedPhrasing') && lifecycle.includes('xml = normalizeGeneratedPhrasing(xml)'), 'approval renderer removes template-only initial-issue wording');
 
 const generator4d = read('base44/functions/generateProjectDocument/entry.ts');
 ok(generator4d.includes('fetchSafeHttps') && generator4d.includes("redirect: 'manual'") && generator4d.includes('privateHost') && generator4d.includes('hop < 4'), 'draft logo fetch follows only bounded public-HTTPS redirects');
 ok(generator4d.includes('function normalizeFooterPageFields') && generator4d.includes("part.startsWith('word/footer')"), 'draft renderer preserves dynamic PAGE and NUMPAGES footer fields without cached-number duplication');
+ok(generator4d.includes('function normalizeGeneratedPhrasing') && generator4d.includes('xml = normalizeGeneratedPhrasing(xml)'), 'draft renderer removes template-only initial-issue wording');
+ok(generator4d.includes('function normalizeRetentionPeriod') && generator4d.includes("'least annually'"), 'draft field resolution produces grammatical retention and review-frequency phrases');
+ok(preflight.includes('function normalizeRetentionPeriod') && preflight.includes("'least annually'"), 'preflight matches grammatical draft field resolution');
 ok(generator4d.includes('source_state_sha256') && generator4d.includes('logo_sha256'), 'draft generation pins source state and logo hash');
 ok(generator4d.includes('function nextDraftVersion') && generator4d.includes('released[0].minor + 1') && generator4d.includes('nextDraftVersion(existingDocs)'), 'draft versioning advances from 0.x to ongoing 1.1, 1.2 releases after initial approval');
 ok(generator4d.includes('embedLogo') && generator4d.includes('word/media/kipuka-organization-logo'), 'draft generator embeds logo into DOCX OOXML');
