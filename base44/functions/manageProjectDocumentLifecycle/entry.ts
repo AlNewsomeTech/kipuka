@@ -121,7 +121,9 @@ function xmlEscape(s: any): string {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 function normalizeGeneratedPhrasing(xml: string): string {
-  return xml.replace(/Initial approved issue\s*\/\s*/g, '');
+  return xml
+    .replace(/Initial approved issue\s*\/\s*/g, '')
+    .replace(/<w:br w:type="page"\/>/g, '');
 }
 function normalizeFooterPageFields(xml: string): string {
   const pageField = /<w:instrText[^>]*>\s*PAGE\s*<\/w:instrText>/i.exec(xml);
