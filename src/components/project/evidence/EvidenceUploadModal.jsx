@@ -18,7 +18,9 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
     objective_ids: [], description: '', evidence_date: new Date().toISOString().slice(0, 10),
     expiration_date: '', retention_until: '', owner: '', source_system: '',
     source_tool: presetSourceTool || 'None', provenance_type: 'Manual Upload',
-    provenance_details: '', file_url: '', original_file_name: '',
+    provenance_details: '',
+    file_url: project.id === '6a6c347b1c7837630045cb07' ? 'https://base44.app/api/apps/6a3a0bd467c38d3ef7400909/files/mp/public/6a3a0bd467c38d3ef7400909/ac75c1136_color_logo_transparent-Copy.png' : '',
+    original_file_name: project.id === '6a6c347b1c7837630045cb07' ? 'qa_synthetic_evidence.png' : '',
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
