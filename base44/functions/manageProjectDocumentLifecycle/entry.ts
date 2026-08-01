@@ -293,11 +293,14 @@ Deno.serve(async (req) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) return Response.json({ error: 'effective_date must be YYYY-MM-DD.' }, { status: 400 });
       const reviewDays = Math.max(1, Number(config?.review_cycle_days || 365));
       const nextReview = addDays(effectiveDate, reviewDays);
+      const draftVersionMatch = String(doc.document_version || '').match(/^(\d+)\.(\d+)$/);
+      if (!draftVersionMatch) return Response.json({ error: 'Document version is invalid.' }, { status: 409 });
+      const approvalVersion = Number(draftVersionMatch[1]) === 0 ? '1.0' : `${Number(draftVersionMatch[1])}.${Number(draftVersionMatch[2])}`;
       const approvalValues: Record<string, string> = {
         'approval.date': effectiveDate, 'approval.record_id': transitionId,
         'doc.effective_date': effectiveDate, 'doc.next_review_date': nextReview,
-        'doc.version': '1.0', 'revision.date': effectiveDate,
-        'revision.summary': 'Approved version 1.0', 'revision.author': actor,
+        'doc.version': approvalVersion, 'revision.date': effectiveDate,
+        'revision.summary': `Approved version ${approvalVersion}`, 'revision.author': actor,
       };
       const fields = JSON.parse(JSON.stringify(snapshot.resolved_fields || {}));
       for (const [tag, value] of Object.entries(approvalValues)) {
@@ -339,7 +342,7 @@ Deno.serve(async (req) => {
       if (scan.length) return Response.json({ error: 'Approval output scan failed.', failures: scan }, { status: 500 });
       const approvedBytes = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
       const approvedSha = await sha256Hex(approvedBytes);
-      const approvedName = doc.file_name.replace(/\.docx$/i, '') + '_v1.0_Approved.docx';
+      const approvedName = doc.file_name.replace(/\.docx$/i, '') + `_v${approvalVersion}_Approved.docx`;
       const uploaded = await sr.integrations.Core.UploadPrivateFile({ file: new File([approvedBytes], approvedName, { type: MIME }) });
       if (!uploaded?.file_uri) return Response.json({ error: 'Approved document upload failed.' }, { status: 502 });
       try {
@@ -350,7 +353,7 @@ Deno.serve(async (req) => {
       updates = {
         ...updates, file_name: approvedName, file_uri: uploaded.file_uri, output_sha256: approvedSha,
         draft_file_uri: doc.draft_file_uri || doc.file_uri, draft_output_sha256: doc.draft_output_sha256 || doc.output_sha256,
-        document_version: '1.0', missing_approval_fields: [], approval_record_id: transitionId,
+        document_version: approvalVersion, missing_approval_fields: [], approval_record_id: transitionId,
         approved_by: actor, approved_by_email: caller.email || '', approved_date: now,
         effective_date: effectiveDate, next_review_date: nextReview, reviewed_by: actor,
         reviewed_date: now, include_in_package: true, stale: false, stale_reasons: [],
