@@ -55,6 +55,11 @@ function stableStringify(value: any): string {
   if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
   return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;
 }
+function sourceRows(rows: any[]) {
+  return (rows || []).map((r: any) => ({
+    id: r.id || '', updated_date: r.updated_date || '', hash_value: r.hash_value || '',
+  })).sort((a: any, b: any) => a.id.localeCompare(b.id));
+}
 function xmlEscape(s: string): string {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
@@ -284,9 +289,26 @@ Deno.serve(async (req) => {
         evidenceHashes[ev.id] = ev.hash_value;
       }
     }
+    const sourceStatePayload = {
+      template: { id: template.id, updated_date: template.updated_date || '', normalized_sha256: template.normalized_sha256 },
+      project: sourceRows([project]),
+      organization: sourceRows(organization ? [organization] : []),
+      company_profiles: sourceRows(companyProfiles),
+      scoping_profiles: sourceRows(scopings),
+      system_components: sourceRows(components),
+      project_security_tools: sourceRows(tools),
+      tool_control_mappings: sourceRows(toolMappings),
+      control_assessments: sourceRows(assessments),
+      project_evidence: sourceRows(evidence),
+      project_poams: sourceRows(poams),
+      objective_evidence_links: sourceRows(objectiveLinks),
+      document_configurations: sourceRows(configs),
+    };
+    const sourceStateSha = await sha256Hex(new TextEncoder().encode(stableStringify(sourceStatePayload)));
     const snapshotPayload = {
       project_id: projectId, organization_id: org,
       template_key: template.template_key, template_version: template.template_version, template_sha256: template.normalized_sha256,
+      source_state_sha256: sourceStateSha,
       resolved_fields: fields,
       source_counts: {
         ControlAssessment: assessments.length, ProjectEvidence: evidence.length, ProjectPOAM: poams.length,
@@ -341,6 +363,7 @@ Deno.serve(async (req) => {
       document: docRecord,
       snapshot_id: snapshot.id,
       snapshot_sha256: snapshotSha,
+      source_state_sha256: sourceStateSha,
       output_sha256: outputSha,
       file_name: fileName,
       missing_fields: missingFields,
