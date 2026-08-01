@@ -42,7 +42,15 @@
     },
     "output_sha256": {
       "type": "string",
-      "description": "SHA-256 of the generated DOCX bytes."
+      "description": "SHA-256 of the current immutable DOCX bytes."
+    },
+    "draft_file_uri": {
+      "type": "string",
+      "description": "Preserved private URI of the original draft when approval creates a separate approval-complete DOCX."
+    },
+    "draft_output_sha256": {
+      "type": "string",
+      "description": "Preserved SHA-256 of the original draft bytes."
     },
     "source_snapshot_id": {
       "type": "string"
@@ -136,6 +144,54 @@
     "include_in_package": {
       "type": "boolean",
       "default": false
+    },
+    "review_requested_by": {
+      "type": "string"
+    },
+    "review_requested_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "change_request_note": {
+      "type": "string"
+    },
+    "approval_record_id": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_by_email": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "next_review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "published_by": {
+      "type": "string"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_transition_id": {
+      "type": "string"
     },
     "notes": {
       "type": "string"
