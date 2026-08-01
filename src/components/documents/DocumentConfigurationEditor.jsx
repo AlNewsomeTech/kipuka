@@ -11,7 +11,7 @@ const fields = [
 
 export default function DocumentConfigurationEditor({ project, configs, onChanged }) {
   const current = configs.find((c) => c.project_id === project.id) || configs.find((c) => !c.project_id) || {};
-  const [form, setForm] = useState({});
+  const [form, setForm] = useState(/** @type {Record<string, any>} */ ({}));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   useEffect(() => setForm({
