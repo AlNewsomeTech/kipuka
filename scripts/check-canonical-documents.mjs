@@ -183,11 +183,11 @@ const configFn = read('base44/functions/saveProjectDocumentConfiguration/entry.t
 indexBefore(configFn, 'base44.auth.me()', 'base44.asServiceRole', 'configuration save authenticates before service role');
 indexBefore(configFn, 'OrganizationUser.filter', 'Project.get', 'configuration save checks membership before project read');
 ok(!configFn.includes("'organization_id'") || configFn.includes("k !== 'project_id'"), 'configuration does not accept caller-supplied organization_id');
-ok(configFn.includes('logo_sha256') && configFn.includes("redirect: 'manual'") && configFn.includes('logoResponse.status >= 300') && configFn.includes('privateHost'), 'configuration hash-verifies logos and explicitly rejects redirects and unsafe hosts');
-ok(lifecycle.includes("redirect: 'manual'") && lifecycle.includes('response.status >= 300'), 'approval logo fetch explicitly rejects redirects in the Base44 Deno runtime');
+ok(configFn.includes('logo_sha256') && configFn.includes('fetchSafeHttps') && configFn.includes("redirect: 'manual'") && configFn.includes('privateHost') && configFn.includes('hop < 4'), 'configuration hash-verifies logos and follows only bounded public-HTTPS redirects');
+ok(lifecycle.includes('fetchSafeHttps') && lifecycle.includes("redirect: 'manual'") && lifecycle.includes('privateHost') && lifecycle.includes('hop < 4'), 'approval logo fetch follows only bounded public-HTTPS redirects');
 
 const generator4d = read('base44/functions/generateProjectDocument/entry.ts');
-ok(generator4d.includes("redirect: 'manual'") && generator4d.includes('response.status >= 300'), 'draft logo fetch explicitly rejects redirects in the Base44 Deno runtime');
+ok(generator4d.includes('fetchSafeHttps') && generator4d.includes("redirect: 'manual'") && generator4d.includes('privateHost') && generator4d.includes('hop < 4'), 'draft logo fetch follows only bounded public-HTTPS redirects');
 ok(generator4d.includes('source_state_sha256') && generator4d.includes('logo_sha256'), 'draft generation pins source state and logo hash');
 ok(generator4d.includes('function nextDraftVersion') && generator4d.includes('released[0].minor + 1') && generator4d.includes('nextDraftVersion(existingDocs)'), 'draft versioning advances from 0.x to ongoing 1.1, 1.2 releases after initial approval');
 ok(generator4d.includes('embedLogo') && generator4d.includes('word/media/kipuka-organization-logo'), 'draft generator embeds logo into DOCX OOXML');
