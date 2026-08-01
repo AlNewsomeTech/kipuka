@@ -421,6 +421,18 @@ const CHECKS = [
   {
     file: 'base44/functions/generateDocument/entry.ts',
     run: (src, clean) => {
+      // Phase 4 retires this legacy Client-based generator. A retired endpoint
+      // needs no auth lookup because it returns only a constant 410 and performs
+      // no data access. If the legacy implementation is ever restored, retain
+      // the original authorization checks below.
+      if (/status:\s*410/.test(clean)) {
+        must(clean, /Deno\.serve\s*\(/, 'retired generateDocument uses the Base44 Deno.serve contract');
+        must(clean, /preflightProjectDocument/, 'retired endpoint names the preflight replacement');
+        must(clean, /generateProjectDocument/, 'retired endpoint names the DOCX replacement');
+        mustNot(clean, /asServiceRole|\.entities\s*\.|\.create\s*\(|\.update\s*\(|\.delete\s*\(/,
+          'retired generateDocument performs no entity access or writes');
+        return;
+      }
       assertAuthenticationGate(src, clean);
       checkLegacyClientFunction(clean, {
         clientIdMissingPattern: /if\s*\(\s*!\s*clientId\s*\|\|\s*!\s*docKey\s*\)[\s\S]{0,140}status:\s*400/,
