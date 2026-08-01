@@ -18,7 +18,12 @@ export default function ApplicabilityMatrix({ project, decisions, evidence, onCh
   const [error, setError] = useState('');
   const acceptedEvidence = evidence.filter((e) => e.review_status === 'Accepted' && e.hash_value);
 
-  /** @returns {any} */
+  /**
+   * @param {string} key
+   * @param {string} field
+   * @param {any} fallback
+   * @returns {any}
+   */
   const value = (key, field, fallback = '') => drafts[key]?.[field] ?? latest[key]?.[field] ?? fallback;
   const set = (key, field, next) => setDrafts((d) => ({ ...d, [key]: { ...(d[key] || {}), [field]: next } }));
 
