@@ -217,6 +217,7 @@ for (const fn of ['manageProjectDocumentLifecycle', 'setDocumentApplicability', 
   ok(lifecycleUi.includes(fn), `UI invokes ${fn}`);
 }
 ok(lifecycleUi.includes('initialTab="package"') && !lifecycleUi.includes("import FinalPackage from"), 'legacy Final Package route is replaced by canonical document package UI');
+ok(lifecycleUi.includes("id === 'approve'") && lifecycleUi.includes("startsWith('0.')") && !lifecycleUi.includes("label: 'Approve v1.0'"), 'approval UI labels initial and later release versions correctly');
 
 if (failures.length) {
   console.error(`Phase 4 document checks failed: ${failures.length} failure(s), ${passed} passed`);
