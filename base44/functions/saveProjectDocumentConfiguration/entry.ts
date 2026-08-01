@@ -12,6 +12,11 @@ const FIELDS = [
 ];
 const ROLES = ['Organization Owner', 'Organization Admin', 'Compliance Manager', 'Pac-Sec Admin', 'Pac-Sec Support'];
 
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -48,6 +53,25 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'classification must be Public, Internal, or Confidential.' }, { status: 400 });
     }
     data.review_cycle_days = Math.max(1, Math.min(3650, Number(data.review_cycle_days || 365)));
+    if (data.logo_url) {
+      let logoUrl = String(data.logo_url);
+      if (logoUrl.startsWith('mp/private/')) {
+        const signed = await sr.integrations.Core.CreateFileSignedUrl({ file_uri: logoUrl });
+        logoUrl = signed.signed_url;
+      }
+      const logoResponse = await fetch(logoUrl);
+      if (!logoResponse.ok) return Response.json({ error: 'Configured logo could not be fetched.' }, { status: 400 });
+      const contentType = (logoResponse.headers.get('content-type') || '').toLowerCase();
+      const logoBytes = new Uint8Array(await logoResponse.arrayBuffer());
+      const isPng = logoBytes[0] === 0x89 && logoBytes[1] === 0x50 && logoBytes[2] === 0x4e && logoBytes[3] === 0x47;
+      const isJpeg = logoBytes[0] === 0xff && logoBytes[1] === 0xd8;
+      if ((!isPng && !isJpeg) || !/image\/(png|jpe?g)/.test(contentType) || logoBytes.length > 5_000_000) {
+        return Response.json({ error: 'Logo must be a PNG or JPEG no larger than 5 MB.' }, { status: 400 });
+      }
+      data.logo_sha256 = await sha256Hex(logoBytes);
+    } else {
+      data.logo_sha256 = '';
+    }
     data.filename_short_name = String(data.filename_short_name || '').replace(/[^A-Za-z0-9-]+/g, '').slice(0, 60);
     data.timezone = String(data.timezone || 'America/Chicago').slice(0, 80);
     data.organization_id = project.organization_id;
