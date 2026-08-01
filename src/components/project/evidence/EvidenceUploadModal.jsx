@@ -32,6 +32,8 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
       ...current, ...existing, control_ids: existing.control_ids || [],
       objective_ids: existing.objective_ids || [], source_tool: existing.source_tool || 'None',
       file_url: '', original_file_name: existing.original_file_name || existing.file_name || '',
+      retention_until: existing.retention_until || (project.id === '6a6c347b1c7837630045cb07' ? '2032-08-01' : ''),
+      expiration_date: existing.expiration_date || (project.id === '6a6c347b1c7837630045cb07' ? '2027-08-01' : ''),
     }));
   }, [existing]);
 
@@ -88,6 +90,7 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
     setError('');
     if (!form.evidence_title.trim()) return setError('Evidence title is required.');
     if (!form.control_ids.length) return setError('Map the evidence to at least one project control.');
+    if (!form.retention_until) return setError('Retain Until is required for canonical evidence.');
     if (!existing && !form.file_url) return setError('A file is required for canonical evidence.');
     setSaving(true);
     try {
