@@ -1,6 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const ACTIONS = ['create', 'new_version', 'submit_review', 'accept', 'reject', 'archive', 'expire', 'update_quality', 'download'];
+const ACTION_LABELS: Record<string, string> = {
+  create: 'Created', new_version: 'Created', submit_review: 'Submitted for Review',
+  accept: 'Accepted', reject: 'Rejected', archive: 'Archived', expire: 'Expired',
+  update_quality: 'Updated', download: 'Downloaded', supersede: 'Superseded',
+};
 const CONTRIBUTOR_ROLES = ['Organization Owner', 'Organization Admin', 'Compliance Manager', 'IT Admin', 'Evidence Contributor', 'Pac-Sec Admin', 'Pac-Sec Support'];
 const REVIEW_ROLES = ['Organization Owner', 'Organization Admin', 'Compliance Manager', 'Pac-Sec Admin'];
 const SELF_REVIEW_ROLES = ['Organization Owner', 'Pac-Sec Admin'];
@@ -103,14 +108,9 @@ async function metadataSha(record: any): Promise<string> {
   return await sha256Hex(new TextEncoder().encode(stableStringify(metadataPayload(record))));
 }
 async function createEvent(sr: any, evidence: any, caller: any, orgRole: string, transitionId: string, action: string, fromStatus: string, toStatus: string, note = '') {
-  const labels: Record<string, string> = {
-    create: 'Created', new_version: 'Created', submit_review: 'Submitted for Review',
-    accept: 'Accepted', reject: 'Rejected', archive: 'Archived', expire: 'Expired',
-    update_quality: 'Updated', download: 'Downloaded',
-  };
   const payload = {
     organization_id: evidence.organization_id, project_id: evidence.project_id,
-    project_evidence_id: evidence.id, action: labels[action], from_status: fromStatus || '',
+    project_evidence_id: evidence.id, action: ACTION_LABELS[action], from_status: fromStatus || '',
     to_status: toStatus || '', transition_id: transitionId, actor_user_id: caller.id || '',
     actor_email: caller.email || '', actor_name: displayName(caller), actor_role: orgRole || caller.role || '',
     note: cleanText(note, 4000), evidence_sha256: evidence.hash_value || '',
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
       if (!isPlatformAdmin && prior.organization_id !== callerOrg) {
         return Response.json({ error: 'transition_id is unavailable.' }, { status: 409 });
       }
-      if (prior.action !== ({ create: 'Created', new_version: 'Created', submit_review: 'Submitted for Review', accept: 'Accepted', reject: 'Rejected', archive: 'Archived', expire: 'Expired', update_quality: 'Updated', download: 'Downloaded' } as any)[action]) {
+      if (prior.action !== ACTION_LABELS[action]) {
         return Response.json({ error: 'transition_id was already used for another action.' }, { status: 409 });
       }
       const existing = await sr.entities.ProjectEvidence.get(prior.project_evidence_id).catch(() => null);
@@ -177,6 +177,19 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Evidence not found' }, { status: 404 });
       }
       return Response.json({ evidence: existing, idempotent: true });
+    }
+
+    const stranded = await sr.entities.ProjectEvidence.filter({ last_transition_id: transitionId }).catch(() => []);
+    if (stranded.length) {
+      const existing = stranded[0];
+      if ((!isPlatformAdmin && existing.organization_id !== callerOrg) || existing.last_transition_action !== action) {
+        return Response.json({ error: 'transition_id is unavailable.' }, { status: 409 });
+      }
+      await createEvent(
+        sr, existing, caller, orgRole, transitionId, action,
+        existing.last_transition_from_status || '', existing.last_transition_to_status || existing.review_status || '', body.note,
+      );
+      return Response.json({ evidence: existing, idempotent: true, audit_recovered: true });
     }
 
     let evidence: any = null;
@@ -246,6 +259,7 @@ Deno.serve(async (req) => {
         provenance_details: cleanText(body.provenance_details, 4000), version,
         supersedes_evidence_id: prior?.id || '', superseded_by_evidence_id: '', lifecycle_status: 'Current',
         last_transition_id: transitionId, last_transition_action: action,
+        last_transition_from_status: prior?.review_status || '', last_transition_to_status: 'Draft',
       };
       record.metadata_sha256 = await metadataSha(record);
       evidence = await sr.entities.ProjectEvidence.create(record);
@@ -258,9 +272,10 @@ Deno.serve(async (req) => {
         });
       }
       if (prior) {
-        await sr.entities.ProjectEvidence.update(prior.id, {
+        const superseded = await sr.entities.ProjectEvidence.update(prior.id, {
           review_status: 'Superseded', lifecycle_status: 'Superseded', superseded_by_evidence_id: evidence.id,
         });
+        await createEvent(sr, superseded, caller, orgRole, `${transitionId.slice(0, 88)}_supersede`, 'supersede', prior.review_status || '', 'Superseded', 'Superseded by a new immutable evidence version.');
       }
       try { await createEvent(sr, evidence, caller, orgRole, transitionId, action, prior?.review_status || '', 'Draft', body.note); }
       catch (e) { return Response.json({ error: `Evidence created but audit event failed. Retry with the same transition_id. Details: ${e.message}`, evidence, recoverable: true }, { status: 500 }); }
@@ -337,6 +352,8 @@ Deno.serve(async (req) => {
       updates.review_status = 'Archived'; updates.lifecycle_status = 'Archived';
     }
 
+    updates.last_transition_from_status = fromStatus;
+    updates.last_transition_to_status = updates.review_status || fromStatus;
     const candidate = { ...evidence, ...updates };
     updates.metadata_sha256 = await metadataSha(candidate);
     const updated = await sr.entities.ProjectEvidence.update(evidence.id, updates);
