@@ -45,16 +45,7 @@
     },
     "source_tool": {
       "type": "string",
-      "enum": [
-        "None",
-        "NinjaOne",
-        "Palo Alto Cortex XDR",
-        "Microsoft Defender",
-        "Microsoft Intune",
-        "Microsoft Entra ID",
-        "Microsoft Purview",
-        "Other"
-      ],
+      "description": "Organization-configured source tool or system label.",
       "default": "None"
     },
     "file_uri": {
@@ -170,6 +161,11 @@
       "type": "string",
       "enum": [
         "Manual Upload",
+        "System Export",
+        "Screenshot",
+        "Policy Record",
+        "Procedure Record",
+        "Third-Party Attestation",
         "Tool Export",
         "API Import",
         "Generated"
