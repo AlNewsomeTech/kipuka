@@ -1,0 +1,1037 @@
+// Canonical Phase 4 project document catalog.
+// Generated from the normalized White-Label Cybersecurity Policy Template Set v1.0
+// (44 templates; the usage guide is intentionally excluded). Mirrors
+// base44/functions/generateProjectDocument/templates/manifest.json — keep in sync.
+// Hashes are SHA-256 of the normalized DOCX asset bytes.
+
+export const TEMPLATE_LIBRARY_VERSION = '1.0';
+export const SOURCE_ZIP_SHA256 = '65ad8eec0bb5baea1b12fdd7ff1414200d32f240e902f4fcd252310ab6169c92';
+export const FILE_NAMING_CONVENTION = 'CompanyName_PolicyType_PRIMARYCONTROLID_ControlLocation_YYYY-MM-DD.docx';
+
+// Merge tags present in every normalized template across body, tables, headers, footers, and logo area.
+export const TEMPLATE_TAGS = [
+  "approval.date",
+  "approval.record_id",
+  "doc.approver_name",
+  "doc.classification",
+  "doc.document_id",
+  "doc.effective_date",
+  "doc.next_review_date",
+  "doc.owner_name",
+  "doc.review_cycle",
+  "doc.template_key",
+  "doc.title",
+  "doc.version",
+  "implementation.control_location",
+  "implementation.defined_frequency",
+  "implementation.procedure_location",
+  "implementation.reporting_channel",
+  "implementation.repository",
+  "implementation.responsible_team",
+  "implementation.retention_period",
+  "implementation.review_trigger",
+  "org.legal_name",
+  "org.logo",
+  "revision.author",
+  "revision.date",
+  "revision.summary",
+  "scope.boundary",
+  "scope.data_flow",
+  "scope.excluded_locations",
+  "scope.included_locations",
+  "scope.summary",
+  "scope.systems"
+];
+
+// Fields only an approval workflow may supply. Draft generation never fabricates these.
+export const REQUIRED_APPROVAL_FIELDS = ["approval.date","approval.record_id","doc.effective_date"];
+
+export const PROJECT_DOCUMENT_CATALOG = [
+  {
+    "template_key": "acceptable_encryption_policy",
+    "document_id": "SEC-CRY-001",
+    "title": "Cryptographic Protection and Acceptable Encryption Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SC.L2-3.13.8",
+    "control_ids": [
+      "SC.L2-3.13.8",
+      "SC.L2-3.13.10",
+      "SC.L2-3.13.11",
+      "SC.L2-3.13.16"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "141731debf261ca99d8d82c69907afcbf19df8141beb42e75ec334431da885a7",
+    "source_sha256": "a682da4a738a193b70f10cc8f7a7a27d540f85c2c2ce765a269f7a8ceb370dbb",
+    "asset_path": "base44/functions/generateProjectDocument/templates/acceptable_encryption_policy.docx",
+    "control_alignment_note": "CMMC: SC.L2-3.13.8, SC.L2-3.13.10, SC.L2-3.13.11, SC.L2-3.13.16; confirm applicability in the SSP."
+  },
+  {
+    "template_key": "acceptable_use_policy",
+    "document_id": "GOV-AUP-001",
+    "title": "Technology and Information Acceptable Use Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.1",
+    "control_ids": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "AC.L1-3.1.20",
+      "IA.L1-3.5.1",
+      "MP.L1-3.8.3"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "01884e6f68f47c54f0ceeaf3b1dda1a4854cd58fd1711e1f5b3bf18e3c5dd4dc",
+    "source_sha256": "6a294cb5c23dc89e3e40fb5be591eb8fe7a7244c1ade62d3104be8b60c15ca8c",
+    "asset_path": "base44/functions/generateProjectDocument/templates/acceptable_use_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.1, AC.L1-3.1.2, AC.L1-3.1.20, IA.L1-3.5.1, MP.L1-3.8.3; supports multiple Level 2 practices."
+  },
+  {
+    "template_key": "acquisition_assessment_policy",
+    "document_id": "TPRM-ACQ-001",
+    "title": "Technology Acquisition Security Assessment Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "CA.L2-3.12.1",
+    "control_ids": [
+      "CA.L2-3.12.1",
+      "RA.L2-3.11.1",
+      "SA.L2-3.12.4"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "773ecc7718bd99b660f7d637693c487a94469e34966292e8aa9088dfb5a3985d",
+    "source_sha256": "cf5a621ba3fc44b89fb394e671bcd75aad6828f4ad7eb94aac187f1c5a48439d",
+    "asset_path": "base44/functions/generateProjectDocument/templates/acquisition_assessment_policy.docx",
+    "control_alignment_note": "CMMC: CA.L2-3.12.1, RA.L2-3.11.1, SA.L2-3.12.4 (SSP dependencies); map supplier services in the system boundary."
+  },
+  {
+    "template_key": "analog_isdn_line_security_policy",
+    "document_id": "NET-LEG-001",
+    "title": "Legacy Analog and ISDN Line Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.14",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "9d48fd42dc426b733f7de9ca822978a709e03b2df5a873ae29e5c72f6612087d",
+    "source_sha256": "e19689cd82ea1e4783a7621798b26d767309e9b9f53f26d42383a9b88ef9564f",
+    "asset_path": "base44/functions/generateProjectDocument/templates/analog_isdn_line_security_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12 through AC.L2-3.1.14; SC.L2-3.13.1 and SC.L2-3.13.5 where applicable."
+  },
+  {
+    "template_key": "anti_virus_guidelines",
+    "document_id": "SEC-MAL-G01",
+    "title": "Endpoint Anti-Malware Configuration Guidelines",
+    "document_type": "Guideline",
+    "version": "1.0.0",
+    "primary_control_id": "SI.L1-3.14.2",
+    "control_ids": [
+      "SI.L1-3.14.2",
+      "SI.L1-3.14.4",
+      "SI.L1-3.14.5",
+      "SI.L2-3.14.6",
+      "SI.L2-3.14.7"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "7a8cd5a7039653522e4a0184c94ce3ab443cc66e1cdc5939fe2325b167c126e8",
+    "source_sha256": "bb520b3a5a970fa72cd09831eff605da87903a1d9952b4d21b89560bfe1dffda",
+    "asset_path": "base44/functions/generateProjectDocument/templates/anti_virus_guidelines.docx",
+    "control_alignment_note": "CMMC: SI.L1-3.14.2, SI.L1-3.14.4, SI.L1-3.14.5; SI.L2-3.14.6 and SI.L2-3.14.7 as applicable."
+  },
+  {
+    "template_key": "automatically_forwarded_email_policy",
+    "document_id": "MSG-FWD-001",
+    "title": "Automatic Email Forwarding Control Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.20",
+    "control_ids": [
+      "AC.L1-3.1.20",
+      "AC.L2-3.1.3",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "aeb380b05bfd3f7f5920e27be12a8422c5c0e51bf3b103b58b5fa69b5439440c",
+    "source_sha256": "882a24f10e745d05c12570e56940846c1bd6269f8cbe0e167a92d589cc5be74f",
+    "asset_path": "base44/functions/generateProjectDocument/templates/automatically_forwarded_email_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.20; AC.L2-3.1.3; SC.L2-3.13.1 and SC.L2-3.13.5."
+  },
+  {
+    "template_key": "bluetooth_baseline_requirements_policy",
+    "document_id": "NET-BT-001",
+    "title": "Bluetooth Security Baseline",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.16",
+    "control_ids": [
+      "AC.L2-3.1.16",
+      "AC.L2-3.1.17",
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.2"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "7a6ac9d96e91d723db5a12f8f281443ff881bb061b2efefe59bcb850f0d96e85",
+    "source_sha256": "b667e58aba41bc36ccea71539d2211f514a9faaee0b77b03df036921ba56b829",
+    "asset_path": "base44/functions/generateProjectDocument/templates/bluetooth_baseline_requirements_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.16, AC.L2-3.1.17; CM.L2-3.4.1 and CM.L2-3.4.2 where applicable."
+  },
+  {
+    "template_key": "clean_desk_policy",
+    "document_id": "PHY-CDS-001",
+    "title": "Clean Desk, Clear Screen, and Secure Workspace Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "MP.L1-3.8.3",
+    "control_ids": [
+      "MP.L1-3.8.3",
+      "PE.L1-3.10.1",
+      "PE.L1-3.10.3",
+      "PE.L1-3.10.4"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "ad5789dfa095c377134bc341c1b639eb93659df35a84d2e9ab5b64d31484d9a2",
+    "source_sha256": "9a8dc89351ec0a7cafc375245e66d14720a3c9c10f9462fbf9db9fed2e65b4f0",
+    "asset_path": "base44/functions/generateProjectDocument/templates/clean_desk_policy.docx",
+    "control_alignment_note": "CMMC: MP.L1-3.8.3, PE.L1-3.10.1, PE.L1-3.10.3, PE.L1-3.10.4."
+  },
+  {
+    "template_key": "communications_equipment_policy",
+    "document_id": "NET-COM-001",
+    "title": "Communications Equipment Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "CM.L2-3.4.1",
+    "control_ids": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.9",
+      "AC.L2-3.1.5",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "b180be7e1d52d0430ed5642b5d4ef0ab07452b2c03282dae1cb7b99fd75c7ab9",
+    "source_sha256": "b5dfd6b857534a2cd40326d593d78e5a852d1cefc05b85791bda5717a3d51cc5",
+    "asset_path": "base44/functions/generateProjectDocument/templates/communications_equipment_policy.docx",
+    "control_alignment_note": "CMMC: CM.L2-3.4.1 through CM.L2-3.4.9; AC.L2-3.1.5; SC.L2-3.13.1 and SC.L2-3.13.5."
+  },
+  {
+    "template_key": "data_breach_response",
+    "document_id": "IR-DBR-001",
+    "title": "Data Breach Response Plan",
+    "document_type": "Plan",
+    "version": "1.0.0",
+    "primary_control_id": "IR.L2-3.6.1",
+    "control_ids": [
+      "IR.L2-3.6.1",
+      "IR.L2-3.6.2",
+      "IR.L2-3.6.3"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "263f732cbbb62cacb1c6fef5e0ab2f438e85cf99dda4431b1eba74ee176e6716",
+    "source_sha256": "99b80a7ef6761427bd14f3c313ba3dbfa53702a4931887afebbd9aa720adb411",
+    "asset_path": "base44/functions/generateProjectDocument/templates/data_breach_response.docx",
+    "control_alignment_note": "CMMC: IR.L2-3.6.1, IR.L2-3.6.2, IR.L2-3.6.3; AU evidence supports incident analysis."
+  },
+  {
+    "template_key": "database_credentials_policy",
+    "document_id": "IAM-DB-001",
+    "title": "Database Credential and Privileged Access Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.1",
+    "control_ids": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "AC.L2-3.1.5",
+      "AC.L2-3.1.7",
+      "IA.L1-3.5.1",
+      "IA.L1-3.5.2"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "c67f76d67a98c4720d38795cdfae072a7a6ee23d8e7e4c3be597d8c72dc7c177",
+    "source_sha256": "cf2701379dcde39e82409abeb2de9c42ef56c0845659c6f1924bf09c57943d2f",
+    "asset_path": "base44/functions/generateProjectDocument/templates/database_credentials_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.1, AC.L1-3.1.2, AC.L2-3.1.5, AC.L2-3.1.7; IA.L1-3.5.1 and IA.L1-3.5.2."
+  },
+  {
+    "template_key": "dial_in_access_policy",
+    "document_id": "RA-LEG-001",
+    "title": "Dial-In and Legacy Remote Access Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.13",
+      "AC.L2-3.1.14",
+      "SC.L2-3.13.1"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "f34bdf713d181eae9fa9bac4733db1141401202ac9a163a1da5f67b46783488a",
+    "source_sha256": "f1bb9515baf63fd9397b417a7b417e3ef3673a128051f54f3add05deb4d043cf",
+    "asset_path": "base44/functions/generateProjectDocument/templates/dial_in_access_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12, AC.L2-3.1.13, AC.L2-3.1.14; SC.L2-3.13.1."
+  },
+  {
+    "template_key": "digital_signature_acceptance_policy",
+    "document_id": "GOV-SIG-001",
+    "title": "Electronic and Digital Signature Acceptance Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SC.L2-3.13.10",
+    "control_ids": [
+      "SC.L2-3.13.10"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "e7120b0f9b8f5dfd974fdc74d2b099625304899fa3ac77cfbf4093d3a46c9eba",
+    "source_sha256": "beb601c5acef75e0e2a5532562c4928196a1c230faf729646fc8b944066466ff",
+    "asset_path": "base44/functions/generateProjectDocument/templates/digital_signature_acceptance_policy.docx",
+    "control_alignment_note": "Potential CMMC alignment: IA identity proofing; SC.L2-3.13.10 key management; AU records. Confirm contract-specific signature requirements."
+  },
+  {
+    "template_key": "disaster_recovery_plan_policy",
+    "document_id": "BCDR-DRP-001",
+    "title": "Information Technology Disaster Recovery Plan",
+    "document_type": "Plan",
+    "version": "1.0.0",
+    "primary_control_id": "BCDR-DRP-001",
+    "control_ids": [],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "ec620e763b3702c278d18651492c6b416adc6e5ed63ff27c7006ece9f9204989",
+    "source_sha256": "a3972b3969435357a32f471778190fc675d039584628d71363396ce45463ad78",
+    "asset_path": "base44/functions/generateProjectDocument/templates/disaster_recovery_plan_policy.docx",
+    "control_alignment_note": "CMMC support: CP-related resilience is not a standalone NIST SP 800-171 Rev. 2 family, but backup protection and recovery support IR, SC, MP, and SSP risk treatment."
+  },
+  {
+    "template_key": "dmz_lab_security_policy",
+    "document_id": "NET-LAB-001",
+    "title": "Isolated Lab and DMZ Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SC.L2-3.13.1",
+    "control_ids": [
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5",
+      "SC.L2-3.13.6",
+      "AC.L2-3.1.3",
+      "CM.L2-3.4.6",
+      "CM.L2-3.4.7"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "9b15e0306e80799d87e370ff52928454c22ed57ef59f209a96d83e9aa27493b5",
+    "source_sha256": "fbfd69136959a114c27a2c9df0370044f850e371c7524b0e5f3dc8326b3b3814",
+    "asset_path": "base44/functions/generateProjectDocument/templates/dmz_lab_security_policy.docx",
+    "control_alignment_note": "CMMC: SC.L2-3.13.1, SC.L2-3.13.5, SC.L2-3.13.6; AC.L2-3.1.3; CM.L2-3.4.6 and CM.L2-3.4.7."
+  },
+  {
+    "template_key": "email_policy",
+    "document_id": "MSG-SEC-001",
+    "title": "Email and Messaging Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.20",
+    "control_ids": [
+      "AC.L1-3.1.20",
+      "SI.L1-3.14.2",
+      "SI.L1-3.14.4",
+      "SI.L1-3.14.5",
+      "SC.L2-3.13.8",
+      "AT.L2-3.2.1"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "5818c1833969eefe82ae73109e75c422f975b0e49b7b0cadd78348eebd11ccd9",
+    "source_sha256": "23f982a6e393c3b2dd0c56d5f7e0cbad218b5d1b26ccee68cf8bf69f328f9a6b",
+    "asset_path": "base44/functions/generateProjectDocument/templates/email_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.20; SI.L1-3.14.2, SI.L1-3.14.4, SI.L1-3.14.5; SC.L2-3.13.8; supports AT.L2-3.2.1."
+  },
+  {
+    "template_key": "email_retention_policy",
+    "document_id": "GOV-RET-001",
+    "title": "Electronic Messaging Retention Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AU.L2-3.3.1",
+    "control_ids": [
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.2"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "b157125e23c13192afedb5000a2cb768b69bd94f4618c6b2c771e62fda35d9cb",
+    "source_sha256": "2e8fe494ead131e95377326315f2e57f26b3e3263e7b63069d86365f8be18908",
+    "asset_path": "base44/functions/generateProjectDocument/templates/email_retention_policy.docx",
+    "control_alignment_note": "CMMC: AU.L2-3.3.1 and AU.L2-3.3.2 for audit records; broader message retention is driven by legal and business requirements."
+  },
+  {
+    "template_key": "employee_internet_use_monitoring_and_filtering_policy",
+    "document_id": "NET-WEB-001",
+    "title": "Internet Access Monitoring and Filtering Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SI.L2-3.14.6",
+    "control_ids": [
+      "SI.L2-3.14.6",
+      "SI.L2-3.14.7",
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.6",
+      "AC.L2-3.1.3"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "42c7e2022d122449250e50410853c5a8f262f8d7fdbcb4052bf7e45646d6e1b1",
+    "source_sha256": "2105ddb031bba014f7fcd1488e5ccb9d240d0e00c9094478e041c5fe7c2b9530",
+    "asset_path": "base44/functions/generateProjectDocument/templates/employee_internet_use_monitoring_and_filtering_policy.docx",
+    "control_alignment_note": "CMMC: SI.L2-3.14.6 and SI.L2-3.14.7; AU.L2-3.3.1 through AU.L2-3.3.6; AC.L2-3.1.3."
+  },
+  {
+    "template_key": "end_user_encryption_key_protection_policy",
+    "document_id": "SEC-KEY-001",
+    "title": "End-User Encryption Key and Recovery Secret Protection Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SC.L2-3.13.10",
+    "control_ids": [
+      "SC.L2-3.13.10",
+      "IA.L2-3.5.10",
+      "IA.L2-3.5.11"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "1a739313cf73aa85a4fbda80d439c9e6ebcd859575d00e43f9dd092c6236e7dd",
+    "source_sha256": "07f11699a2050bf114e2f6646239a65217de6c40f49d46ae984f5bd004210c43",
+    "asset_path": "base44/functions/generateProjectDocument/templates/end_user_encryption_key_protection_policy.docx",
+    "control_alignment_note": "CMMC: SC.L2-3.13.10; IA.L2-3.5.10 and IA.L2-3.5.11; MP controls for stored recovery material."
+  },
+  {
+    "template_key": "ethics_policy",
+    "document_id": "GOV-ETH-001",
+    "title": "Cybersecurity and Technology Ethics Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "GOV-ETH-001",
+    "control_ids": [],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "4e8513f227671c2fed1dedba148037bb635d4d6482161b6a5781bfb314b30dc4",
+    "source_sha256": "b4c6f98369d37884fc20f65b227a5f04ec4c472e50b667465edbd302385bc2a1",
+    "asset_path": "base44/functions/generateProjectDocument/templates/ethics_policy.docx",
+    "control_alignment_note": "Supports governance, personnel security, training, least privilege, and assessment integrity; map to applicable CMMC practices based on implementation."
+  },
+  {
+    "template_key": "extranet_policy",
+    "document_id": "NET-EXT-001",
+    "title": "Extranet and Partner Connectivity Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.1",
+    "control_ids": [
+      "AC.L1-3.1.1",
+      "AC.L1-3.1.2",
+      "AC.L1-3.1.20",
+      "AC.L2-3.1.3",
+      "AC.L2-3.1.12",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "161f163787530f4edbf869a843f0719e55618d845a1864936c1199a8300cb77d",
+    "source_sha256": "fdf3a0951144a7b0dbbb55c57c6c5cb9b10f2f4bac2e98e4114ef4602d05cb1a",
+    "asset_path": "base44/functions/generateProjectDocument/templates/extranet_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.1, AC.L1-3.1.2, AC.L1-3.1.20; AC.L2-3.1.3 and AC.L2-3.1.12; SC.L2-3.13.1 and SC.L2-3.13.5."
+  },
+  {
+    "template_key": "internet_dmz_equipment_policy",
+    "document_id": "NET-DMZ-001",
+    "title": "Internet-Facing and DMZ Equipment Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SC.L2-3.13.1",
+    "control_ids": [
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5",
+      "SC.L2-3.13.6",
+      "CM.L2-3.4.6",
+      "CM.L2-3.4.7",
+      "RA.L2-3.11.2"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "9372ad066bef23c83b967669828dc6315f32f769f7bc232cc9bde587af8e8e77",
+    "source_sha256": "3067e0e640691eb5946d7c83cec5d9c7030dcd9ce7f700aecfc182538df66187",
+    "asset_path": "base44/functions/generateProjectDocument/templates/internet_dmz_equipment_policy.docx",
+    "control_alignment_note": "CMMC: SC.L2-3.13.1, SC.L2-3.13.5, SC.L2-3.13.6; CM.L2-3.4.6 and CM.L2-3.4.7; RA.L2-3.11.2."
+  },
+  {
+    "template_key": "internet_usage_policy",
+    "document_id": "GOV-WEB-001",
+    "title": "Internet and Cloud Service Usage Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L1-3.1.20",
+    "control_ids": [
+      "AC.L1-3.1.20",
+      "AC.L2-3.1.3",
+      "CM.L2-3.4.8",
+      "CM.L2-3.4.9",
+      "SI.L2-3.14.6",
+      "SI.L2-3.14.7"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "6b791f252698e57d63d3211680e861ddea62bb61b9d731012dbbc64119ba602d",
+    "source_sha256": "a41442b0b74dd7931a3efab1905c2725aaa8facaae0dc0548e7e7c75b2a150dd",
+    "asset_path": "base44/functions/generateProjectDocument/templates/internet_usage_policy.docx",
+    "control_alignment_note": "CMMC: AC.L1-3.1.20; AC.L2-3.1.3; CM.L2-3.4.8 and CM.L2-3.4.9; SI.L2-3.14.6 and SI.L2-3.14.7."
+  },
+  {
+    "template_key": "mobile_device_encryption_policy",
+    "document_id": "MDM-ENC-001",
+    "title": "Mobile Device Encryption Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.18",
+    "control_ids": [
+      "AC.L2-3.1.18",
+      "AC.L2-3.1.19",
+      "MP.L2-3.8.1",
+      "MP.L2-3.8.7",
+      "MP.L2-3.8.8",
+      "SC.L2-3.13.16"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "f8af2a827e0c9a2ce82990ad3f356dcc03225f07bb710c96b5cbc3035a5ba40b",
+    "source_sha256": "e47e0fa2dc83645d62eeee74dc2d949a2ba00b2b52420c648d4528486023eab7",
+    "asset_path": "base44/functions/generateProjectDocument/templates/mobile_device_encryption_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.18, AC.L2-3.1.19; MP.L2-3.8.1, MP.L2-3.8.7, MP.L2-3.8.8; SC.L2-3.13.16."
+  },
+  {
+    "template_key": "mobile_employee_endpoint_responsibility_policy",
+    "document_id": "END-MOB-001",
+    "title": "Mobile Workforce Endpoint Responsibility Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.18",
+    "control_ids": [
+      "AC.L2-3.1.18",
+      "AC.L2-3.1.19",
+      "MP.L1-3.8.3",
+      "MP.L2-3.8.7"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "65179c9aba0e30c5b45d070674598c8cd3c8156e51bbe9f0a441567f634575ec",
+    "source_sha256": "11e342a6fa72dd8ebd64f857d828e85a517e785ff3bcda84cde30236820d7d0e",
+    "asset_path": "base44/functions/generateProjectDocument/templates/mobile_employee_endpoint_responsibility_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.18 and AC.L2-3.1.19; MP.L1-3.8.3 and MP.L2-3.8.7; PE practices as applicable."
+  },
+  {
+    "template_key": "password_construction_guidelines",
+    "document_id": "IAM-PWD-G01",
+    "title": "Password and Passphrase Construction Guidelines",
+    "document_type": "Guideline",
+    "version": "1.0.0",
+    "primary_control_id": "IA.L2-3.5.7",
+    "control_ids": [
+      "IA.L2-3.5.7",
+      "IA.L2-3.5.8",
+      "IA.L2-3.5.9",
+      "IA.L2-3.5.10",
+      "IA.L2-3.5.11"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "ba967341b391c9434bb6e1f2ba783416d207ceb3d08329ddfacf4214146f07a5",
+    "source_sha256": "1c404f4ddc8be1e0bde8292d33b304b560cfcd210fe184cde0e3c99f8f0e64d2",
+    "asset_path": "base44/functions/generateProjectDocument/templates/password_construction_guidelines.docx",
+    "control_alignment_note": "CMMC: IA.L2-3.5.7, IA.L2-3.5.8, IA.L2-3.5.9, IA.L2-3.5.10, IA.L2-3.5.11."
+  },
+  {
+    "template_key": "password_protection_policy",
+    "document_id": "IAM-AUTH-001",
+    "title": "Password and Authenticator Protection Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "IA.L1-3.5.1",
+    "control_ids": [
+      "IA.L1-3.5.1",
+      "IA.L1-3.5.2",
+      "IA.L2-3.5.3",
+      "IA.L2-3.5.11",
+      "AC.L2-3.1.14"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "0e41f6a9493972f57f58fde18cfe1c64646db053a726cbf910f67e361a5a6baa",
+    "source_sha256": "aa94951b52ee439e57d118b4a7e3db61406f5c0f715212a34ae7d4447ceafec6",
+    "asset_path": "base44/functions/generateProjectDocument/templates/password_protection_policy.docx",
+    "control_alignment_note": "CMMC: IA.L1-3.5.1, IA.L1-3.5.2; IA.L2-3.5.3 through IA.L2-3.5.11; AC.L2-3.1.14."
+  },
+  {
+    "template_key": "remote_access_mobile_computing_storage",
+    "document_id": "RA-MOB-001",
+    "title": "Remote Access, Mobile Computing, and Portable Storage Standard",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.19",
+      "MP.L2-3.8.7",
+      "MP.L2-3.8.9",
+      "SC.L2-3.13.8"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "46cddae665c3d998971432c4f48d174fff6c9ed438b41c21a302321918f29c26",
+    "source_sha256": "02d6ef54ae5571bc30a963fd180c3ce43a32e2cae61b6be75850a291005b1804",
+    "asset_path": "base44/functions/generateProjectDocument/templates/remote_access_mobile_computing_storage.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12 through AC.L2-3.1.19; MP.L2-3.8.7 through MP.L2-3.8.9; SC.L2-3.13.8."
+  },
+  {
+    "template_key": "remote_access_policy",
+    "document_id": "RA-SEC-001",
+    "title": "Remote Access Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.13",
+      "AC.L2-3.1.14",
+      "AC.L2-3.1.15",
+      "IA.L2-3.5.3",
+      "SC.L2-3.13.8"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "93b0311752300c4b6d87ee820f32be50bddf5d07232ed784a0435416428d267d",
+    "source_sha256": "c64c4c950f0c247cc049e128e4cdadbfb9c4b2c134a9089c54a50df56437321d",
+    "asset_path": "base44/functions/generateProjectDocument/templates/remote_access_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12, AC.L2-3.1.13, AC.L2-3.1.14, AC.L2-3.1.15; IA.L2-3.5.3; SC.L2-3.13.8."
+  },
+  {
+    "template_key": "remote_access_tools_policy",
+    "document_id": "RA-TOOL-001",
+    "title": "Remote Support and Administration Tools Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.15",
+      "CM.L2-3.4.8",
+      "CM.L2-3.4.9"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "0cfc4f8fc79ba2ae0139366a4dd345023ee443c89e7644bf617a01e58a0b28ba",
+    "source_sha256": "b4f72e2587fdaf3574d00095cff4ccd50c2c80b43c33721907a03e60b80dc2f6",
+    "asset_path": "base44/functions/generateProjectDocument/templates/remote_access_tools_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12 through AC.L2-3.1.15; CM.L2-3.4.8 and CM.L2-3.4.9; AU practices for tool activity."
+  },
+  {
+    "template_key": "removable_media_policy",
+    "document_id": "MED-REM-001",
+    "title": "Removable Media Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "MP.L2-3.8.1",
+    "control_ids": [
+      "MP.L2-3.8.1",
+      "MP.L2-3.8.2",
+      "MP.L2-3.8.5",
+      "MP.L2-3.8.7",
+      "MP.L2-3.8.8",
+      "MP.L2-3.8.9"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "a25122c325ba2595b32582d285a11ea67fecda39b787e6566fd97e54e63f968d",
+    "source_sha256": "48eea63ddd7474c4bba8d5a813f60de61b079d750b5dabf87fefb34c91be7db1",
+    "asset_path": "base44/functions/generateProjectDocument/templates/removable_media_policy.docx",
+    "control_alignment_note": "CMMC: MP.L2-3.8.1, MP.L2-3.8.2, MP.L2-3.8.5, MP.L2-3.8.7, MP.L2-3.8.8, MP.L2-3.8.9."
+  },
+  {
+    "template_key": "risk_assessment_policy",
+    "document_id": "RISK-ASM-001",
+    "title": "Cybersecurity Risk Assessment Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "RA.L2-3.11.1",
+    "control_ids": [
+      "RA.L2-3.11.1",
+      "RA.L2-3.11.2",
+      "RA.L2-3.11.3",
+      "CA.L2-3.12.1",
+      "CA.L2-3.12.4"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "63533a729d9ce89f72171bd08ad467faf2f472c76f7d8ee477a0fa7666a4bdeb",
+    "source_sha256": "9b24eb0bd90006fed90e46b137d838a9dc55017097670ff7be2d97372b569e29",
+    "asset_path": "base44/functions/generateProjectDocument/templates/risk_assessment_policy.docx",
+    "control_alignment_note": "CMMC: RA.L2-3.11.1, RA.L2-3.11.2, RA.L2-3.11.3; CA.L2-3.12.1 through CA.L2-3.12.4."
+  },
+  {
+    "template_key": "router_and_switch_security_policy",
+    "document_id": "NET-INF-001",
+    "title": "Router, Switch, and Network Infrastructure Security Standard",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "CM.L2-3.4.1",
+    "control_ids": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.9",
+      "AC.L2-3.1.5",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "bedce3a75e3030e16c21c397edd6c24a9694adb00fc78a2825956be95582a706",
+    "source_sha256": "17410c16098875d51956513e9611835c584ac1623e48dc7f0c722c9b662a7e99",
+    "asset_path": "base44/functions/generateProjectDocument/templates/router_and_switch_security_policy.docx",
+    "control_alignment_note": "CMMC: CM.L2-3.4.1 through CM.L2-3.4.9; AC.L2-3.1.5; SC.L2-3.13.1 and SC.L2-3.13.5."
+  },
+  {
+    "template_key": "security_response_plan_policy",
+    "document_id": "IR-PLAN-001",
+    "title": "Cybersecurity Incident Response Plan",
+    "document_type": "Plan",
+    "version": "1.0.0",
+    "primary_control_id": "IR.L2-3.6.1",
+    "control_ids": [
+      "IR.L2-3.6.1",
+      "IR.L2-3.6.2",
+      "IR.L2-3.6.3"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "0d9dbdf58a7ce1440627c9ddcf9818ae4516b7004cdde14cf95be1ab85a0c807",
+    "source_sha256": "33753a018e0197e786c7d4e9ca9eb7189dc1ee801ca78f133ce077db0b842929",
+    "asset_path": "base44/functions/generateProjectDocument/templates/security_response_plan_policy.docx",
+    "control_alignment_note": "CMMC: IR.L2-3.6.1, IR.L2-3.6.2, IR.L2-3.6.3; DFARS reporting may apply contractually."
+  },
+  {
+    "template_key": "server_audit_policy",
+    "document_id": "LOG-SRV-001",
+    "title": "Server Logging and Audit Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AU.L2-3.3.1",
+    "control_ids": [
+      "AU.L2-3.3.1",
+      "AU.L2-3.3.9"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "3aa5f7fe45a994786f3a562817221f485445eea47d20d2dd52203f46275a0bfb",
+    "source_sha256": "d12c86a9ac43d05904c58b022c1cca1d9e10105a55742cf1169b8316aa85f925",
+    "asset_path": "base44/functions/generateProjectDocument/templates/server_audit_policy.docx",
+    "control_alignment_note": "CMMC: AU.L2-3.3.1 through AU.L2-3.3.9; IA and AC practices rely on attributable records."
+  },
+  {
+    "template_key": "server_malware_protection_policy",
+    "document_id": "SEC-SRV-MAL-001",
+    "title": "Server Malware Protection Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SI.L1-3.14.2",
+    "control_ids": [
+      "SI.L1-3.14.2",
+      "SI.L1-3.14.4",
+      "SI.L1-3.14.5",
+      "SI.L2-3.14.6",
+      "SI.L2-3.14.7"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "77dc5acf1bfebc0d64ebbefe4c0a5aaefb844ce2071cec0b15227293cde0a02e",
+    "source_sha256": "668d579d928f11bdecc23ef6af1c433679cbc950dd55f4ac87a39588fcb25aae",
+    "asset_path": "base44/functions/generateProjectDocument/templates/server_malware_protection_policy.docx",
+    "control_alignment_note": "CMMC: SI.L1-3.14.2, SI.L1-3.14.4, SI.L1-3.14.5; SI.L2-3.14.6 and SI.L2-3.14.7."
+  },
+  {
+    "template_key": "server_security_policy",
+    "document_id": "SEC-SRV-001",
+    "title": "Server Security Standard",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "CM.L2-3.4.1",
+    "control_ids": [
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.9",
+      "AC.L2-3.1.5",
+      "SI.L1-3.14.1",
+      "SI.L1-3.14.5"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "c5fdb306f77d44e28172c46ef5ec43b854a43821b63e9238cd50c0057717dff2",
+    "source_sha256": "792e49830087f4805f8b11985ed98b85e10fddd4a5e005671b332035e27bd2cd",
+    "asset_path": "base44/functions/generateProjectDocument/templates/server_security_policy.docx",
+    "control_alignment_note": "CMMC: CM.L2-3.4.1 through CM.L2-3.4.9; AC.L2-3.1.5; SI.L1-3.14.1 through SI.L1-3.14.5; AU practices."
+  },
+  {
+    "template_key": "social_engineering_awareness_policy",
+    "document_id": "AT-SE-001",
+    "title": "Social Engineering Awareness and Reporting Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AT.L2-3.2.1",
+    "control_ids": [
+      "AT.L2-3.2.1",
+      "AT.L2-3.2.2",
+      "AT.L2-3.2.3"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "ad06102e706285f4ba4a8fcbe4c944b83c720d6f444a98249e1c2628fc8e3451",
+    "source_sha256": "26ae8f17eed07af04b7d92813d70d2344c312f71076d0d15cd275fd3941dbe89",
+    "asset_path": "base44/functions/generateProjectDocument/templates/social_engineering_awareness_policy.docx",
+    "control_alignment_note": "CMMC: AT.L2-3.2.1, AT.L2-3.2.2, AT.L2-3.2.3; IR reporting supports response."
+  },
+  {
+    "template_key": "software_installation_policy",
+    "document_id": "CM-SW-001",
+    "title": "Software Installation and Execution Control Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "CM.L2-3.4.8",
+    "control_ids": [
+      "CM.L2-3.4.8",
+      "CM.L2-3.4.9",
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.2",
+      "SI.L1-3.14.1"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "3b9243dfc93361bbea5d7232f1f183c648bd97546b0cf2d9f19345e1b0f4d6dc",
+    "source_sha256": "0bbe323520847178ef8385451b41fc89b93e5a419da80d85a94fd4a6bbfa416c",
+    "asset_path": "base44/functions/generateProjectDocument/templates/software_installation_policy.docx",
+    "control_alignment_note": "CMMC: CM.L2-3.4.8, CM.L2-3.4.9; CM.L2-3.4.1 and CM.L2-3.4.2; SI.L1-3.14.1."
+  },
+  {
+    "template_key": "technology_equipment_disposal_policy",
+    "document_id": "MED-DISP-001",
+    "title": "Technology Equipment Sanitization and Disposal Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "MP.L1-3.8.3",
+    "control_ids": [
+      "MP.L1-3.8.3",
+      "MP.L2-3.8.7",
+      "MP.L2-3.8.9"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "52e32e40fe40bd4c86f4c22fd10103863feec297a164f465d11480ecd2f20a94",
+    "source_sha256": "16ab4dc9527279c5967817289dd31acab72a2336f77d3666cb97685d9443013b",
+    "asset_path": "base44/functions/generateProjectDocument/templates/technology_equipment_disposal_policy.docx",
+    "control_alignment_note": "CMMC: MP.L1-3.8.3; MP.L2-3.8.7 and MP.L2-3.8.9; CM records for decommissioning."
+  },
+  {
+    "template_key": "virtual_private_network_policy",
+    "document_id": "RA-VPN-001",
+    "title": "Virtual Private Network Security Standard",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.12",
+    "control_ids": [
+      "AC.L2-3.1.12",
+      "AC.L2-3.1.15",
+      "SC.L2-3.13.8",
+      "SC.L2-3.13.11",
+      "IA.L2-3.5.3"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "b0745e3a4f83d1b921cb904eb1f9382fa521fa80e811b6c0888ab6e1c6c126d5",
+    "source_sha256": "934c304c27fcfef574adc5c9fc68a1065c7b81688efe9848e98ecb860bce929d",
+    "asset_path": "base44/functions/generateProjectDocument/templates/virtual_private_network_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.12 through AC.L2-3.1.15; SC.L2-3.13.8, SC.L2-3.13.11; IA.L2-3.5.3."
+  },
+  {
+    "template_key": "web_application_security_policy",
+    "document_id": "APP-WEB-001",
+    "title": "Web Application Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "SI.L1-3.14.1",
+    "control_ids": [
+      "SI.L1-3.14.1",
+      "SI.L2-3.14.6",
+      "SI.L2-3.14.7",
+      "RA.L2-3.11.2",
+      "RA.L2-3.11.3"
+    ],
+    "cmmc_levels": [
+      "Level 1",
+      "Level 2"
+    ],
+    "normalized_sha256": "2d733edd1f8235412ece9558902ddfc2d09d4a92f36cf2fc7b631e706cdcac30",
+    "source_sha256": "cb7e0dbf9cb66f18880669c480070befd200a31a46e6230b09712471d89963b6",
+    "asset_path": "base44/functions/generateProjectDocument/templates/web_application_security_policy.docx",
+    "control_alignment_note": "CMMC: SI.L1-3.14.1; SI.L2-3.14.6 and SI.L2-3.14.7; RA.L2-3.11.2 and RA.L2-3.11.3; CM practices."
+  },
+  {
+    "template_key": "wireless_communication_policy",
+    "document_id": "NET-WLAN-001",
+    "title": "Wireless Network Security Policy",
+    "document_type": "Policy",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.16",
+    "control_ids": [
+      "AC.L2-3.1.16",
+      "AC.L2-3.1.17",
+      "SC.L2-3.13.1",
+      "SC.L2-3.13.5"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "373efd45fe2174ff921b09fc45da7f5be7496cc6fd31894d5b0d9a9e49818fc5",
+    "source_sha256": "e74e243fd0517c06e0946d7abae4bbb3321ccf0b97d52674fd07c2a87d405550",
+    "asset_path": "base44/functions/generateProjectDocument/templates/wireless_communication_policy.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.16 and AC.L2-3.1.17; SC.L2-3.13.1 and SC.L2-3.13.5; CM baseline practices."
+  },
+  {
+    "template_key": "wireless_communication_standard",
+    "document_id": "NET-WLAN-STD-001",
+    "title": "Wireless Security Configuration Standard",
+    "document_type": "Standard",
+    "version": "1.0.0",
+    "primary_control_id": "AC.L2-3.1.16",
+    "control_ids": [
+      "AC.L2-3.1.16",
+      "AC.L2-3.1.17",
+      "CM.L2-3.4.1",
+      "CM.L2-3.4.7",
+      "SC.L2-3.13.1"
+    ],
+    "cmmc_levels": [
+      "Level 2"
+    ],
+    "normalized_sha256": "f973b08aa095e19b889eef8fa85218ac91b412c248ed0bae5aa7ed84f2821ccb",
+    "source_sha256": "a926cc8471ae31bcea1560e32750d2287e6a6cd56b49d6bce92e3eed438fd69f",
+    "asset_path": "base44/functions/generateProjectDocument/templates/wireless_communication_standard.docx",
+    "control_alignment_note": "CMMC: AC.L2-3.1.16 and AC.L2-3.1.17; CM.L2-3.4.1 through CM.L2-3.4.7; SC.L2-3.13.1."
+  }
+];
+
+export function templateByKey(key) {
+  return PROJECT_DOCUMENT_CATALOG.find((t) => t.template_key === key) || null;
+}
+
+// Templates applicable to a canonical Project target level ('Level 1' | 'Level 2').
+export function applicableTemplates(targetLevel) {
+  if (!targetLevel) return [];
+  return PROJECT_DOCUMENT_CATALOG.filter((t) => t.cmmc_levels.includes(targetLevel));
+}
+
+// Strict safe-name sanitization for filename parts (letters, digits, hyphen only).
+export function sanitizeNamePart(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[^A-Za-z0-9-]+/g, '')
+    .slice(0, 60);
+}
+
+// Control IDs keep dots/hyphens (e.g. AC.L1-3.1.1) but nothing else.
+export function sanitizeControlPart(value) {
+  return String(value || '').replace(/[^A-Za-z0-9.-]+/g, '').slice(0, 40);
+}
+
+// CompanyName_PolicyType_PRIMARYCONTROLID_ControlLocation_YYYY-MM-DD.docx
+export function buildDocumentFileName({ companyShortName, documentType, primaryControlId, controlLocation, date }) {
+  const parts = [
+    sanitizeNamePart(companyShortName) || 'Company',
+    sanitizeNamePart(documentType) || 'Policy',
+    sanitizeControlPart(primaryControlId) || 'GEN',
+    sanitizeNamePart(controlLocation) || 'Org',
+    /^\d{4}-\d{2}-\d{2}$/.test(String(date || '')) ? date : new Date().toISOString().slice(0, 10),
+  ];
+  return parts.join('_') + '.docx';
+}

@@ -61,7 +61,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3c1c1ee4c_acceptable_encryption_policy.docx"
     },
     {
       "template_key": "acceptable_use_policy",
@@ -118,7 +119,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/067f08627_acceptable_use_policy.docx"
     },
     {
       "template_key": "acquisition_assessment_policy",
@@ -172,7 +174,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/a03c8f9b7_acquisition_assessment_policy.docx"
     },
     {
       "template_key": "analog_isdn_line_security_policy",
@@ -227,7 +230,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/136c85854_analog_isdn_line_security_policy.docx"
     },
     {
       "template_key": "anti_virus_guidelines",
@@ -284,7 +288,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/fb94df639_anti_virus_guidelines.docx"
     },
     {
       "template_key": "automatically_forwarded_email_policy",
@@ -340,7 +345,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/1ee87bebe_automatically_forwarded_email_policy.docx"
     },
     {
       "template_key": "bluetooth_baseline_requirements_policy",
@@ -395,7 +401,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/da23f8a40_bluetooth_baseline_requirements_policy.docx"
     },
     {
       "template_key": "clean_desk_policy",
@@ -451,7 +458,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/477205e8a_clean_desk_policy.docx"
     },
     {
       "template_key": "communications_equipment_policy",
@@ -507,7 +515,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/9fb1bf95c_communications_equipment_policy.docx"
     },
     {
       "template_key": "data_breach_response",
@@ -561,7 +570,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3da2792d4_data_breach_response.docx"
     },
     {
       "template_key": "database_credentials_policy",
@@ -619,7 +629,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/35bcd780d_database_credentials_policy.docx"
     },
     {
       "template_key": "dial_in_access_policy",
@@ -674,7 +685,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/b2267d241_dial_in_access_policy.docx"
     },
     {
       "template_key": "digital_signature_acceptance_policy",
@@ -726,7 +738,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3a96c91c2_digital_signature_acceptance_policy.docx"
     },
     {
       "template_key": "disaster_recovery_plan_policy",
@@ -777,7 +790,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/305746e02_disaster_recovery_plan_policy.docx"
     },
     {
       "template_key": "dmz_lab_security_policy",
@@ -834,7 +848,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/ac0596e14_dmz_lab_security_policy.docx"
     },
     {
       "template_key": "email_policy",
@@ -892,7 +907,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/52844c47e_email_policy.docx"
     },
     {
       "template_key": "email_retention_policy",
@@ -945,7 +961,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/c26be99cf_email_retention_policy.docx"
     },
     {
       "template_key": "employee_internet_use_monitoring_and_filtering_policy",
@@ -1001,7 +1018,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/2f89b57fc_employee_internet_use_monitoring_and_filtering_policy.docx"
     },
     {
       "template_key": "end_user_encryption_key_protection_policy",
@@ -1055,7 +1073,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/016074ac6_end_user_encryption_key_protection_policy.docx"
     },
     {
       "template_key": "ethics_policy",
@@ -1106,7 +1125,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/481f56a7a_ethics_policy.docx"
     },
     {
       "template_key": "extranet_policy",
@@ -1165,7 +1185,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/ac7041c19_extranet_policy.docx"
     },
     {
       "template_key": "internet_dmz_equipment_policy",
@@ -1222,7 +1243,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/c80bb8311_internet_dmz_equipment_policy.docx"
     },
     {
       "template_key": "internet_usage_policy",
@@ -1280,7 +1302,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/4dddfb1f9_internet_usage_policy.docx"
     },
     {
       "template_key": "mobile_device_encryption_policy",
@@ -1337,7 +1360,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/5d091b812_mobile_device_encryption_policy.docx"
     },
     {
       "template_key": "mobile_employee_endpoint_responsibility_policy",
@@ -1393,7 +1417,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/901e7eb1b_mobile_employee_endpoint_responsibility_policy.docx"
     },
     {
       "template_key": "password_construction_guidelines",
@@ -1449,7 +1474,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/d26ee78ea_password_construction_guidelines.docx"
     },
     {
       "template_key": "password_protection_policy",
@@ -1506,7 +1532,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/ac74a3bcf_password_protection_policy.docx"
     },
     {
       "template_key": "remote_access_mobile_computing_storage",
@@ -1562,7 +1589,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/aa890bfa4_remote_access_mobile_computing_storage.docx"
     },
     {
       "template_key": "remote_access_policy",
@@ -1619,7 +1647,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/bba632218_remote_access_policy.docx"
     },
     {
       "template_key": "remote_access_tools_policy",
@@ -1674,7 +1703,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3facd2590_remote_access_tools_policy.docx"
     },
     {
       "template_key": "removable_media_policy",
@@ -1731,7 +1761,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/93725e845_removable_media_policy.docx"
     },
     {
       "template_key": "risk_assessment_policy",
@@ -1787,7 +1818,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/c3c3edf23_risk_assessment_policy.docx"
     },
     {
       "template_key": "router_and_switch_security_policy",
@@ -1843,7 +1875,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3f9bab6b4_router_and_switch_security_policy.docx"
     },
     {
       "template_key": "security_response_plan_policy",
@@ -1897,7 +1930,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/9664bd6e9_security_response_plan_policy.docx"
     },
     {
       "template_key": "server_audit_policy",
@@ -1950,7 +1984,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/e521d1cd0_server_audit_policy.docx"
     },
     {
       "template_key": "server_malware_protection_policy",
@@ -2007,7 +2042,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/ff805481e_server_malware_protection_policy.docx"
     },
     {
       "template_key": "server_security_policy",
@@ -2064,7 +2100,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/b5832f034_server_security_policy.docx"
     },
     {
       "template_key": "social_engineering_awareness_policy",
@@ -2118,7 +2155,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/fa7eed74a_social_engineering_awareness_policy.docx"
     },
     {
       "template_key": "software_installation_policy",
@@ -2175,7 +2213,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/827858837_software_installation_policy.docx"
     },
     {
       "template_key": "technology_equipment_disposal_policy",
@@ -2230,7 +2269,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/3910f56e6_technology_equipment_disposal_policy.docx"
     },
     {
       "template_key": "virtual_private_network_policy",
@@ -2286,7 +2326,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/5d635485e_virtual_private_network_policy.docx"
     },
     {
       "template_key": "web_application_security_policy",
@@ -2343,7 +2384,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/89a49c3a4_web_application_security_policy.docx"
     },
     {
       "template_key": "wireless_communication_policy",
@@ -2398,7 +2440,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/e8a19effc_wireless_communication_policy.docx"
     },
     {
       "template_key": "wireless_communication_standard",
@@ -2454,7 +2497,8 @@
         "scope.included_locations",
         "scope.summary",
         "scope.systems"
-      ]
+      ],
+      "file_uri": "mp/private/6a3a0bd467c38d3ef7400909/7d0798f3a_wireless_communication_standard.docx"
     }
   ]
 }

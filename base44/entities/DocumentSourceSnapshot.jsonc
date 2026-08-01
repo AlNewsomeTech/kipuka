@@ -1,0 +1,74 @@
+{
+  "name": "DocumentSourceSnapshot",
+  "type": "object",
+  "description": "Immutable, hash-verified snapshot of the exact canonical source data a document draft was generated from. One snapshot per generation. Never updated or deleted; provides provenance and staleness detection for ProjectDocument records.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "template_key": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "template_sha256": {
+      "type": "string"
+    },
+    "resolved_fields": {
+      "type": "object",
+      "default": {},
+      "description": "Map of merge tag -> { value, provenance } exactly as rendered into the draft."
+    },
+    "source_counts": {
+      "type": "object",
+      "default": {},
+      "description": "Record counts per canonical source entity at snapshot time."
+    },
+    "evidence_hashes": {
+      "type": "object",
+      "default": {},
+      "description": "Map of cited ProjectEvidence id -> stored hash_value where available."
+    },
+    "snapshot_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the deterministically serialized snapshot payload."
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "project_id",
+    "template_key",
+    "snapshot_sha256"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

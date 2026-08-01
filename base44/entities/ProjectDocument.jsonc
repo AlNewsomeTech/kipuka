@@ -1,0 +1,170 @@
+{
+  "name": "ProjectDocument",
+  "type": "object",
+  "description": "A generated project document (real DOCX draft) produced by generateProjectDocument from a canonical DocumentTemplate and a verified DocumentSourceSnapshot. Records are created server-side only. No Phase 4 endpoint may set Approved or Published. Regeneration creates a new version and never overwrites Approved/Published bytes.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "template_key": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "template_sha256": {
+      "type": "string",
+      "description": "normalized_sha256 of the template asset verified at generation time."
+    },
+    "title": {
+      "type": "string"
+    },
+    "document_id": {
+      "type": "string"
+    },
+    "document_type": {
+      "type": "string"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "CompanyName_PolicyType_PRIMARYCONTROLID_ControlLocation_YYYY-MM-DD.docx"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Private-storage URI of the generated DOCX."
+    },
+    "mime_type": {
+      "type": "string",
+      "default": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    },
+    "output_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the generated DOCX bytes."
+    },
+    "source_snapshot_id": {
+      "type": "string"
+    },
+    "source_snapshot_sha256": {
+      "type": "string"
+    },
+    "owner_name": {
+      "type": "string"
+    },
+    "approver_name": {
+      "type": "string"
+    },
+    "control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "primary_control_id": {
+      "type": "string"
+    },
+    "missing_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Required source fields that could not be resolved from canonical data."
+    },
+    "unresolved_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Fields rendered as [INFORMATION REQUIRED: field] in the draft."
+    },
+    "missing_approval_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "Needs Information",
+        "Draft",
+        "In Review",
+        "Changes Requested",
+        "Approved",
+        "Published",
+        "Superseded",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "document_version": {
+      "type": "string",
+      "default": "0.1",
+      "description": "First generated draft is 0.1; each regeneration increments the draft version."
+    },
+    "stale": {
+      "type": "boolean",
+      "default": false
+    },
+    "stale_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supersedes_document_id": {
+      "type": "string"
+    },
+    "superseded_by_document_id": {
+      "type": "string"
+    },
+    "include_in_package": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "project_id",
+    "template_key",
+    "title"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

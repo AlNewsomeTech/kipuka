@@ -1,0 +1,99 @@
+{
+  "name": "DocumentConfiguration",
+  "type": "object",
+  "description": "Organization-scoped document generation configuration with an optional per-project override. Exactly one active org-default (no project_id) and at most one active override per project are enforced server-side by preflightProjectDocument/generateProjectDocument; the backend never trusts a client-supplied organization_id.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Optional. When set, this configuration overrides the organization default for that project only."
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Organization logo used in the document logo area."
+    },
+    "classification": {
+      "type": "string",
+      "enum": [
+        "Public",
+        "Internal",
+        "Confidential"
+      ],
+      "default": "Internal"
+    },
+    "filename_short_name": {
+      "type": "string",
+      "description": "Sanitized company short name used as CompanyName in generated filenames."
+    },
+    "policy_owner_name": {
+      "type": "string"
+    },
+    "approving_authority_name": {
+      "type": "string"
+    },
+    "reporting_channel": {
+      "type": "string",
+      "description": "Service desk / security hotline / incident channel used in policy implementation tables."
+    },
+    "document_repository": {
+      "type": "string",
+      "description": "Approved controlled-document repository location."
+    },
+    "evidence_repository": {
+      "type": "string",
+      "description": "Approved evidence repository / record location."
+    },
+    "retention_schedule": {
+      "type": "string",
+      "description": "Records retention period / schedule authority statement."
+    },
+    "review_cycle_days": {
+      "type": "integer",
+      "default": 365
+    },
+    "approval_workflow": {
+      "type": "string",
+      "description": "Free-text description of the organization's document approval workflow."
+    },
+    "default_responsible_team": {
+      "type": "string"
+    },
+    "timezone": {
+      "type": "string",
+      "default": "America/Chicago"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

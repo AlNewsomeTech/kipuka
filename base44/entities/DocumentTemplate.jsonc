@@ -1,15 +1,110 @@
 {
   "name": "DocumentTemplate",
   "type": "object",
+  "description": "Canonical, versioned policy/standard/guideline/plan document templates. Phase 4A records are imported from the normalized White-Label Cybersecurity Policy Template Set v1.0 by the importPolicyTemplateLibrary backend function and carry cryptographic hashes of the normalized DOCX asset. Legacy free-text template fields are preserved for pre-Phase-4 records and are not used by the canonical engine.",
   "properties": {
     "title": {
       "type": "string"
+    },
+    "template_key": {
+      "type": "string",
+      "description": "Stable machine key for the canonical template, e.g. acceptable_use_policy. Unique together with template_version."
+    },
+    "template_version": {
+      "type": "string",
+      "description": "Semantic version of the canonical template, e.g. 1.0.0."
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Document control ID from the template set, e.g. GOV-AUP-001."
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "Policy",
+        "Standard",
+        "Guideline",
+        "Plan",
+        "Other"
+      ],
+      "default": "Other"
+    },
+    "primary_control_id": {
+      "type": "string",
+      "description": "Primary CMMC practice this template supports, e.g. AC.L1-3.1.1. Governance templates without a mapped practice use their document_id."
+    },
+    "control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "All CMMC practice IDs mapped to this template."
+    },
+    "cmmc_levels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "CMMC levels the template applies to: Level 1 and/or Level 2."
+    },
+    "control_alignment_note": {
+      "type": "string"
+    },
+    "required_source_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Named merge tags that must resolve from canonical project/org data before a complete draft, e.g. org.legal_name, scope.summary."
+    },
+    "required_approval_fields": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Named merge tags that only an approval workflow may supply, e.g. approval.date, approval.record_id, doc.effective_date. Draft generation never fabricates these."
+    },
+    "normalized_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the normalized DOCX asset bytes. Verified before import and before every generation."
+    },
+    "source_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the original white-label DOCX bytes inside the source ZIP."
+    },
+    "source_zip_sha256": {
+      "type": "string"
+    },
+    "asset_path": {
+      "type": "string",
+      "description": "Repository path of the normalized DOCX asset under base44/functions/generateProjectDocument/templates/."
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Private-storage URI of the normalized DOCX asset used at generation time."
+    },
+    "library_version": {
+      "type": "string",
+      "description": "Version of the imported template library package, e.g. 1.0."
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "superseded_by_key": {
+      "type": "string",
+      "description": "Set when a newer template version supersedes this record. Records are never deleted."
     },
     "purpose": {
       "type": "string"
     },
     "body_content": {
-      "type": "string"
+      "type": "string",
+      "description": "Legacy free-text body for pre-Phase-4 records. Not used by the canonical DOCX engine."
     },
     "version": {
       "type": "string",
@@ -45,5 +140,13 @@
   },
   "required": [
     "title"
-  ]
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
