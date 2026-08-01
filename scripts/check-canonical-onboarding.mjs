@@ -498,10 +498,11 @@ if (pkgRaw !== null) {
       'test:canonical-runtime': 'node scripts/check-canonical-runtime.mjs',
       'test:canonical-dashboard': 'node scripts/check-canonical-dashboard.mjs',
       'test:canonical-readiness': 'node scripts/check-canonical-readiness.mjs',
+      'test:canonical-documents': 'node scripts/check-canonical-documents.mjs',
       preview: 'vite preview',
     };
     const scripts = pkg.scripts || {};
-    check('package.json scripts are unchanged by Phase 3D',
+    check('package.json scripts retain the Phase 3D baseline plus authorized later gates',
       JSON.stringify(scripts) === JSON.stringify(expected), JSON.stringify(scripts));
     check('dependency count unchanged at 68', Object.keys(pkg.dependencies || {}).length === 68,
       `found ${Object.keys(pkg.dependencies || {}).length}`);
