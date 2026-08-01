@@ -209,7 +209,7 @@ export default function SprsModule({ project, org, readOnly, currentUser }) {
           <Field label="Affirming Official Email"><input type="email" className="form-input" value={form.affirming_official_email} onChange={(e) => set('affirming_official_email', e.target.value)} disabled={readOnly} /></Field>
         </div>
 
-        <RichTextField label="Notes" value={form.notes} onChange={(v) => set('notes', v)} disabled={readOnly} />
+        <RichTextField label="Notes" value={form.notes} onChange={(v) => set('notes', v)} placeholder="" disabled={readOnly} onBlur={() => {}} />
 
         {!readOnly && (
           <div className="flex justify-end">
