@@ -127,10 +127,15 @@ async function validateMappings(sr: any, project: any, controlIds: string[], obj
   if (!controlIds.length) throw new Error('Map evidence to at least one canonical project control.');
   if (!objectiveIds.length) return [];
   const objectives = await sr.entities.AssessmentObjectiveLibrary.filter({ active: true }, null, 500).catch(() => []);
-  const byId = new Map(objectives.map((o: any) => [o.objective_id, o]));
-  const selected = objectiveIds.map((id) => byId.get(id)).filter(Boolean) as any[];
-  if (selected.length !== objectiveIds.length) throw new Error('One or more objective IDs are not active authoritative objectives.');
-  if (selected.some((o: any) => !controlIds.includes(o.control_id))) throw new Error('Every objective must belong to a mapped evidence control.');
+  const selected = objectiveIds.map((id) => {
+    const matches = objectives.filter((objective: any) =>
+      objective.objective_id === id && controlIds.includes(objective.control_id)
+    );
+    if (matches.length !== 1) {
+      throw new Error(`Objective ${id} is missing or ambiguous for the selected evidence controls.`);
+    }
+    return matches[0];
+  });
   return selected;
 }
 
