@@ -1,0 +1,99 @@
+{
+  "name": "ProjectEvidenceEvent",
+  "type": "object",
+  "description": "Immutable, hash-backed audit history for canonical ProjectEvidence lifecycle actions.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "project_evidence_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "Created",
+        "Updated",
+        "Submitted for Review",
+        "Accepted",
+        "Rejected",
+        "Expired",
+        "Archived",
+        "Superseded",
+        "Downloaded"
+      ]
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "transition_id": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "evidence_sha256": {
+      "type": "string"
+    },
+    "metadata_sha256": {
+      "type": "string"
+    },
+    "event_sha256": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "project_evidence_id",
+    "action",
+    "transition_id",
+    "actor_email",
+    "evidence_sha256",
+    "event_sha256",
+    "event_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
