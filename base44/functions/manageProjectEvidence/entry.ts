@@ -43,6 +43,14 @@ function extensionOf(name: string): string {
   const match = name.toLowerCase().match(/\.([a-z0-9]+)$/);
   return match ? match[1] : '';
 }
+function isPrivateHost(hostname: string): boolean {
+  const host = hostname.toLowerCase();
+  if (host === 'localhost' || host === '::1' || host.endsWith('.local')) return true;
+  if (/^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host)) return true;
+  const match = host.match(/^172\.(\d+)\./);
+  if (match && Number(match[1]) >= 16 && Number(match[1]) <= 31) return true;
+  return host === '0.0.0.0' || host === '169.254.169.254';
+}
 async function fetchPublicUpload(appId: string, rawUrl: string): Promise<{ bytes: Uint8Array, mime: string }> {
   let url: URL;
   try { url = new URL(rawUrl); } catch { throw new Error('Uploaded file URL is invalid.'); }
@@ -50,8 +58,16 @@ async function fetchPublicUpload(appId: string, rawUrl: string): Promise<{ bytes
   if (url.protocol !== 'https:' || url.hostname !== 'base44.app' || !url.pathname.startsWith(expectedPrefix)) {
     throw new Error('Evidence ingestion accepts only a newly uploaded file from this Kipuka app.');
   }
-  const response = await fetch(url.toString(), { redirect: 'error' });
-  if (!response.ok) throw new Error('Uploaded evidence file could not be fetched.');
+  let response: Response | null = null;
+  for (let hop = 0; hop <= 4; hop += 1) {
+    if (url.protocol !== 'https:' || isPrivateHost(url.hostname)) throw new Error('Evidence file redirect was blocked.');
+    response = await fetch(url.toString(), { redirect: 'manual' });
+    if (![301, 302, 303, 307, 308].includes(response.status)) break;
+    const location = response.headers.get('location');
+    if (!location || hop === 4) throw new Error('Evidence file redirect was invalid or exceeded the limit.');
+    url = new URL(location, url);
+  }
+  if (!response?.ok) throw new Error('Uploaded evidence file could not be fetched.');
   const declared = Number(response.headers.get('content-length') || 0);
   if (declared > MAX_FILE_BYTES) throw new Error('Evidence files may not exceed 50 MB.');
   const bytes = new Uint8Array(await response.arrayBuffer());
@@ -150,10 +166,16 @@ Deno.serve(async (req) => {
     const claimed = await sr.entities.ProjectEvidenceEvent.filter({ transition_id: transitionId }).catch(() => []);
     if (claimed.length) {
       const prior = claimed[0];
+      if (!isPlatformAdmin && prior.organization_id !== callerOrg) {
+        return Response.json({ error: 'transition_id is unavailable.' }, { status: 409 });
+      }
       if (prior.action !== ({ create: 'Created', new_version: 'Created', submit_review: 'Submitted for Review', accept: 'Accepted', reject: 'Rejected', archive: 'Archived', expire: 'Expired', update_quality: 'Updated', download: 'Downloaded' } as any)[action]) {
         return Response.json({ error: 'transition_id was already used for another action.' }, { status: 409 });
       }
       const existing = await sr.entities.ProjectEvidence.get(prior.project_evidence_id).catch(() => null);
+      if (!existing || (!isPlatformAdmin && existing.organization_id !== callerOrg)) {
+        return Response.json({ error: 'Evidence not found' }, { status: 404 });
+      }
       return Response.json({ evidence: existing, idempotent: true });
     }
 
