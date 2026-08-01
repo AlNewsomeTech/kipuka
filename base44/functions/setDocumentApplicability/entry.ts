@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
             error: 'Out-of-Scope approval requires at least 40 characters of justification, one project evidence record, and a reassessment trigger of at least 20 characters.',
           }, { status: 400 });
         }
-        const evidenceNotAccepted = evidenceIds.map((id: string) => evidenceById.get(id)).filter((e: any) => e.review_status !== 'Accepted' || !e.hash_value);
+        const evidenceNotAccepted = evidenceIds.map((id: string) => evidenceById.get(id)).filter((e: any) => e.review_status !== 'Accepted' || !/^[a-f0-9]{64}$/i.test(e.hash_value || ''));
         if (evidenceNotAccepted.length) {
           return Response.json({ error: 'Out-of-Scope approval requires accepted, SHA-256-hashed supporting evidence.' }, { status: 409 });
         }
