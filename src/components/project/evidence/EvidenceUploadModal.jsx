@@ -18,9 +18,7 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
     objective_ids: [], description: '', evidence_date: new Date().toISOString().slice(0, 10),
     expiration_date: '', retention_until: '', owner: '', source_system: '',
     source_tool: presetSourceTool || 'None', provenance_type: 'Manual Upload',
-    provenance_details: '',
-    file_url: project.id === '6a6c347b1c7837630045cb07' ? 'https://base44.app/api/apps/6a3a0bd467c38d3ef7400909/files/mp/public/6a3a0bd467c38d3ef7400909/ac75c1136_color_logo_transparent-Copy.png' : '',
-    original_file_name: project.id === '6a6c347b1c7837630045cb07' ? 'qa_synthetic_evidence.png' : '',
+    provenance_details: '', file_url: '', original_file_name: '',
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -32,8 +30,6 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
       ...current, ...existing, control_ids: existing.control_ids || [],
       objective_ids: existing.objective_ids || [], source_tool: existing.source_tool || 'None',
       file_url: '', original_file_name: existing.original_file_name || existing.file_name || '',
-      retention_until: existing.retention_until || (project.id === '6a6c347b1c7837630045cb07' ? '2032-08-01' : ''),
-      expiration_date: existing.expiration_date || (project.id === '6a6c347b1c7837630045cb07' ? '2027-08-01' : ''),
     }));
   }, [existing]);
 
