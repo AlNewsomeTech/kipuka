@@ -33,6 +33,7 @@ export default function DocumentLibrary({ initialTab = 'dashboard' }) {
   const [packages, setPackages] = useState([]);
   const [evidence, setEvidence] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+  const [cleanupStatus, setCleanupStatus] = useState('');
 
   useEffect(() => {
     base44.entities.Project.list('-updated_date', 100)
@@ -60,6 +61,19 @@ export default function DocumentLibrary({ initialTab = 'dashboard' }) {
   };
   useEffect(() => { loadProjectData(); }, [projectId, project?.organization_id]);
 
+  const runVerifiedFulcrumCleanup = async () => {
+    if (!window.confirm('Delete only the archived IA.L1-3.5.2 Fulcrum drift record after a fresh server-side dry run?')) return;
+    setCleanupStatus('Verifying…');
+    const dryRun = await base44.functions.invoke('reconcileFulcrumAssessmentDrift', { mode: 'dry_run' });
+    if (dryRun.data?.writes_performed !== 0 || dryRun.data?.preflight?.level2 !== 110 || dryRun.data?.preflight?.level1 !== 1) {
+      setCleanupStatus('Dry run failed'); return;
+    }
+    const applied = await base44.functions.invoke('reconcileFulcrumAssessmentDrift', {
+      mode: 'apply', confirmation: 'DELETE_EXACT_ARCHIVED_FULCRUM_STRAY',
+    });
+    setCleanupStatus(`Reconciled: ${applied.data?.remaining}/110`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between flex-wrap gap-3">
@@ -68,6 +82,10 @@ export default function DocumentLibrary({ initialTab = 'dashboard' }) {
           <p className="text-sm text-slate-500 mt-1">Canonical Project-based DOCX drafts from the versioned policy template library</p>
         </div>
         <div className="flex items-center gap-2">
+          {projectId === '6a4875fc85842b32d494172c' && <>
+            <button onClick={runVerifiedFulcrumCleanup} className="rounded bg-red-700 px-2 py-1 text-xs text-white">Run verified Fulcrum cleanup</button>
+            {cleanupStatus && <span className="text-xs text-slate-500">{cleanupStatus}</span>}
+          </>}
           <FolderKanban className="w-4 h-4 text-slate-400" />
           <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="form-input !w-auto min-w-[220px]" aria-label="Select project">
             <option value="">Select a project…</option>
