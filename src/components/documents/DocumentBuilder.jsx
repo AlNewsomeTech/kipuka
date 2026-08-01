@@ -1,111 +1,86 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useClient } from '@/lib/clientContext';
-import { applicableDocuments, CATEGORY_GROUPS } from '@/lib/documentCatalog';
-import { FileText, Loader2, Wand2 } from 'lucide-react';
+import { applicableTemplates } from '@/lib/projectDocumentCatalog';
+import { FileText } from 'lucide-react';
 import EmptyState from '@/components/EmptyState';
 import DocumentCard from '@/components/documents/DocumentCard';
-import DocumentDetailModal from '@/components/documents/DocumentDetailModal';
 
-export default function DocumentBuilder() {
-  const { selectedClient, selectedClientId } = useClient();
-  const [docs, setDocs] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [generatingKey, setGeneratingKey] = useState(null);
-  const [bulkRunning, setBulkRunning] = useState(false);
-  const [activeDoc, setActiveDoc] = useState(null);
+// Canonical Phase 4 draft builder: per-template preflight and single-document
+// DOCX draft generation. Bulk generation is intentionally not offered, and no
+// approval/publish actions exist in this phase.
+export default function DocumentBuilder({ project, docs, onChanged }) {
+  const [preflights, setPreflights] = useState({});
+  const [busyKey, setBusyKey] = useState(null);
+  const [errors, setErrors] = useState({});
 
-  const load = () => {
-    if (!selectedClientId) return;
-    setLoading(true);
-    base44.entities.GeneratedDocument.filter({ client_id: selectedClientId })
-      .then(setDocs).catch(() => {}).finally(() => setLoading(false));
-  };
-  useEffect(load, [selectedClientId]);
+  const templates = applicableTemplates(project?.target_cmmc_level);
+  const activeDocs = docs.filter((d) => !['Superseded', 'Archived'].includes(d.status));
+  const docByKey = {};
+  activeDocs.forEach((d) => { if (!docByKey[d.template_key]) docByKey[d.template_key] = d; });
 
-  if (!selectedClient) return <EmptyState icon={FileText} title="No client selected" description="Select a client to build CMMC documents." />;
-
-  const specs = applicableDocuments(selectedClient);
-  const docByType = {};
-  docs.forEach(d => { if (d.document_type && d.status !== 'Superseded') docByType[d.document_type] = d; });
-
-  const generate = async (spec, mode = 'Generate New') => {
-    setGeneratingKey(spec.key);
+  const runPreflight = async (template) => {
+    setBusyKey(template.template_key);
+    setErrors((e) => ({ ...e, [template.template_key]: null }));
     try {
-      const existing = docByType[spec.key];
-      const res = await base44.functions.invoke('generateDocument', {
-        client_id: selectedClientId, document_key: spec.key, mode,
-        existing_document_id: existing?.id, force_overwrite: mode === 'overwrite',
+      const res = await base44.functions.invoke('preflightProjectDocument', {
+        project_id: project.id, template_key: template.template_key,
       });
-      if (res.data?.needs_confirmation) {
-        const choice = window.prompt('This document has human edits. Type "version" for a new version, "overwrite" to replace the draft, or anything else to cancel.');
-        if (choice === 'version') return generate(spec, 'New Version');
-        if (choice === 'overwrite') return generate(spec, 'overwrite');
-        return;
-      }
-      load();
-    } catch (e) { alert('Generation failed: ' + e.message); }
-    finally { setGeneratingKey(null); }
-  };
-
-  const bulkGenerateMissing = async () => {
-    setBulkRunning(true);
-    for (const spec of specs) {
-      if (!docByType[spec.key]) {
-        try { await base44.functions.invoke('generateDocument', { client_id: selectedClientId, document_key: spec.key, mode: 'Generate New' }); } catch (e) { /* continue */ }
-      }
+      setPreflights((p) => ({ ...p, [template.template_key]: res.data }));
+    } catch (e) {
+      setErrors((er) => ({ ...er, [template.template_key]: e.response?.data?.error || e.message }));
+    } finally {
+      setBusyKey(null);
     }
-    setBulkRunning(false);
-    load();
   };
 
-  const requiredCount = specs.filter(s => s.package).length;
-  const generatedCount = specs.filter(s => docByType[s.key]).length;
-  const missingRequired = specs.filter(s => s.package && !docByType[s.key]).length;
+  const generateDraft = async (template) => {
+    setBusyKey(template.template_key);
+    setErrors((e) => ({ ...e, [template.template_key]: null }));
+    try {
+      await base44.functions.invoke('generateProjectDocument', {
+        project_id: project.id, template_key: template.template_key,
+      });
+      onChanged();
+      await runPreflight(template);
+    } catch (e) {
+      setErrors((er) => ({ ...er, [template.template_key]: e.response?.data?.error || e.message }));
+      setBusyKey(null);
+    }
+  };
 
+  if (templates.length === 0) {
+    return <EmptyState icon={FileText} title="No applicable templates" description={`The project target level "${project?.target_cmmc_level || 'Unknown'}" has no applicable canonical templates. Set the project to Level 1 or Level 2.`} />;
+  }
+
+  const groups = ['Policy', 'Standard', 'Guideline', 'Plan'];
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-900">Document Builder</h2>
-            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">{selectedClient.target_cmmc_level}</span>
-          </div>
-          <p className="text-sm text-slate-500 mt-1">{specs.length} documents apply to this client's level & scope • {generatedCount} generated • {missingRequired} required missing</p>
-        </div>
-        <button onClick={bulkGenerateMissing} disabled={bulkRunning} className="flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg bg-[#0F1E3C] text-white hover:bg-[#1E2D4A] disabled:opacity-50">
-          {bulkRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />} Generate All Missing
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center py-16"><Loader2 className="w-7 h-7 animate-spin text-slate-400" /></div>
-      ) : (
-        CATEGORY_GROUPS.map(group => {
-          const groupSpecs = specs.filter(s => group.categories.includes(s.category));
-          if (groupSpecs.length === 0) return null;
-          return (
-            <div key={group.group}>
-              <h3 className="text-sm font-semibold text-slate-700 mb-3">{group.group}</h3>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {groupSpecs.map(spec => (
-                  <DocumentCard
-                    key={spec.key}
-                    spec={spec}
-                    doc={docByType[spec.key]}
-                    generating={generatingKey === spec.key}
-                    onGenerate={() => generate(spec, docByType[spec.key] ? 'Regenerate Full Body' : 'Generate New')}
-                    onNewVersion={() => generate(spec, 'New Version')}
-                    onOpen={() => setActiveDoc(docByType[spec.key])}
-                  />
-                ))}
-              </div>
+      <p className="text-sm text-slate-500">
+        {templates.length} templates apply to {project.project_name} ({project.target_cmmc_level}). Run preflight to see resolved data and missing information, then generate a Draft DOCX. Drafts are never auto-approved.
+      </p>
+      {groups.map((group) => {
+        const groupTemplates = templates.filter((t) => t.document_type === group);
+        if (groupTemplates.length === 0) return null;
+        return (
+          <div key={group}>
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">{group === 'Policy' ? 'Policies' : `${group}s`}</h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {groupTemplates.map((template) => (
+                <DocumentCard
+                  key={template.template_key}
+                  template={template}
+                  doc={docByKey[template.template_key]}
+                  preflight={preflights[template.template_key]}
+                  error={errors[template.template_key]}
+                  busy={busyKey === template.template_key}
+                  onPreflight={() => runPreflight(template)}
+                  onGenerate={() => generateDraft(template)}
+                />
+              ))}
             </div>
-          );
-        })
-      )}
-
-      {activeDoc && <DocumentDetailModal doc={activeDoc} onClose={() => setActiveDoc(null)} onSaved={() => { setActiveDoc(null); load(); }} />}
+          </div>
+        );
+      })}
     </div>
   );
 }

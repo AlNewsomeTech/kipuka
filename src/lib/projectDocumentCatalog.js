@@ -44,7 +44,7 @@ export const TEMPLATE_TAGS = [
 ];
 
 // Fields only an approval workflow may supply. Draft generation never fabricates these.
-export const REQUIRED_APPROVAL_FIELDS = ["approval.date","approval.record_id","doc.effective_date"];
+export const REQUIRED_APPROVAL_FIELDS = ["approval.date","approval.record_id","doc.effective_date","doc.next_review_date"];
 
 export const PROJECT_DOCUMENT_CATALOG = [
   {
