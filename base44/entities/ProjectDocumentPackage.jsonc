@@ -1,0 +1,126 @@
+{
+  "name": "ProjectDocumentPackage",
+  "type": "object",
+  "description": "Immutable, Project-based ZIP export of canonical documents plus the applicability register, document index, hash manifest, and missing/stale report.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "package_name": {
+      "type": "string"
+    },
+    "package_mode": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Ready"
+      ],
+      "default": "Draft"
+    },
+    "package_version": {
+      "type": "integer",
+      "default": 1
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_uri": {
+      "type": "string"
+    },
+    "output_sha256": {
+      "type": "string"
+    },
+    "manifest_sha256": {
+      "type": "string"
+    },
+    "source_state_sha256": {
+      "type": "string"
+    },
+    "included_document_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "included_document_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "applicability_decision_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Generated",
+        "Superseded",
+        "Archived"
+      ],
+      "default": "Generated"
+    },
+    "generated_by": {
+      "type": "string"
+    },
+    "generated_by_email": {
+      "type": "string"
+    },
+    "generated_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supersedes_package_id": {
+      "type": "string"
+    },
+    "superseded_by_package_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "package_name",
+    "file_uri",
+    "output_sha256",
+    "manifest_sha256"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
