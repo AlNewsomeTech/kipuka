@@ -16,6 +16,13 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+function privateHost(host: string) {
+  const h = host.toLowerCase();
+  if (h === 'localhost' || h === '::1' || h.endsWith('.local') || h === '169.254.169.254') return true;
+  if (/^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h)) return true;
+  const m = h.match(/^172\.(\d+)\./);
+  return Boolean(m && Number(m[1]) >= 16 && Number(m[1]) <= 31);
+}
 
 Deno.serve(async (req) => {
   try {
@@ -58,8 +65,15 @@ Deno.serve(async (req) => {
       if (logoUrl.startsWith('mp/private/')) {
         const signed = await sr.integrations.Core.CreateFileSignedUrl({ file_uri: logoUrl });
         logoUrl = signed.signed_url;
+      } else {
+        let parsed: URL;
+        try { parsed = new URL(logoUrl); }
+        catch { return Response.json({ error: 'Logo URL is invalid.' }, { status: 400 }); }
+        if (parsed.protocol !== 'https:' || privateHost(parsed.hostname)) {
+          return Response.json({ error: 'Logo URL must be public HTTPS or a private Base44 file URI.' }, { status: 400 });
+        }
       }
-      const logoResponse = await fetch(logoUrl);
+      const logoResponse = await fetch(logoUrl, { redirect: 'error' });
       if (!logoResponse.ok) return Response.json({ error: 'Configured logo could not be fetched.' }, { status: 400 });
       const contentType = (logoResponse.headers.get('content-type') || '').toLowerCase();
       const logoBytes = new Uint8Array(await logoResponse.arrayBuffer());
