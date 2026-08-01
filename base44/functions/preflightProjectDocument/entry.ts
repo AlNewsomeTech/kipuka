@@ -30,6 +30,13 @@ function put(fields: Record<string, any>, tag: string, value: any, provenance: s
   fields[tag] = { value: v, provenance, resolved: v.length > 0 };
 }
 
+function normalizeRetentionPeriod(value: any): string {
+  return String(value || '')
+    .trim()
+    .replace(/^retain(?:\s+approved)?\s+records\s+for\s+/i, '')
+    .replace(/[.;:]\s*$/, '');
+}
+
 // Resolve every merge tag from canonical data only. Deterministic — no AI, no
 // fabricated business/scope/implementation/owner/approval content.
 function resolveFields({ template, project, organization, companyProfile, scoping, components, tools, config, plannedVersion }: any) {
@@ -65,9 +72,9 @@ function resolveFields({ template, project, organization, companyProfile, scopin
   put(fields, 'implementation.reporting_channel', config?.reporting_channel, 'DocumentConfiguration.reporting_channel');
   put(fields, 'implementation.repository', config?.evidence_repository, 'DocumentConfiguration.evidence_repository');
   put(fields, 'implementation.procedure_location', config?.document_repository, 'DocumentConfiguration.document_repository');
-  put(fields, 'implementation.retention_period', config?.retention_schedule, 'DocumentConfiguration.retention_schedule');
+  put(fields, 'implementation.retention_period', normalizeRetentionPeriod(config?.retention_schedule), 'DocumentConfiguration.retention_schedule');
   put(fields, 'implementation.review_trigger', cycleDays ? `Reviewed every ${cycleDays} days or upon significant change` : '', 'DocumentConfiguration.review_cycle_days');
-  put(fields, 'implementation.defined_frequency', cycleDays ? (cycleDays === 365 ? 'Annually' : `Every ${cycleDays} days`) : '', 'DocumentConfiguration.review_cycle_days');
+  put(fields, 'implementation.defined_frequency', cycleDays ? (cycleDays === 365 ? 'least annually' : `least every ${cycleDays} days`) : '', 'DocumentConfiguration.review_cycle_days');
 
   const today = new Date().toISOString().slice(0, 10);
   put(fields, 'revision.date', today, 'Engine draft generation date');
