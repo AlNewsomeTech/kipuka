@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const fields = [
+  ['logo_url', 'Logo URL (PNG or JPEG)'],
   ['filename_short_name', 'Filename short name'], ['policy_owner_name', 'Policy owner'],
   ['approving_authority_name', 'Approving authority'], ['default_responsible_team', 'Responsible team'],
   ['reporting_channel', 'Reporting channel'], ['document_repository', 'Document repository'],
