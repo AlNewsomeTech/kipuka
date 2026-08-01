@@ -23,6 +23,25 @@ function privateHost(host: string) {
   const m = h.match(/^172\.(\d+)\./);
   return Boolean(m && Number(m[1]) >= 16 && Number(m[1]) <= 31);
 }
+async function fetchSafeHttps(url: string): Promise<Response> {
+  let current: URL;
+  try { current = new URL(url); }
+  catch { throw new Error('Logo URL is invalid.'); }
+  for (let hop = 0; hop < 4; hop += 1) {
+    if (current.protocol !== 'https:' || privateHost(current.hostname)) {
+      throw new Error('Logo URL and every redirect must use public HTTPS.');
+    }
+    const response = await fetch(current.toString(), { redirect: 'manual' });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location) throw new Error('Configured logo returned a redirect without a location.');
+      current = new URL(location, current);
+      continue;
+    }
+    return response;
+  }
+  throw new Error('Configured logo exceeded the redirect limit.');
+}
 
 Deno.serve(async (req) => {
   try {
@@ -73,10 +92,9 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'Logo URL must be public HTTPS or a private Base44 file URI.' }, { status: 400 });
         }
       }
-      const logoResponse = await fetch(logoUrl, { redirect: 'manual' });
-      if (logoResponse.status >= 300 && logoResponse.status < 400) {
-        return Response.json({ error: 'Configured logo redirects are not allowed.' }, { status: 400 });
-      }
+      let logoResponse: Response;
+      try { logoResponse = await fetchSafeHttps(logoUrl); }
+      catch (error) { return Response.json({ error: error.message }, { status: 400 }); }
       if (!logoResponse.ok) return Response.json({ error: 'Configured logo could not be fetched.' }, { status: 400 });
       const contentType = (logoResponse.headers.get('content-type') || '').toLowerCase();
       const logoBytes = new Uint8Array(await logoResponse.arrayBuffer());
