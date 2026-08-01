@@ -44,7 +44,7 @@ export default function DocumentLifecycle({ docs, events, onChanged }) {
     {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
     {active.map((doc) => {
       const actions = actionFor[doc.status] || [];
-      const history = events.filter((e) => e.project_document_id === doc.id).sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+      const history = events.filter((e) => e.project_document_id === doc.id).sort((a, b) => new Date(b.event_date).getTime() - new Date(a.event_date).getTime());
       return <div key={doc.id} className="rounded-xl border border-slate-200 bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -62,10 +62,10 @@ export default function DocumentLifecycle({ docs, events, onChanged }) {
             </label>}
           </div>
           <div className="flex flex-wrap items-start gap-2">
-            {actions.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => transition(doc, id)} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F1E3C] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
+            {actions.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => transition(doc, id)} disabled={Boolean(busy)} className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F1E3C] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">
               <Icon className="h-3.5 w-3.5" />{busy === doc.id + id ? 'Working…' : label}
             </button>)}
-            <button onClick={() => transition(doc, 'archive')} disabled={busy} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-50"><Archive className="h-3.5 w-3.5" />Archive</button>
+            <button onClick={() => transition(doc, 'archive')} disabled={Boolean(busy)} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-50"><Archive className="h-3.5 w-3.5" />Archive</button>
           </div>
         </div>}
         {history.length > 0 && <div className="mt-4 border-t border-slate-100 pt-3">
