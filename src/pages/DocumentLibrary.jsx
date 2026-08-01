@@ -97,7 +97,7 @@ export default function DocumentLibrary() {
 
           {tab === 'dashboard' && <DocumentsDashboard project={project} docs={docs} configs={configs} />}
           {tab === 'builder' && <DocumentBuilder project={project} docs={docs} onChanged={loadProjectData} />}
-          {tab === 'lifecycle' && <DocumentLifecycle project={project} docs={docs} events={events} onChanged={loadProjectData} />}
+          {tab === 'lifecycle' && <DocumentLifecycle docs={docs} events={events} onChanged={loadProjectData} />}
           {tab === 'applicability' && <ApplicabilityMatrix project={project} decisions={decisions} evidence={evidence} onChanged={loadProjectData} />}
           {tab === 'package' && <DocumentPackagePanel project={project} packages={packages} onChanged={loadProjectData} />}
           {tab === 'settings' && <DocumentConfigurationEditor project={project} configs={configs} onChanged={loadProjectData} />}
