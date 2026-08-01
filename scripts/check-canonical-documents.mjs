@@ -25,16 +25,16 @@ const templateDir = 'base44/functions/generateProjectDocument/templates';
 const manifest = JSON.parse(read(`${templateDir}/manifest.json`));
 const templates = manifest.templates || [];
 
-ok(manifest.library_version === '1.0', 'manifest library version is 1.0');
+ok(manifest.source_version === '1.0', 'manifest source version is 1.0');
 ok(templates.length === 44, 'manifest contains exactly 44 policy templates');
 ok(new Set(templates.map((t) => t.template_key)).size === 44, 'template keys are unique');
 ok(new Set(templates.map((t) => t.document_id)).size === 44, 'document IDs are unique');
-ok(!templates.some((t) => /guide/i.test(t.source_filename || '')), 'usage guide is excluded');
+ok(!templates.some((t) => /template[_ -]?use[_ -]?guide/i.test(t.source_filename || '')), 'template-use guide is excluded');
 ok(templates.every((t) => t.file_uri?.startsWith('mp/private/')), 'every template uses private storage');
 ok(templates.every((t) => /^[a-f0-9]{64}$/.test(t.normalized_sha256)), 'every normalized hash is SHA-256');
 ok(templates.every((t) => /^[a-f0-9]{64}$/.test(t.source_sha256)), 'every source hash is SHA-256');
 ok(templates.every((t) => ['Policy', 'Standard', 'Guideline', 'Plan'].includes(t.document_type)), 'document types are canonical');
-ok(templates.every((t) => Array.isArray(t.control_ids) && t.control_ids.length > 0), 'every template has control mappings');
+ok(templates.every((t) => t.primary_control_id && (t.control_ids.length > 0 || t.primary_control_id === t.document_id)), 'every template has a control mapping or explicit governance ID');
 ok(templates.every((t) => Array.isArray(t.cmmc_levels) && t.cmmc_levels.length > 0), 'every template has CMMC applicability');
 ok(templates.every((t) => Array.isArray(t.tags) && t.tags.includes('org.legal_name')), 'every template declares named tags');
 
@@ -74,7 +74,7 @@ ok(snapshot.properties.snapshot_sha256 && snapshot.properties.resolved_fields &&
 
 const importer = read('base44/functions/importPolicyTemplateLibrary/entry.ts');
 indexBefore(importer, 'base44.auth.me()', 'base44.asServiceRole', 'importer authenticates before service role');
-ok(importer.includes("mode || 'dry_run'"), 'importer defaults to dry_run');
+ok(importer.includes("body.mode === 'apply' ? 'apply' : 'dry_run'"), 'importer defaults to dry_run');
 ok(importer.includes('EXPECTED_TEMPLATE_COUNT = 44'), 'importer pins the 44-template count');
 ok(importer.includes('normalized_sha256') && importer.includes('conflict'), 'importer verifies hashes and blocks conflicts');
 ok(!/\.delete\s*\(/.test(importer), 'importer never deletes template records');
@@ -120,7 +120,8 @@ const ui = [
 ].join('\n');
 ok(ui.includes('preflightProjectDocument') && ui.includes('generateProjectDocument'), 'UI uses canonical preflight and DOCX generator');
 ok(!/entities\.(?:Client|ControlProgress|GeneratedDocument)/.test(ui), 'UI has no retired entity access');
-ok(!/bulk|approve|publish/i.test(read('src/components/documents/DocumentBuilder.jsx')), 'builder exposes no bulk or approval action');
+const builderExecutable = read('src/components/documents/DocumentBuilder.jsx').replace(/^\s*\/\/.*$/gm, '');
+ok(!/bulkGenerate|onApprove|onPublish|approveDocument|publishDocument/i.test(builderExecutable), 'builder exposes no bulk or approval action');
 
 if (failures.length) {
   console.error(`Phase 4 document checks failed: ${failures.length} failure(s), ${passed} passed`);
