@@ -68,6 +68,7 @@ ok(fn.includes('retention-until date is required before acceptance'), 'retention
 ok(fn.includes('Evidence metadata hash mismatch'), 'metadata integrity is checked at acceptance');
 ok(fn.includes('fetchVerifiedPrivate(sr, evidence.file_uri, evidence.hash_value)'), 'file bytes are reverified for lifecycle actions');
 ok(fn.includes('CreateFileSignedUrl') && fn.includes("'download'"), 'downloads use signed private URLs');
+ok(fn.includes('cannot be archived without a retention-until date'), 'missing retention prevents archive');
 ok(fn.includes('cannot be archived before its retention-until date'), 'retention prevents premature archive');
 ok(fn.includes('event_sha256'), 'audit events are hash-backed');
 
@@ -82,6 +83,8 @@ ok(upload.includes("functions.invoke('manageProjectEvidence'"), 'upload routes t
 ok(upload.includes("existing ? 'new_version' : 'create'"), 'edits create immutable new versions');
 ok(upload.includes('objective_ids') && upload.includes('Link Assessment Objectives'), 'upload UI supports objective mapping');
 ok(upload.includes('retention_until') && upload.includes('provenance_type'), 'upload captures retention and provenance');
+ok(upload.includes('Retain Until is required for canonical evidence.'), 'draft save requires a retention date');
+ok(card.includes('Boolean(item.retention_until)'), 'archive UI fails closed when retention is missing');
 ok(card.includes("transition('submit_review')"), 'card exposes submit-for-review transition');
 ok(card.includes("transition('accept')") && card.includes("transition('reject')"), 'card exposes reviewer decisions');
 ok(card.includes("transition('download')"), 'card uses verified download transition');
