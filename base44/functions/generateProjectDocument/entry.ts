@@ -152,6 +152,15 @@ async function installLogoAsset(zip: any, logo: any) {
 function xmlEscape(s: string): string {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
+function normalizeGeneratedPhrasing(xml: string): string {
+  return xml.replace(/Initial approved issue\s*\/\s*/g, '');
+}
+function normalizeRetentionPeriod(value: any): string {
+  return String(value || '')
+    .trim()
+    .replace(/^retain(?:\s+approved)?\s+records\s+for\s+/i, '')
+    .replace(/[.;:]\s*$/, '');
+}
 function normalizeFooterPageFields(xml: string): string {
   const pageField = /<w:instrText[^>]*>\s*PAGE\s*<\/w:instrText>/i.exec(xml);
   const numPagesField = /<w:instrText[^>]*>\s*NUMPAGES\s*<\/w:instrText>/i.exec(xml);
@@ -239,9 +248,9 @@ function resolveFields({ template, project, organization, companyProfile, scopin
   put(fields, 'implementation.reporting_channel', config?.reporting_channel, 'DocumentConfiguration.reporting_channel');
   put(fields, 'implementation.repository', config?.evidence_repository, 'DocumentConfiguration.evidence_repository');
   put(fields, 'implementation.procedure_location', config?.document_repository, 'DocumentConfiguration.document_repository');
-  put(fields, 'implementation.retention_period', config?.retention_schedule, 'DocumentConfiguration.retention_schedule');
+  put(fields, 'implementation.retention_period', normalizeRetentionPeriod(config?.retention_schedule), 'DocumentConfiguration.retention_schedule');
   put(fields, 'implementation.review_trigger', cycleDays ? `Reviewed every ${cycleDays} days or upon significant change` : '', 'DocumentConfiguration.review_cycle_days');
-  put(fields, 'implementation.defined_frequency', cycleDays ? (cycleDays === 365 ? 'Annually' : `Every ${cycleDays} days`) : '', 'DocumentConfiguration.review_cycle_days');
+  put(fields, 'implementation.defined_frequency', cycleDays ? (cycleDays === 365 ? 'least annually' : `least every ${cycleDays} days`) : '', 'DocumentConfiguration.review_cycle_days');
 
   const today = new Date().toISOString().slice(0, 10);
   put(fields, 'revision.date', today, 'Engine draft generation date');
@@ -379,6 +388,7 @@ Deno.serve(async (req) => {
     for (const part of renderParts) {
       let xml = await zip.files[part].async('string');
       if (logo) xml = await embedLogo(zip, part, xml, logo);
+      xml = normalizeGeneratedPhrasing(xml);
       if (part.startsWith('word/footer')) xml = normalizeFooterPageFields(xml);
       for (const tag of Object.keys(fields)) {
         if (tag === 'org.logo' && logo) continue;
