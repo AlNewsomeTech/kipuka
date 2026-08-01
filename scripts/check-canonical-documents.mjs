@@ -152,6 +152,9 @@ ok(lifecycle.includes('draft_file_uri') && lifecycle.includes('draft_output_sha2
 ok(lifecycle.includes("document_version: '1.0'") && lifecycle.includes("missing_approval_fields: []"), 'first approval becomes complete version 1.0');
 ok(lifecycle.includes('ProjectDocumentEvent.create') && lifecycle.includes('event_sha256'), 'lifecycle appends hash-verified audit events');
 ok(lifecycle.includes('last_transition_action !== action'), 'idempotency key cannot be replayed for a different action');
+ok(!lifecycle.includes("caller.role !== 'technician' && !allowedRoles.includes"), 'platform technician designation cannot bypass lifecycle organization-role approvals');
+ok(lifecycle.includes("REVIEW_ROLES = ['Organization Owner', 'Organization Admin', 'Compliance Manager', 'Pac-Sec Admin']"), 'review and approval exclude Pac-Sec Support');
+ok(lifecycle.includes("PUBLISH_ROLES = ['Organization Owner', 'Organization Admin', 'Pac-Sec Admin']"), 'publication is restricted to owners/admins');
 ok(lifecycle.includes('loadVerifiedLogo') && lifecycle.includes('embedLogo') && lifecycle.includes('kipuka-organization-logo'), 'approval renderer embeds a hash-verified organization logo');
 ok(!/entities\.(?:Client|ControlProgress|GeneratedDocument|EvidenceItem|Screenshot|POAMItem)\s*\./.test(lifecycle), 'lifecycle has no retired entity query');
 
@@ -162,6 +165,7 @@ ok(applicability.includes("'Out of Scope'") && applicability.includes('justifica
 ok(applicability.includes('evidenceIds.length < 1') && applicability.includes('/^[a-f0-9]{64}$/i'), 'Out-of-Scope requires accepted SHA-256 evidence');
 ok(applicability.includes('trigger.length < 20') && applicability.includes("decision === 'Needs Scoping Decision'"), 'applicability approval requires a trigger and resolved decision');
 ok(applicability.includes('decision_sha256') && applicability.includes("status: 'Superseded'"), 'applicability decisions are hashed and versioned');
+ok(!applicability.includes("caller.role !== 'technician' && !allowed.includes"), 'platform technician designation cannot bypass applicability approval roles');
 
 const packageFn = read('base44/functions/generateProjectDocumentPackage/entry.ts');
 indexBefore(packageFn, 'base44.auth.me()', 'base44.asServiceRole', 'package export authenticates before service role');
