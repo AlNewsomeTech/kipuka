@@ -165,7 +165,7 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
           {naming && <div className="bg-slate-900 rounded-lg p-3"><div className="text-[10px] text-slate-400 uppercase tracking-wide">Suggested source filename</div><div className="text-green-400 font-mono text-[11px] break-all">{naming.example}</div></div>}
           {filenameWarn && <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-[13px] text-amber-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />Kipuka will normalize this filename and preserve the original name in provenance.</div>}
 
-          <RichTextField label="Description" value={form.description} onChange={(value) => set('description', value)} />
+          <RichTextField label="Description" value={form.description} onChange={(value) => set('description', value)} placeholder="" disabled={false} onBlur={() => {}} />
           <Field label="Provenance Details"><textarea className="form-input min-h-20" value={form.provenance_details} onChange={(event) => set('provenance_details', event.target.value)} placeholder="How, where, and by whom this record was produced." /></Field>
 
           <div>
