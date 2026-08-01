@@ -18,6 +18,7 @@ export default function ApplicabilityMatrix({ project, decisions, evidence, onCh
   const [error, setError] = useState('');
   const acceptedEvidence = evidence.filter((e) => e.review_status === 'Accepted' && e.hash_value);
 
+  /** @returns {any} */
   const value = (key, field, fallback = '') => drafts[key]?.[field] ?? latest[key]?.[field] ?? fallback;
   const set = (key, field, next) => setDrafts((d) => ({ ...d, [key]: { ...(d[key] || {}), [field]: next } }));
 
@@ -64,8 +65,8 @@ export default function ApplicabilityMatrix({ project, decisions, evidence, onCh
           <label className="text-xs font-medium text-slate-600">Reassessment trigger<input className="form-input mt-1" value={value(key, 'reassessment_trigger')} onChange={(e) => set(key, 'reassessment_trigger', e.target.value)} placeholder="Reassess when technology, location, or scope changes" /></label>
           <label className="text-xs font-medium text-slate-600">Reassessment date<input type="date" className="form-input mt-1" value={value(key, 'reassessment_date')} onChange={(e) => set(key, 'reassessment_date', e.target.value)} /></label>
           <div className="flex gap-2 md:col-span-2">
-            <button disabled={busy} onClick={() => save(t, 'draft')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50">Save Draft</button>
-            <button disabled={busy} onClick={() => save(t, 'approve')} className="rounded-lg bg-[#0F1E3C] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Approve Decision</button>
+            <button disabled={Boolean(busy)} onClick={() => save(t, 'draft')} className="rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-50">Save Draft</button>
+            <button disabled={Boolean(busy)} onClick={() => save(t, 'approve')} className="rounded-lg bg-[#0F1E3C] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Approve Decision</button>
           </div>
         </div>
       </details>;
