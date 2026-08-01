@@ -1,6 +1,7 @@
 {
   "name": "ProjectEvidence",
   "type": "object",
+  "description": "Canonical, versioned Project evidence with server-verified file integrity, provenance, review, retention, and supersession.",
   "properties": {
     "organization_id": {
       "type": "string"
@@ -9,6 +10,13 @@
       "type": "string"
     },
     "control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "objective_ids": {
       "type": "array",
       "items": {
         "type": "string"
@@ -47,14 +55,26 @@
         "Microsoft Purview",
         "Other"
       ],
-      "default": "None",
-      "description": "Optional security tool this evidence was captured from."
+      "default": "None"
+    },
+    "file_uri": {
+      "type": "string"
     },
     "file_url": {
-      "type": "string"
+      "type": "string",
+      "description": "Retired legacy public URL. New canonical records use private file_uri."
     },
     "file_name": {
       "type": "string"
+    },
+    "original_file_name": {
+      "type": "string"
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "file_size_bytes": {
+      "type": "integer"
     },
     "description": {
       "type": "string"
@@ -67,8 +87,22 @@
       "type": "string",
       "format": "date"
     },
+    "retention_until": {
+      "type": "string",
+      "format": "date"
+    },
     "uploaded_by": {
       "type": "string"
+    },
+    "uploaded_by_user_id": {
+      "type": "string"
+    },
+    "uploaded_by_email": {
+      "type": "string"
+    },
+    "uploaded_date": {
+      "type": "string",
+      "format": "date-time"
     },
     "owner": {
       "type": "string"
@@ -80,28 +114,102 @@
         "Needs Review",
         "Accepted",
         "Rejected",
-        "Expired"
+        "Expired",
+        "Archived",
+        "Superseded"
       ],
       "default": "Draft"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "reviewer_user_id": {
+      "type": "string"
+    },
+    "reviewer_email": {
+      "type": "string"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_note": {
+      "type": "string"
+    },
+    "rejection_reason": {
+      "type": "string"
     },
     "quality_notes": {
       "type": "string"
     },
     "quality_checklist": {
       "type": "object",
-      "description": "Map of evidence quality checklist keys to booleans.",
       "default": {}
+    },
+    "hash_algorithm": {
+      "type": "string",
+      "enum": [
+        "SHA-256"
+      ],
+      "default": "SHA-256"
     },
     "hash_value": {
       "type": "string"
     },
+    "hash_verified_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata_sha256": {
+      "type": "string"
+    },
     "source_system": {
+      "type": "string"
+    },
+    "provenance_type": {
+      "type": "string",
+      "enum": [
+        "Manual Upload",
+        "Tool Export",
+        "API Import",
+        "Generated"
+      ],
+      "default": "Manual Upload"
+    },
+    "provenance_details": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "default": 1
+    },
+    "supersedes_evidence_id": {
+      "type": "string"
+    },
+    "superseded_by_evidence_id": {
+      "type": "string"
+    },
+    "lifecycle_status": {
+      "type": "string",
+      "enum": [
+        "Current",
+        "Superseded",
+        "Archived"
+      ],
+      "default": "Current"
+    },
+    "last_transition_id": {
+      "type": "string"
+    },
+    "last_transition_action": {
       "type": "string"
     }
   },
   "required": [
+    "organization_id",
     "project_id",
-    "evidence_title"
+    "evidence_title",
+    "review_status"
   ],
   "rls": {
     "read": {
@@ -119,18 +227,9 @@
       ]
     },
     "write": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "__service_only__"
+      }
     }
   }
 }
