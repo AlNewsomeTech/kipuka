@@ -180,8 +180,8 @@ Deno.serve(async (req) => {
 
     const allowedRoles = action === 'approve' || action === 'request_changes'
       ? REVIEW_ROLES : action === 'publish' || action === 'archive' ? PUBLISH_ROLES : GENERATE_ROLES;
-    if (!isAdmin && caller.role !== 'technician' && !allowedRoles.includes(orgRole || '')) {
-      return Response.json({ error: 'Your role is not authorized for this document transition.' }, { status: 403 });
+    if (!isAdmin && !allowedRoles.includes(orgRole || '')) {
+      return Response.json({ error: 'Your active organization role is not authorized for this document transition.' }, { status: 403 });
     }
     if (action === 'request_changes' && note.length < 5) {
       return Response.json({ error: 'A clear change-request note is required.' }, { status: 400 });
