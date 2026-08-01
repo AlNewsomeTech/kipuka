@@ -36,6 +36,25 @@ function privateHost(host: string) {
   const m = h.match(/^172\.(\d+)\./);
   return Boolean(m && Number(m[1]) >= 16 && Number(m[1]) <= 31);
 }
+async function fetchSafeHttps(url: string): Promise<Response> {
+  let current: URL;
+  try { current = new URL(url); }
+  catch { throw new Error('Logo URL is invalid.'); }
+  for (let hop = 0; hop < 4; hop += 1) {
+    if (current.protocol !== 'https:' || privateHost(current.hostname)) {
+      throw new Error('Logo URL and every redirect must use public HTTPS.');
+    }
+    const response = await fetch(current.toString(), { redirect: 'manual' });
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location) throw new Error('Configured logo returned a redirect without a location.');
+      current = new URL(location, current);
+      continue;
+    }
+    return response;
+  }
+  throw new Error('Configured logo exceeded the redirect limit.');
+}
 function logoDimensions(bytes: Uint8Array, ext: string) {
   let width = 600, height = 200;
   if (ext === 'png' && bytes.length >= 24) {
@@ -64,8 +83,7 @@ async function loadVerifiedLogo(sr: any, config: any) {
     const parsed = new URL(url);
     if (parsed.protocol !== 'https:' || privateHost(parsed.hostname)) throw new Error('Logo URL must be public HTTPS or a private Base44 file URI.');
   }
-  const response = await fetch(url, { redirect: 'manual' });
-  if (response.status >= 300 && response.status < 400) throw new Error('Configured logo redirects are not allowed.');
+  const response = await fetchSafeHttps(url);
   if (!response.ok) throw new Error('Configured logo could not be fetched.');
   const bytes = new Uint8Array(await response.arrayBuffer());
   const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
