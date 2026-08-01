@@ -77,20 +77,44 @@ export default function SprsModule({ project, org, readOnly, currentUser }) {
     const file = e.target.files?.[0];
     if (!file) return;
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    const created = await base44.entities.ProjectEvidence.create({
-      organization_id: project.organization_id,
-      project_id: project.id,
-      evidence_title: `SPRS/PIEE — ${file.name}`,
-      evidence_type: 'Screenshot',
-      file_url, file_name: file.name,
-      source_system: 'SPRS / PIEE',
-      uploaded_by: currentUser?.full_name || currentUser?.email || '',
-      evidence_date: new Date().toISOString().slice(0, 10),
+    try {
+      const assessments = await base44.entities.ControlAssessment.filter({ project_id: project.id });
+      const mapped = assessments.find((item) => item.control_id === 'CA.L2-3.12.1');
+      if (!mapped) throw new Error('The project is missing canonical control CA.L2-3.12.1.');
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const retention = new Date();
+      retention.setFullYear(retention.getFullYear() + 6);
+      const response = await base44.functions.invoke('manageProjectEvidence', {
+        action: 'create',
+        transition_id: crypto.randomUUID(),
+        project_id: project.id,
+        file_url,
+        original_file_name: file.name,
+        evidence_title: `SPRS/PIEE — ${file.name.replace(/\.[^.]+$/, '')}`,
+        evidence_type: 'Screenshot',
+        control_ids: [mapped.control_id],
+        objective_ids: [],
+        source_system: 'SPRS / PIEE',
+        source_tool: 'SPRS / PIEE',
+        provenance_type: 'Screenshot',
+        provenance_details: 'Uploaded from the Kipuka SPRS / PIEE workflow.',
+        owner: currentUser?.full_name || currentUser?.email || '',
+        evidence_date: new Date().toISOString().slice(0, 10),
+        retention_until: retention.toISOString().slice(0, 10),
+      });
+      const created = response.data.evidence;
+      setForm((current) => ({ ...current, evidence_item_ids: [...(current.evidence_item_ids || []), created.id] }));
+      await load();
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const downloadEvidence = async (item) => {
+    const response = await base44.functions.invoke('manageProjectEvidence', {
+      action: 'download', transition_id: crypto.randomUUID(), evidence_id: item.id,
     });
-    setForm((f) => ({ ...f, evidence_item_ids: [...(f.evidence_item_ids || []), created.id] }));
-    setUploading(false);
-    load();
+    window.open(response.data.signed_url, '_blank', 'noopener,noreferrer');
   };
 
   const genBy = currentUser?.full_name || currentUser?.email;
@@ -216,7 +240,7 @@ export default function SprsModule({ project, org, readOnly, currentUser }) {
               <div key={ev.id} className="flex items-center gap-3 py-2 text-sm">
                 <FileText className="w-4 h-4 text-slate-400" />
                 <span className="text-slate-700">{ev.evidence_title}</span>
-                {ev.file_url && <a href={ev.file_url} target="_blank" rel="noreferrer" className="ml-auto text-xs text-blue-600 hover:underline">View</a>}
+                {ev.file_uri && <button onClick={() => downloadEvidence(ev)} className="ml-auto text-xs text-blue-600 hover:underline">Verify &amp; View</button>}
               </div>
             ))}
           </div>
