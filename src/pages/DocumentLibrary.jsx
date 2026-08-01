@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { FileText, LayoutDashboard, Wand2, FolderKanban } from 'lucide-react';
+import { FileText, LayoutDashboard, Wand2, FolderKanban, Workflow, ListChecks, PackageCheck, Settings2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import EmptyState from '@/components/EmptyState';
 import DocumentsDashboard from '@/components/documents/DocumentsDashboard';
 import DocumentBuilder from '@/components/documents/DocumentBuilder';
+import DocumentLifecycle from '@/components/documents/DocumentLifecycle';
+import ApplicabilityMatrix from '@/components/documents/ApplicabilityMatrix';
+import DocumentPackagePanel from '@/components/documents/DocumentPackagePanel';
+import DocumentConfigurationEditor from '@/components/documents/DocumentConfigurationEditor';
 
 // PHASE 4 — canonical Project-based document engine.
 // Documents are generated per Project from the versioned policy template
@@ -12,6 +16,10 @@ import DocumentBuilder from '@/components/documents/DocumentBuilder';
 const TABS = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'builder', label: 'Draft Builder', icon: Wand2 },
+  { id: 'lifecycle', label: 'Review & Approval', icon: Workflow },
+  { id: 'applicability', label: 'Applicability', icon: ListChecks },
+  { id: 'package', label: 'Package Export', icon: PackageCheck },
+  { id: 'settings', label: 'Settings', icon: Settings2 },
 ];
 
 export default function DocumentLibrary() {
@@ -20,6 +28,10 @@ export default function DocumentLibrary() {
   const [tab, setTab] = useState('dashboard');
   const [docs, setDocs] = useState([]);
   const [configs, setConfigs] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [decisions, setDecisions] = useState([]);
+  const [packages, setPackages] = useState([]);
+  const [evidence, setEvidence] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
@@ -31,17 +43,22 @@ export default function DocumentLibrary() {
 
   const project = projects.find((p) => p.id === projectId) || null;
 
-  const loadDocs = () => {
-    if (!projectId) { setDocs([]); return; }
-    base44.entities.ProjectDocument.filter({ project_id: projectId }, '-generated_date').then(setDocs).catch(() => setDocs([]));
+  const loadProjectData = async () => {
+    if (!projectId || !project?.organization_id) {
+      setDocs([]); setConfigs([]); setEvents([]); setDecisions([]); setPackages([]); setEvidence([]);
+      return;
+    }
+    const [docRows, configRows, eventRows, decisionRows, packageRows, evidenceRows] = await Promise.all([
+      base44.entities.ProjectDocument.filter({ project_id: projectId }, '-generated_date').catch(() => []),
+      base44.entities.DocumentConfiguration.filter({ organization_id: project.organization_id, active: true }).catch(() => []),
+      base44.entities.ProjectDocumentEvent.filter({ project_id: projectId }, '-event_date').catch(() => []),
+      base44.entities.DocumentApplicabilityDecision.filter({ project_id: projectId }, '-created_date').catch(() => []),
+      base44.entities.ProjectDocumentPackage.filter({ project_id: projectId }, '-generated_date').catch(() => []),
+      base44.entities.ProjectEvidence.filter({ project_id: projectId }, '-evidence_date').catch(() => []),
+    ]);
+    setDocs(docRows); setConfigs(configRows); setEvents(eventRows); setDecisions(decisionRows); setPackages(packageRows); setEvidence(evidenceRows);
   };
-  useEffect(loadDocs, [projectId]);
-
-  useEffect(() => {
-    if (!project?.organization_id) { setConfigs([]); return; }
-    base44.entities.DocumentConfiguration.filter({ organization_id: project.organization_id, active: true })
-      .then(setConfigs).catch(() => setConfigs([]));
-  }, [project?.organization_id]);
+  useEffect(() => { loadProjectData(); }, [projectId, project?.organization_id]);
 
   return (
     <div className="space-y-6">
@@ -79,7 +96,11 @@ export default function DocumentLibrary() {
           </div>
 
           {tab === 'dashboard' && <DocumentsDashboard project={project} docs={docs} configs={configs} />}
-          {tab === 'builder' && <DocumentBuilder project={project} docs={docs} onChanged={loadDocs} />}
+          {tab === 'builder' && <DocumentBuilder project={project} docs={docs} onChanged={loadProjectData} />}
+          {tab === 'lifecycle' && <DocumentLifecycle project={project} docs={docs} events={events} onChanged={loadProjectData} />}
+          {tab === 'applicability' && <ApplicabilityMatrix project={project} decisions={decisions} evidence={evidence} onChanged={loadProjectData} />}
+          {tab === 'package' && <DocumentPackagePanel project={project} packages={packages} onChanged={loadProjectData} />}
+          {tab === 'settings' && <DocumentConfigurationEditor project={project} configs={configs} onChanged={loadProjectData} />}
         </>
       )}
     </div>
