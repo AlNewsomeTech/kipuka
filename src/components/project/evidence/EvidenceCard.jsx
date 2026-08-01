@@ -39,7 +39,7 @@ export default function EvidenceCard({ item, compact, readOnly, onEdit, onRefres
     await transition('update_quality', { quality_checklist: next, quality_notes: item.quality_notes || '' });
   };
 
-  const retentionElapsed = !item.retention_until || item.retention_until <= new Date().toISOString().slice(0, 10);
+  const retentionElapsed = Boolean(item.retention_until) && item.retention_until <= new Date().toISOString().slice(0, 10);
 
   return (
     <div className={`bg-white rounded-lg border ${stale ? 'border-amber-300' : 'border-slate-200'} ${compact ? '' : 'p-4'}`}>
