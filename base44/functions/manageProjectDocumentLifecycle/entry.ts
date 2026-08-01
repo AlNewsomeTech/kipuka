@@ -415,10 +415,16 @@ Deno.serve(async (req) => {
       };
     }
 
-    const updated = await sr.entities.ProjectDocument.update(doc.id, updates);
+    let updated = await sr.entities.ProjectDocument.update(doc.id, updates);
     if (action === 'approve') {
       const older = await sr.entities.ProjectDocument.filter({ project_id: doc.project_id, template_key: doc.template_key }).catch(() => []);
-      for (const prior of older.filter((d: any) => d.id !== doc.id && ['Approved', 'Published'].includes(d.status))) {
+      const priorReleases = older
+        .filter((d: any) => d.id !== doc.id && ['Approved', 'Published'].includes(d.status))
+        .sort((a: any, b: any) => String(b.updated_date || b.created_date || '').localeCompare(String(a.updated_date || a.created_date || '')));
+      if (priorReleases.length) {
+        updated = await sr.entities.ProjectDocument.update(doc.id, { supersedes_document_id: priorReleases[0].id });
+      }
+      for (const prior of priorReleases) {
         await sr.entities.ProjectDocument.update(prior.id, { status: 'Superseded', superseded_by_document_id: doc.id }).catch(() => {});
       }
     }
