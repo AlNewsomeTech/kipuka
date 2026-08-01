@@ -150,6 +150,7 @@ ok(lifecycle.includes('rebuiltSnapshotSha !== snapshot.snapshot_sha256'), 'appro
 indexBefore(lifecycle, 'UploadPrivateFile', 'ProjectDocument.update(doc.id, updates)', 'approval uploads verified final bytes before document transition');
 ok(lifecycle.includes('draft_file_uri') && lifecycle.includes('draft_output_sha256'), 'approval preserves original draft URI and hash');
 ok(lifecycle.includes("approvalVersion = Number(draftVersionMatch[1]) === 0 ? '1.0'") && lifecycle.includes('document_version: approvalVersion') && lifecycle.includes('missing_approval_fields: []'), 'first approval becomes 1.0 and later approved revisions retain their release version');
+ok(lifecycle.includes('priorReleases[0].id') && lifecycle.includes('supersedes_document_id: priorReleases[0].id') && lifecycle.includes('superseded_by_document_id: doc.id'), 'approval creates a bidirectional chain to the prior released version');
 ok(lifecycle.includes('ProjectDocumentEvent.create') && lifecycle.includes('event_sha256'), 'lifecycle appends hash-verified audit events');
 ok(lifecycle.includes('last_transition_action !== action'), 'idempotency key cannot be replayed for a different action');
 ok(!lifecycle.includes("caller.role !== 'technician' && !allowedRoles.includes"), 'platform technician designation cannot bypass lifecycle organization-role approvals');
