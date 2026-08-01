@@ -29,11 +29,12 @@ export const READ_GATED = new Set([
   'CyberReadinessReview', 'Organization', 'OrganizationUser', 'PostureAssessment',
   'DocumentConfiguration', 'ProjectDocument', 'DocumentSourceSnapshot',
   'ProjectDocumentEvent', 'DocumentApplicabilityDecision', 'ProjectDocumentPackage',
+  'ProjectEvidenceEvent',
 ]);
 
 // Entities writable through the write gate.
 export const WRITE_GATED = new Set([
-  'ControlAssessment', 'ProjectEvidence', 'Asset', 'ScopingProfile', 'ProjectPOAM',
+  'ControlAssessment', 'Asset', 'ScopingProfile', 'ProjectPOAM',
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
   'IncidentLog', 'MockAssessmentSession', 'MockAssessmentObjective',
   'ObjectiveEvidenceLink', 'SPRSRecord', 'MaintenanceTask', 'RemediationComment',
