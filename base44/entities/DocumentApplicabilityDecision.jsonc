@@ -1,0 +1,121 @@
+{
+  "name": "DocumentApplicabilityDecision",
+  "type": "object",
+  "description": "Project-scoped, versioned applicability decision for one canonical document template. Out-of-Scope decisions require justification, supporting evidence, reviewer approval, and a reassessment trigger.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "template_key": {
+      "type": "string"
+    },
+    "template_version": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "Required",
+        "Recommended",
+        "Conditional",
+        "Out of Scope",
+        "Needs Scoping Decision"
+      ],
+      "default": "Needs Scoping Decision"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Approved",
+        "Superseded"
+      ],
+      "default": "Draft"
+    },
+    "justification": {
+      "type": "string"
+    },
+    "supporting_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "scope_facts": {
+      "type": "object",
+      "default": {}
+    },
+    "reassessment_trigger": {
+      "type": "string"
+    },
+    "reassessment_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "reviewer_name": {
+      "type": "string"
+    },
+    "reviewer_email": {
+      "type": "string"
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "approved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decision_version": {
+      "type": "integer",
+      "default": 1
+    },
+    "supersedes_decision_id": {
+      "type": "string"
+    },
+    "superseded_by_decision_id": {
+      "type": "string"
+    },
+    "decision_sha256": {
+      "type": "string"
+    },
+    "created_by_name": {
+      "type": "string"
+    },
+    "created_by_email": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "template_key",
+    "decision",
+    "status",
+    "decision_sha256"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
