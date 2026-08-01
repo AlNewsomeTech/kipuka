@@ -26,8 +26,77 @@ function stableStringify(value: any): string {
 }
 function sourceRows(rows: any[]) {
   return (rows || []).map((r: any) => ({
-    id: r.id || '', updated_date: r.updated_date || '', hash_value: r.hash_value || '',
+    id: r.id || '', updated_date: r.updated_date || '', hash_value: r.hash_value || r.logo_sha256 || '',
   })).sort((a: any, b: any) => a.id.localeCompare(b.id));
+}
+function privateHost(host: string) {
+  const h = host.toLowerCase();
+  if (h === 'localhost' || h === '::1' || h.endsWith('.local') || h === '169.254.169.254') return true;
+  if (/^127\./.test(h) || /^10\./.test(h) || /^192\.168\./.test(h)) return true;
+  const m = h.match(/^172\.(\d+)\./);
+  return Boolean(m && Number(m[1]) >= 16 && Number(m[1]) <= 31);
+}
+function logoDimensions(bytes: Uint8Array, ext: string) {
+  let width = 600, height = 200;
+  if (ext === 'png' && bytes.length >= 24) {
+    const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    width = v.getUint32(16); height = v.getUint32(20);
+  } else if (ext === 'jpg') {
+    let i = 2;
+    while (i + 9 < bytes.length) {
+      if (bytes[i] !== 0xff) { i += 1; continue; }
+      const marker = bytes[i + 1], len = (bytes[i + 2] << 8) + bytes[i + 3];
+      if ([0xc0,0xc1,0xc2,0xc3,0xc5,0xc6,0xc7,0xc9,0xca,0xcb,0xcd,0xce,0xcf].includes(marker)) {
+        height = (bytes[i + 5] << 8) + bytes[i + 6]; width = (bytes[i + 7] << 8) + bytes[i + 8]; break;
+      }
+      if (len < 2) break; i += 2 + len;
+    }
+  }
+  const scale = Math.min(1600200 / Math.max(width, 1), 594360 / Math.max(height, 1));
+  return { cx: Math.round(width * scale), cy: Math.round(height * scale) };
+}
+async function loadVerifiedLogo(sr: any, config: any) {
+  if (!config?.logo_url || !/^[a-f0-9]{64}$/i.test(config?.logo_sha256 || '')) return null;
+  let url = String(config.logo_url);
+  if (url.startsWith('mp/private/')) {
+    const signed = await sr.integrations.Core.CreateFileSignedUrl({ file_uri: url }); url = signed.signed_url;
+  } else {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' || privateHost(parsed.hostname)) throw new Error('Logo URL must be public HTTPS or a private Base44 file URI.');
+  }
+  const response = await fetch(url, { redirect: 'error' });
+  if (!response.ok) throw new Error('Configured logo could not be fetched.');
+  const bytes = new Uint8Array(await response.arrayBuffer());
+  const isPng = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8;
+  if ((!isPng && !isJpeg) || bytes.length > 5_000_000) throw new Error('Logo must be a PNG or JPEG no larger than 5 MB.');
+  if ((await sha256Hex(bytes)) !== config.logo_sha256) throw new Error('Configured logo hash changed. Save document settings again.');
+  const ext = isPng ? 'png' : 'jpg';
+  return { bytes, ext, mime: isPng ? 'image/png' : 'image/jpeg', ...logoDimensions(bytes, ext) };
+}
+async function embedLogo(zip: any, part: string, xml: string, logo: any) {
+  if (!xml.includes('{{org.logo}}')) return xml;
+  const relPath = part.replace(/^word\//, 'word/_rels/') + '.rels';
+  let rels = zip.file(relPath) ? await zip.file(relPath).async('string') : '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"></Relationships>';
+  const relId = 'rIdKipukaOrganizationLogo';
+  if (!rels.includes(`Id="${relId}"`)) {
+    rels = rels.replace('</Relationships>', `<Relationship Id="${relId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/kipuka-organization-logo.${logo.ext}"/></Relationships>`);
+    zip.file(relPath, rels);
+  }
+  let drawingId = 8000;
+  const drawing = () => `<w:drawing><wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${logo.cx}" cy="${logo.cy}"/><wp:docPr id="${drawingId++}" name="Organization Logo"/><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="Organization Logo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:embed="${relId}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${logo.cx}" cy="${logo.cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`;
+  return xml.replace(/<w:t([^>]*)>\{\{org\.logo\}\}<\/w:t>/g, drawing);
+}
+async function installLogoAsset(zip: any, logo: any) {
+  zip.file(`word/media/kipuka-organization-logo.${logo.ext}`, logo.bytes);
+  const typesFile = zip.file('[Content_Types].xml');
+  if (typesFile) {
+    let types = await typesFile.async('string');
+    if (!types.includes(`Extension="${logo.ext}"`)) {
+      types = types.replace('</Types>', `<Default Extension="${logo.ext}" ContentType="${logo.mime}"/></Types>`);
+      zip.file('[Content_Types].xml', types);
+    }
+  }
 }
 function xmlEscape(s: any): string {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -244,10 +313,19 @@ Deno.serve(async (req) => {
         return Response.json({ error: e.message }, { status: 409 });
       }
       const zip = await JSZip.loadAsync(templateBytes);
+      let logo: any = null;
+      if (fields['org.logo']?.resolved) {
+        try { logo = await loadVerifiedLogo(sr, config); }
+        catch (e) { return Response.json({ error: e.message }, { status: 409 }); }
+        if (!logo) return Response.json({ error: 'Logo is not hash-verified. Save document settings again.' }, { status: 409 });
+        await installLogoAsset(zip, logo);
+      }
       const parts = Object.keys(zip.files).filter((p) => /^word\/(document|header\d*|footer\d*)\.xml$/.test(p));
       for (const part of parts) {
         let xml = await zip.files[part].async('string');
+        if (logo) xml = await embedLogo(zip, part, xml, logo);
         for (const [tag, field]: any of Object.entries(fields)) {
+          if (tag === 'org.logo' && logo) continue;
           xml = xml.split(`{{${tag}}}`).join(xmlEscape(field.value));
         }
         zip.file(part, xml);
