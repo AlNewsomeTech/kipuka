@@ -45,7 +45,7 @@ const navSections = [
   ]},
   { label: 'Delivery', items: [
     { to: '/piee', label: 'PIEE Self-Cert', icon: BadgeCheck },
-    { to: '/package', label: 'Final Package', icon: Package },
+    { to: '/package', label: 'Document Package', icon: Package },
     { to: '/sharepoint-package', label: 'SharePoint Package', icon: FolderArchive },
     { to: '/settings', label: 'Settings', icon: Settings },
   ]},
