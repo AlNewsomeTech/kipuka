@@ -49,7 +49,7 @@ export default function DocumentBuilder({ project, docs, onChanged }) {
   };
 
   if (templates.length === 0) {
-    return <EmptyState icon={FileText} title="No applicable templates" description={`The project target level "${project?.target_cmmc_level || 'Unknown'}" has no applicable canonical templates. Set the project to Level 1 or Level 2.`} />;
+    return <EmptyState icon={FileText} title="No applicable templates" description={`The project target level "${project?.target_cmmc_level || 'Unknown'}" has no applicable canonical templates. Set the project to Level 1 or Level 2.`} action={null} />;
   }
 
   const groups = ['Policy', 'Standard', 'Guideline', 'Plan'];
