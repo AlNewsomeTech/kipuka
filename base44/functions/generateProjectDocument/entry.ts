@@ -153,7 +153,9 @@ function xmlEscape(s: string): string {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 function normalizeGeneratedPhrasing(xml: string): string {
-  return xml.replace(/Initial approved issue\s*\/\s*/g, '');
+  return xml
+    .replace(/Initial approved issue\s*\/\s*/g, '')
+    .replace(/<w:br w:type="page"\/>/g, '');
 }
 function normalizeRetentionPeriod(value: any): string {
   return String(value || '')
