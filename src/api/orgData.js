@@ -27,6 +27,7 @@ export const READ_GATED = new Set([
   'SecurityReviewNote', 'AcolyteRemediationItem', 'AcolyteProfile',
   'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
   'CyberReadinessReview', 'Organization', 'OrganizationUser', 'PostureAssessment',
+  'DocumentConfiguration', 'ProjectDocument', 'DocumentSourceSnapshot',
 ]);
 
 // Entities writable through the write gate.
