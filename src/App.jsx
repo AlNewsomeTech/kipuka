@@ -35,7 +35,6 @@ import ScreenshotLibrary from '@/pages/ScreenshotLibrary';
 import DocumentLibrary from '@/pages/DocumentLibrary';
 import Documentation from '@/pages/Documentation';
 import EvidenceIndex from '@/pages/EvidenceIndex';
-import FinalPackage from '@/pages/FinalPackage';
 import SharePointPackage from '@/pages/SharePointPackage';
 import PIEESelfCert from '@/pages/PIEESelfCert';
 import UserManagement from '@/pages/UserManagement';
@@ -153,7 +152,7 @@ const AuthenticatedApp = () => {
           <Route path="/documents" element={<DocumentLibrary />} />
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/evidence" element={<EvidenceIndex />} />
-          <Route path="/package" element={<FinalPackage />} />
+          <Route path="/package" element={<DocumentLibrary initialTab="package" />} />
           <Route path="/sharepoint-package" element={<SharePointPackage />} />
           <Route path="/piee" element={<PIEESelfCert />} />
           <Route path="/settings" element={<Settings />} />
