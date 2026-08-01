@@ -37,6 +37,10 @@
       "type": "string",
       "description": "SHA-256 of the deterministically serialized snapshot payload."
     },
+    "source_state_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the canonical source record IDs, update timestamps, and evidence hashes at generation time. Lifecycle approval and package export recompute this value to detect stale drafts."
+    },
     "generated_by": {
       "type": "string"
     },
