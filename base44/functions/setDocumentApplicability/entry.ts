@@ -52,8 +52,8 @@ Deno.serve(async (req) => {
       if (active.length !== 1) return Response.json({ error: 'Your organization membership is missing, inactive, or ambiguous.' }, { status: 403 });
       orgRole = active[0].role;
       const allowed = mode === 'approve' ? APPROVE_ROLES : DECISION_ROLES;
-      if (caller.role !== 'technician' && !allowed.includes(orgRole || '')) {
-        return Response.json({ error: 'Your role is not authorized for this applicability action.' }, { status: 403 });
+      if (!allowed.includes(orgRole || '')) {
+        return Response.json({ error: 'Your active organization role is not authorized for this applicability action.' }, { status: 403 });
       }
     }
 
