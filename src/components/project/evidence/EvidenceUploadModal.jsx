@@ -1,184 +1,199 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, Upload, Loader2, Save, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { EVIDENCE_TYPES } from '@/lib/evidenceQuality';
 import { isToolActive } from '@/lib/securityTools';
 import RichTextField from '@/components/ui/RichTextField';
 
-// Tools that carry a naming standard.
 const TOOL_NAMING = {
   'NinjaOne': { toolName: 'NinjaOne', example: 'SI.L2-3.14.1_NinjaOne_OS_Patch_Policy_2026-07-05.png' },
   'Palo Alto Cortex XDR': { toolName: 'CortexXDR', example: 'SI.L2-3.14.2_CortexXDR_Malware_Prevention_Policy_2026-07-05.png' },
 };
-
-// A filename "looks like" it starts with a control ID: e.g. AC.L2-3.1.2_...
 const CONTROL_ID_PREFIX = /^[A-Z]{2}\.L\d-\d/;
+const PROVENANCE_TYPES = ['Manual Upload', 'System Export', 'Screenshot', 'Policy Record', 'Procedure Record', 'Third-Party Attestation'];
 
-// Create/edit a ProjectEvidence item. `existing` edits; otherwise creates.
-export default function EvidenceUploadModal({ project, currentUser, controls = [], presetControlIds = [], presetSourceTool = null, existing = null, onClose, onSaved }) {
+export default function EvidenceUploadModal({ project, controls = [], objectives = [], presetControlIds = [], presetSourceTool = null, existing = null, onClose, onSaved }) {
   const [form, setForm] = useState({
     evidence_title: '', evidence_type: 'Screenshot', control_ids: presetControlIds,
-    description: '', evidence_date: new Date().toISOString().slice(0, 10),
-    expiration_date: '', owner: '', source_system: '', source_tool: presetSourceTool || 'None',
-    review_status: presetSourceTool ? 'Needs Review' : 'Draft',
-    file_url: '', file_name: '',
+    objective_ids: [], description: '', evidence_date: new Date().toISOString().slice(0, 10),
+    expiration_date: '', retention_until: '', owner: '', source_system: '',
+    source_tool: presetSourceTool || 'None', provenance_type: 'Manual Upload',
+    provenance_details: '', file_url: '', original_file_name: '',
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [activeTools, setActiveTools] = useState([]); // enabled/planned tool names
+  const [activeTools, setActiveTools] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    if (existing) setForm({ ...existing, control_ids: existing.control_ids || [], source_tool: existing.source_tool || 'None' });
+    if (existing) setForm((current) => ({
+      ...current, ...existing, control_ids: existing.control_ids || [],
+      objective_ids: existing.objective_ids || [], source_tool: existing.source_tool || 'None',
+      file_url: '', original_file_name: existing.original_file_name || existing.file_name || '',
+    }));
   }, [existing]);
 
-  // Load which tools are enabled/planned so only those appear as source options.
   useEffect(() => {
     base44.entities.ProjectSecurityTool.filter({ project_id: project.id })
       .then((tools) => setActiveTools(tools.filter((t) => isToolActive(t.tool_status)).map((t) => t.tool_name)))
       .catch(() => setActiveTools([]));
   }, [project.id]);
 
-  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const toggleControl = (id) => setForm((current) => {
+    const selected = current.control_ids.includes(id)
+      ? current.control_ids.filter((controlId) => controlId !== id)
+      : [...current.control_ids, id];
+    return {
+      ...current, control_ids: selected,
+      objective_ids: current.objective_ids.filter((objectiveId) => {
+        const objective = objectives.find((item) => item.objective_id === objectiveId);
+        return objective && selected.includes(objective.control_id);
+      }),
+    };
+  });
+  const toggleObjective = (id) => setForm((current) => ({
+    ...current,
+    objective_ids: current.objective_ids.includes(id)
+      ? current.objective_ids.filter((objectiveId) => objectiveId !== id)
+      : [...current.objective_ids, id],
+  }));
 
-  const toggleControl = (id) => set('control_ids', form.control_ids.includes(id)
-    ? form.control_ids.filter((c) => c !== id)
-    : [...form.control_ids, id]);
+  const availableObjectives = useMemo(
+    () => objectives.filter((objective) => form.control_ids.includes(objective.control_id)),
+    [objectives, form.control_ids],
+  );
 
-  const handleFile = async (e) => {
-    const file = e.target.files?.[0];
+  const handleFile = async (event) => {
+    const file = event.target.files?.[0];
     if (!file) return;
+    setError('');
     setUploading(true);
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setForm((f) => ({ ...f, file_url, file_name: file.name, evidence_title: f.evidence_title || file.name }));
-    setUploading(false);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setForm((current) => ({
+        ...current, file_url, original_file_name: file.name,
+        evidence_title: current.evidence_title || file.name.replace(/\.[^.]+$/, ''),
+      }));
+    } catch (uploadError) {
+      setError(uploadError.message || 'The file could not be staged for secure ingestion.');
+    } finally {
+      setUploading(false);
+    }
   };
 
   const save = async () => {
+    setError('');
+    if (!form.evidence_title.trim()) return setError('Evidence title is required.');
+    if (!form.control_ids.length) return setError('Map the evidence to at least one project control.');
+    if (!existing && !form.file_url) return setError('A file is required for canonical evidence.');
     setSaving(true);
-    const payload = {
-      ...form,
-      organization_id: project.organization_id,
-      project_id: project.id,
-      uploaded_by: currentUser?.full_name || currentUser?.email || '',
-      expiration_date: form.expiration_date || undefined,
-    };
-    if (existing?.id) await base44.entities.ProjectEvidence.update(existing.id, payload);
-    else await base44.entities.ProjectEvidence.create(payload);
-    setSaving(false);
-    onSaved();
+    try {
+      await base44.functions.invoke('manageProjectEvidence', {
+        action: existing ? 'new_version' : 'create',
+        transition_id: crypto.randomUUID(),
+        project_id: project.id,
+        prior_evidence_id: existing?.id || undefined,
+        file_url: form.file_url || undefined,
+        original_file_name: form.original_file_name,
+        evidence_title: form.evidence_title,
+        evidence_type: form.evidence_type,
+        control_ids: form.control_ids,
+        objective_ids: form.objective_ids,
+        description: form.description,
+        evidence_date: form.evidence_date,
+        expiration_date: form.expiration_date || undefined,
+        retention_until: form.retention_until || undefined,
+        owner: form.owner,
+        source_system: form.source_system,
+        source_tool: form.source_tool,
+        provenance_type: form.provenance_type,
+        provenance_details: form.provenance_details,
+        quality_checklist: existing?.quality_checklist || {},
+        quality_notes: existing?.quality_notes || '',
+      });
+      onSaved();
+    } catch (saveError) {
+      setError(saveError?.response?.data?.error || saveError.message || 'Evidence could not be saved.');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // Source tool options: None + active tools + Other.
-  const sourceToolOptions = ['None', ...activeTools.filter((t) => t !== 'Other'), 'Other'];
-  // Ensure the current/preset value is always selectable even if not active.
+  const sourceToolOptions = ['None', ...activeTools.filter((tool) => tool !== 'Other'), 'Other'];
   if (form.source_tool && !sourceToolOptions.includes(form.source_tool)) sourceToolOptions.splice(1, 0, form.source_tool);
-
   const naming = TOOL_NAMING[form.source_tool];
-  const filenameWarn = naming && form.file_name && !CONTROL_ID_PREFIX.test(form.file_name);
+  const filenameWarn = naming && form.original_file_name && !CONTROL_ID_PREFIX.test(form.original_file_name);
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(event) => event.stopPropagation()}>
         <div className="flex items-center justify-between px-5 py-3 border-b border-slate-200 sticky top-0 bg-white z-10">
-          <h3 className="text-sm font-bold text-slate-800">{existing ? 'Edit Evidence' : 'Add Evidence'}</h3>
+          <div>
+            <h3 className="text-sm font-bold text-slate-800">{existing ? 'Create New Evidence Version' : 'Add Evidence'}</h3>
+            {existing && <p className="text-xs text-slate-500 mt-0.5">The current version remains immutable and will be superseded.</p>}
+          </div>
           <button onClick={onClose}><X className="w-5 h-5 text-slate-400" /></button>
         </div>
         <div className="p-5 space-y-4">
+          {error && <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />{error}</div>}
           <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">File</label>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">File {existing ? '(optional for a metadata-only new version)' : '*'}</label>
             <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-300 cursor-pointer hover:bg-slate-50 text-sm text-slate-600">
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-              {form.file_name || 'Upload a file (optional)'}
+              {form.original_file_name || 'Choose evidence file'}
               <input type="file" className="hidden" onChange={handleFile} />
             </label>
           </div>
 
-          {/* Source tool + naming guidance */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">Source Tool</label>
-            <select className="form-input" value={form.source_tool} onChange={(e) => set('source_tool', e.target.value)}>
-              {sourceToolOptions.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-          {naming && (
-            <div className="bg-slate-900 rounded-lg p-3 space-y-1">
-              <div className="text-[10px] text-slate-400 uppercase tracking-wide">Required naming format</div>
-              <div className="text-green-400 font-mono text-[12px] break-all">CONTROLID_{naming.toolName}_EvidenceDescription_YYYY-MM-DD.png</div>
-              <div className="text-green-400 font-mono text-[11px] break-all opacity-80">e.g. {naming.example}</div>
-            </div>
-          )}
-          {filenameWarn && (
-            <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-[13px] text-amber-800 leading-[1.5]">
-                Evidence file name should start with the primary CMMC control ID. Example: <span className="font-mono">{naming.example}</span>
-              </p>
-            </div>
-          )}
-
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Evidence Title *</label>
-            <input className="form-input" value={form.evidence_title} onChange={(e) => set('evidence_title', e.target.value)} />
+            <input className="form-input" value={form.evidence_title} onChange={(event) => set('evidence_title', event.target.value)} />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Type</label>
-              <select className="form-input" value={form.evidence_type} onChange={(e) => set('evidence_type', e.target.value)}>
-                {EVIDENCE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Owner</label>
-              <input className="form-input" value={form.owner} onChange={(e) => set('owner', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Evidence Date</label>
-              <input type="date" className="form-input" value={form.evidence_date} onChange={(e) => set('evidence_date', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Expiration Date</label>
-              <input type="date" className="form-input" value={form.expiration_date || ''} onChange={(e) => set('expiration_date', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Source System</label>
-              <input className="form-input" value={form.source_system} onChange={(e) => set('source_system', e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Review Status</label>
-              <select className="form-input" value={form.review_status} onChange={(e) => set('review_status', e.target.value)}>
-                {['Draft', 'Needs Review', 'Accepted', 'Rejected', 'Expired'].map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Type"><select className="form-input" value={form.evidence_type} onChange={(event) => set('evidence_type', event.target.value)}>{EVIDENCE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}</select></Field>
+            <Field label="Owner"><input className="form-input" value={form.owner} onChange={(event) => set('owner', event.target.value)} /></Field>
+            <Field label="Evidence Date"><input type="date" className="form-input" value={form.evidence_date} onChange={(event) => set('evidence_date', event.target.value)} /></Field>
+            <Field label="Expiration Date"><input type="date" className="form-input" value={form.expiration_date || ''} onChange={(event) => set('expiration_date', event.target.value)} /></Field>
+            <Field label="Retain Until"><input type="date" className="form-input" value={form.retention_until || ''} onChange={(event) => set('retention_until', event.target.value)} /></Field>
+            <Field label="Source System"><input className="form-input" value={form.source_system} onChange={(event) => set('source_system', event.target.value)} /></Field>
+            <Field label="Source Tool"><select className="form-input" value={form.source_tool} onChange={(event) => set('source_tool', event.target.value)}>{sourceToolOptions.map((tool) => <option key={tool} value={tool}>{tool}</option>)}</select></Field>
+            <Field label="Provenance"><select className="form-input" value={form.provenance_type} onChange={(event) => set('provenance_type', event.target.value)}>{PROVENANCE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}</select></Field>
+          </div>
+
+          {naming && <div className="bg-slate-900 rounded-lg p-3"><div className="text-[10px] text-slate-400 uppercase tracking-wide">Suggested source filename</div><div className="text-green-400 font-mono text-[11px] break-all">{naming.example}</div></div>}
+          {filenameWarn && <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-[13px] text-amber-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />Kipuka will normalize this filename and preserve the original name in provenance.</div>}
+
+          <RichTextField label="Description" value={form.description} onChange={(value) => set('description', value)} />
+          <Field label="Provenance Details"><textarea className="form-input min-h-20" value={form.provenance_details} onChange={(event) => set('provenance_details', event.target.value)} placeholder="How, where, and by whom this record was produced." /></Field>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Map to Controls *</label>
+            <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1">
+              {controls.map((control) => <label key={control.control_id} className="flex items-start gap-2 text-xs text-slate-700"><input type="checkbox" className="mt-0.5" checked={form.control_ids.includes(control.control_id)} onChange={() => toggleControl(control.control_id)} /><span><span className="font-mono text-slate-500">{control.control_id}</span> {control.control_title}</span></label>)}
             </div>
           </div>
 
-          <RichTextField label="Description" value={form.description} onChange={(v) => set('description', v)} />
-
-          {controls.length > 0 && (
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Map to Controls</label>
-              <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1">
-                {controls.map((c) => (
-                  <label key={c.control_id} className="flex items-center gap-2 text-xs text-slate-700">
-                    <input type="checkbox" checked={form.control_ids.includes(c.control_id)} onChange={() => toggleControl(c.control_id)} />
-                    <span className="font-mono text-slate-500">{c.control_id}</span> {c.control_title}
-                  </label>
-                ))}
-              </div>
+          {availableObjectives.length > 0 && <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">Link Assessment Objectives</label>
+            <p className="text-[11px] text-slate-500 mb-1.5">Linking evidence does not mark an objective MET; the assessor finding remains separate.</p>
+            <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-2 space-y-1">
+              {availableObjectives.map((objective) => <label key={objective.objective_id} className="flex items-start gap-2 text-xs text-slate-700"><input type="checkbox" className="mt-0.5" checked={form.objective_ids.includes(objective.objective_id)} onChange={() => toggleObjective(objective.objective_id)} /><span><span className="font-mono text-slate-500">{objective.objective_id}</span> {objective.objective_text || objective.description}</span></label>)}
             </div>
-          )}
-          {controls.length === 0 && presetControlIds.length > 0 && (
-            <p className="text-xs text-slate-500">Mapped to control: <span className="font-mono">{presetControlIds.join(', ')}</span></p>
-          )}
+          </div>}
         </div>
         <div className="flex justify-end gap-2 px-5 py-3 border-t border-slate-200 sticky bottom-0 bg-white">
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100">Cancel</button>
-          <button onClick={save} disabled={saving || !form.evidence_title.trim()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Evidence
+          <button onClick={save} disabled={saving || uploading} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} {existing ? 'Create New Version' : 'Save Draft'}
           </button>
         </div>
       </div>
     </div>
   );
+}
+
+function Field({ label, children }) {
+  return <div><label className="block text-xs font-semibold text-slate-600 mb-1">{label}</label>{children}</div>;
 }
