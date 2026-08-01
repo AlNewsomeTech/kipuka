@@ -123,6 +123,87 @@ ok(!/entities\.(?:Client|ControlProgress|GeneratedDocument)/.test(ui), 'UI has n
 const builderExecutable = read('src/components/documents/DocumentBuilder.jsx').replace(/^\s*\/\/.*$/gm, '');
 ok(!/bulkGenerate|onApprove|onPublish|approveDocument|publishDocument/i.test(builderExecutable), 'builder exposes no bulk or approval action');
 
+
+const lifecycleSchemas = ['ProjectDocumentEvent', 'DocumentApplicabilityDecision', 'ProjectDocumentPackage'];
+for (const entity of lifecycleSchemas) {
+  const schema = jsonc(`base44/entities/${entity}.jsonc`);
+  ok(schema.name === entity, `${entity}: schema name matches`);
+  ok(schema.rls?.read && schema.rls?.write, `${entity}: explicit read/write RLS exists`);
+  ok(schema.properties.organization_id && schema.properties.project_id, `${entity}: canonical organization/project ownership exists`);
+}
+const sourceSnapshot4d = jsonc('base44/entities/DocumentSourceSnapshot.jsonc');
+ok(sourceSnapshot4d.properties.source_state_sha256, 'source snapshots pin a canonical source-state hash');
+const projectDocument4d = jsonc('base44/entities/ProjectDocument.jsonc');
+for (const field of ['draft_file_uri', 'draft_output_sha256', 'approval_record_id', 'approved_date', 'effective_date', 'next_review_date', 'last_transition_id', 'last_transition_action']) {
+  ok(projectDocument4d.properties[field], `ProjectDocument includes lifecycle field ${field}`);
+}
+const config4d = jsonc('base44/entities/DocumentConfiguration.jsonc');
+ok(config4d.properties.logo_url && config4d.properties.logo_sha256, 'document configuration pins logo URL and SHA-256');
+
+const lifecycle = read('base44/functions/manageProjectDocumentLifecycle/entry.ts');
+indexBefore(lifecycle, 'base44.auth.me()', 'base44.asServiceRole', 'lifecycle authenticates before service role');
+indexBefore(lifecycle, 'OrganizationUser.filter', 'ProjectDocument.get', 'lifecycle checks active membership before document read');
+indexBefore(lifecycle, "fetchVerified(sr, doc.file_uri", 'ProjectDocument.update(doc.id, updates)', 'lifecycle verifies current bytes before transition write');
+ok(lifecycle.includes("from: ['In Review'], to: 'Approved'"), 'approval is only valid from In Review');
+ok(lifecycle.includes('source_state_sha256') && lifecycle.includes('currentStateSha !== snapshot.source_state_sha256'), 'approval fails closed on stale canonical sources');
+ok(lifecycle.includes('rebuiltSnapshotSha !== snapshot.snapshot_sha256'), 'approval verifies immutable source snapshot contents');
+indexBefore(lifecycle, 'UploadPrivateFile', 'ProjectDocument.update(doc.id, updates)', 'approval uploads verified final bytes before document transition');
+ok(lifecycle.includes('draft_file_uri') && lifecycle.includes('draft_output_sha256'), 'approval preserves original draft URI and hash');
+ok(lifecycle.includes("document_version: '1.0'") && lifecycle.includes("missing_approval_fields: []"), 'first approval becomes complete version 1.0');
+ok(lifecycle.includes('ProjectDocumentEvent.create') && lifecycle.includes('event_sha256'), 'lifecycle appends hash-verified audit events');
+ok(lifecycle.includes('last_transition_action !== action'), 'idempotency key cannot be replayed for a different action');
+ok(lifecycle.includes('loadVerifiedLogo') && lifecycle.includes('embedLogo') && lifecycle.includes('kipuka-organization-logo'), 'approval renderer embeds a hash-verified organization logo');
+ok(!/entities\.(?:Client|ControlProgress|GeneratedDocument|EvidenceItem|Screenshot|POAMItem)\s*\./.test(lifecycle), 'lifecycle has no retired entity query');
+
+const applicability = read('base44/functions/setDocumentApplicability/entry.ts');
+indexBefore(applicability, 'base44.auth.me()', 'base44.asServiceRole', 'applicability authenticates before service role');
+indexBefore(applicability, 'OrganizationUser.filter', 'Project.get', 'applicability checks active membership before project read');
+ok(applicability.includes("'Out of Scope'") && applicability.includes('justification.length < 40'), 'Out-of-Scope requires substantive justification');
+ok(applicability.includes('evidenceIds.length < 1') && applicability.includes('/^[a-f0-9]{64}$/i'), 'Out-of-Scope requires accepted SHA-256 evidence');
+ok(applicability.includes('trigger.length < 20') && applicability.includes("decision === 'Needs Scoping Decision'"), 'applicability approval requires a trigger and resolved decision');
+ok(applicability.includes('decision_sha256') && applicability.includes("status: 'Superseded'"), 'applicability decisions are hashed and versioned');
+
+const packageFn = read('base44/functions/generateProjectDocumentPackage/entry.ts');
+indexBefore(packageFn, 'base44.auth.me()', 'base44.asServiceRole', 'package export authenticates before service role');
+indexBefore(packageFn, 'OrganizationUser.filter', 'Project.get', 'package export checks active membership before project read');
+indexBefore(packageFn, "mode === 'Ready' && blockers.length", 'UploadPrivateFile', 'Ready package blockers are enforced before upload');
+ok(packageFn.includes('DocumentApplicabilityDecision') && packageFn.includes('ProjectDocumentPackage'), 'package export uses canonical Project entities');
+for (const pathName of ['Document_Index.csv', 'Applicability_Decision_Register.csv', 'sha256-manifest.json', 'Missing_Information_and_Stale_Documents.csv', 'README.txt']) {
+  ok(packageFn.includes(pathName), `package includes ${pathName}`);
+}
+ok(packageFn.includes('fetchVerified') && packageFn.includes('outputSha'), 'package verifies inputs and hashes ZIP output');
+ok(packageFn.includes("['Approved', 'Published'].includes") && packageFn.includes('doc.stale'), 'Ready package accepts only approved/current documents');
+ok(!/entities\.(?:Client|ControlProgress|GeneratedDocument|EvidenceItem|Screenshot|POAMItem|PackageExport)\s*\./.test(packageFn), 'package export has no retired entity query');
+
+const configFn = read('base44/functions/saveProjectDocumentConfiguration/entry.ts');
+indexBefore(configFn, 'base44.auth.me()', 'base44.asServiceRole', 'configuration save authenticates before service role');
+indexBefore(configFn, 'OrganizationUser.filter', 'Project.get', 'configuration save checks membership before project read');
+ok(!configFn.includes("'organization_id'") || configFn.includes("k !== 'project_id'"), 'configuration does not accept caller-supplied organization_id');
+ok(configFn.includes('logo_sha256') && configFn.includes("redirect: 'error'") && configFn.includes('privateHost'), 'configuration hash-verifies logos and blocks unsafe fetches');
+
+const generator4d = read('base44/functions/generateProjectDocument/entry.ts');
+ok(generator4d.includes('source_state_sha256') && generator4d.includes('logo_sha256'), 'draft generation pins source state and logo hash');
+ok(generator4d.includes('embedLogo') && generator4d.includes('word/media/kipuka-organization-logo'), 'draft generator embeds logo into DOCX OOXML');
+const preflight4d = read('base44/functions/preflightProjectDocument/entry.ts');
+ok(preflight4d.includes('config?.logo_sha256'), 'preflight treats unverified logo as missing information');
+
+for (const entity of lifecycleSchemas) {
+  ok(orgData.includes(`'${entity}'`), `client proxy gates ${entity}`);
+  ok(orgGate.includes(`'${entity}'`), `server read gate permits scoped ${entity}`);
+}
+const lifecycleUi = [
+  read('src/pages/DocumentLibrary.jsx'),
+  read('src/components/documents/DocumentLifecycle.jsx'),
+  read('src/components/documents/ApplicabilityMatrix.jsx'),
+  read('src/components/documents/DocumentPackagePanel.jsx'),
+  read('src/components/documents/DocumentConfigurationEditor.jsx'),
+  read('src/App.jsx'),
+].join('\n');
+for (const fn of ['manageProjectDocumentLifecycle', 'setDocumentApplicability', 'generateProjectDocumentPackage', 'saveProjectDocumentConfiguration']) {
+  ok(lifecycleUi.includes(fn), `UI invokes ${fn}`);
+}
+ok(lifecycleUi.includes('initialTab="package"') && !lifecycleUi.includes("import FinalPackage from"), 'legacy Final Package route is replaced by canonical document package UI');
+
 if (failures.length) {
   console.error(`Phase 4 document checks failed: ${failures.length} failure(s), ${passed} passed`);
   for (const failure of failures) console.error(`- ${failure}`);
