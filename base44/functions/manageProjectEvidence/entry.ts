@@ -353,7 +353,8 @@ Deno.serve(async (req) => {
       updates.reviewed_date = now; updates.review_note = note || 'Evidence expired.';
     } else if (action === 'archive') {
       if (!isPlatformAdmin && !REVIEW_ROLES.includes(orgRole)) return Response.json({ error: 'Your organization role cannot archive evidence.' }, { status: 403 });
-      if (evidence.retention_until && evidence.retention_until > now.slice(0, 10)) return Response.json({ error: 'Evidence cannot be archived before its retention-until date.' }, { status: 409 });
+      if (!evidence.retention_until) return Response.json({ error: 'Evidence cannot be archived without a retention-until date.' }, { status: 409 });
+      if (evidence.retention_until > now.slice(0, 10)) return Response.json({ error: 'Evidence cannot be archived before its retention-until date.' }, { status: 409 });
       updates.review_status = 'Archived'; updates.lifecycle_status = 'Archived';
     }
 
