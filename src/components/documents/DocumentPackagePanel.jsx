@@ -29,8 +29,8 @@ export default function DocumentPackagePanel({ project, packages, onChanged }) {
       <h2 className="text-lg font-semibold text-slate-900">Document Package Export</h2>
       <p className="mt-1 text-sm text-slate-500">Draft packages may include working documents and blockers. Ready packages fail closed unless every required applicability decision and document is approved and current.</p>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button onClick={() => generate('Draft')} disabled={busy} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"><PackageOpen className="h-4 w-4" />{busy === 'Draft' ? 'Generating…' : 'Generate Draft Package'}</button>
-        <button onClick={() => generate('Ready')} disabled={busy} className="inline-flex items-center gap-2 rounded-lg bg-[#0F1E3C] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><PackageCheck className="h-4 w-4" />{busy === 'Ready' ? 'Validating…' : 'Generate Ready Package'}</button>
+        <button onClick={() => generate('Draft')} disabled={Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 disabled:opacity-50"><PackageOpen className="h-4 w-4" />{busy === 'Draft' ? 'Generating…' : 'Generate Draft Package'}</button>
+        <button onClick={() => generate('Ready')} disabled={Boolean(busy)} className="inline-flex items-center gap-2 rounded-lg bg-[#0F1E3C] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><PackageCheck className="h-4 w-4" />{busy === 'Ready' ? 'Validating…' : 'Generate Ready Package'}</button>
       </div>
       {error && <pre className="mt-4 whitespace-pre-wrap rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">{error}</pre>}
       {result?.download_url && <a href={result.download_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700"><Download className="h-4 w-4" />Download generated package</a>}
