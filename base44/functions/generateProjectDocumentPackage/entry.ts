@@ -175,6 +175,18 @@ Deno.serve(async (req) => {
       { path: '05_Reports/Missing_Information_and_Stale_Documents.csv', sha256: await sha256Hex(new TextEncoder().encode(gapCsv)) },
     );
     const generatedDate = new Date().toISOString();
+    const readme = [
+      `${organization.legal_name || organization.organization_name || 'Organization'} — ${project.project_name}`,
+      `Canonical Document Package (${mode})`, '',
+      'This package was generated from versioned ProjectDocument records.',
+      'Ready mode contains only current Approved or Published documents.',
+      'Verify each listed file against 04_Integrity/sha256-manifest.json.',
+      blockers.length ? `BLOCKERS: ${blockers.join(' | ')}` : 'BLOCKERS: None',
+      warnings.length ? `WARNINGS: ${warnings.join(' | ')}` : 'WARNINGS: None',
+    ].join('\r\n');
+    zip.file('00_Read_Me/README.txt', readme);
+    hashEntries.push({ path: '00_Read_Me/README.txt', sha256: await sha256Hex(new TextEncoder().encode(readme)) });
+
     const sourceState = {
       project: { id: project.id, updated_date: project.updated_date || '' },
       templates: applicable.map((t: any) => ({ id: t.id, key: t.template_key, version: t.template_version, sha256: t.normalized_sha256 })).sort((a: any, b: any) => a.key.localeCompare(b.key)),
@@ -190,16 +202,6 @@ Deno.serve(async (req) => {
     const manifestText = JSON.stringify(manifest, null, 2);
     const manifestSha = await sha256Hex(new TextEncoder().encode(manifestText));
     zip.file('04_Integrity/sha256-manifest.json', manifestText);
-    const readme = [
-      `${organization.legal_name || organization.organization_name || 'Organization'} — ${project.project_name}`,
-      `Canonical Document Package (${mode})`, '',
-      'This package was generated from versioned ProjectDocument records.',
-      'Ready mode contains only current Approved or Published documents.',
-      'Verify each file against 04_Integrity/sha256-manifest.json.',
-      blockers.length ? `BLOCKERS: ${blockers.join(' | ')}` : 'BLOCKERS: None',
-      warnings.length ? `WARNINGS: ${warnings.join(' | ')}` : 'WARNINGS: None',
-    ].join('\r\n');
-    zip.file('00_Read_Me/README.txt', readme);
 
     const bytes = await zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
     const outputSha = await sha256Hex(bytes);
