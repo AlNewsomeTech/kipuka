@@ -23,6 +23,7 @@ const READ_WHITELIST = new Set([
   'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
   'CyberReadinessReview', 'PostureAssessment',
   'DocumentConfiguration', 'ProjectDocument', 'DocumentSourceSnapshot',
+  'ProjectDocumentEvent', 'DocumentApplicabilityDecision', 'ProjectDocumentPackage',
   // Own-org records only (special-cased below):
   'Organization', 'OrganizationUser',
 ]);
