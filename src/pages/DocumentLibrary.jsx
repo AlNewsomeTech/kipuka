@@ -22,10 +22,10 @@ const TABS = [
   { id: 'settings', label: 'Settings', icon: Settings2 },
 ];
 
-export default function DocumentLibrary() {
+export default function DocumentLibrary({ initialTab = 'dashboard' }) {
   const [projects, setProjects] = useState([]);
   const [projectId, setProjectId] = useState('');
-  const [tab, setTab] = useState('dashboard');
+  const [tab, setTab] = useState(initialTab);
   const [docs, setDocs] = useState([]);
   const [configs, setConfigs] = useState([]);
   const [events, setEvents] = useState([]);
