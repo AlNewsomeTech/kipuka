@@ -518,7 +518,7 @@ function checkPackageJson() {
   if (!pkg) { bad('package.json could not be read'); return; }
   expect(pkg.scripts?.['test:cmmc-data'] === 'node scripts/check-cmmc-dataset.mjs',
     'test:cmmc-data script added exactly as specified');
-  const expectedScripts = ['dev', 'build', 'lint', 'lint:fix', 'typecheck', 'test:security', 'test:cmmc-data', 'test:canonical-migration', 'test:canonical-runtime', 'test:canonical-dashboard', 'test:canonical-readiness', 'preview'];
+  const expectedScripts = ['dev', 'build', 'lint', 'lint:fix', 'typecheck', 'test:security', 'test:cmmc-data', 'test:canonical-migration', 'test:canonical-runtime', 'test:canonical-dashboard', 'test:canonical-readiness', 'test:canonical-documents', 'preview'];
   const actual = Object.keys(pkg.scripts || {});
   const extra = actual.filter((s) => !expectedScripts.includes(s));
   expect(extra.length === 0, `no unexpected scripts added (extra: ${extra.join(',') || 'none'})`);
