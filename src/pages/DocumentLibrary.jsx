@@ -66,6 +66,7 @@ export default function DocumentLibrary() {
           icon={FileText}
           title={loadingProjects ? 'Loading projects…' : 'No project selected'}
           description={loadingProjects ? '' : 'Select a project to view applicable policy templates and generate DOCX drafts.'}
+          action={null}
         />
       ) : (
         <>
