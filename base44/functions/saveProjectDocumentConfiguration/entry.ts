@@ -73,7 +73,10 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'Logo URL must be public HTTPS or a private Base44 file URI.' }, { status: 400 });
         }
       }
-      const logoResponse = await fetch(logoUrl, { redirect: 'error' });
+      const logoResponse = await fetch(logoUrl, { redirect: 'manual' });
+      if (logoResponse.status >= 300 && logoResponse.status < 400) {
+        return Response.json({ error: 'Configured logo redirects are not allowed.' }, { status: 400 });
+      }
       if (!logoResponse.ok) return Response.json({ error: 'Configured logo could not be fetched.' }, { status: 400 });
       const contentType = (logoResponse.headers.get('content-type') || '').toLowerCase();
       const logoBytes = new Uint8Array(await logoResponse.arrayBuffer());
