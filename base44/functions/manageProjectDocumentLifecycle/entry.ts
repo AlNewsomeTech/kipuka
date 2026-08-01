@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
     const doc = await sr.entities.ProjectDocument.get(documentId).catch(() => null);
     if (!doc || (!isAdmin && doc.organization_id !== callerOrg)) return Response.json({ error: 'Document not found' }, { status: 404 });
     if (doc.last_transition_id === transitionId) {
+      if (doc.last_transition_action !== action) return Response.json({ error: 'transition_id was already used for a different action.' }, { status: 409 });
       const events = await sr.entities.ProjectDocumentEvent.filter({ transition_id: transitionId }).catch(() => []);
       if (events.length === 0) await createEvent(sr, doc, caller, transitionId, action, doc.status, doc.status, note);
       return Response.json({ document: doc, idempotent: true });
@@ -139,7 +140,7 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     const actor = displayName(caller);
     const fromStatus = doc.status;
-    let updates: any = { status: transition.to, last_transition_id: transitionId };
+    let updates: any = { status: transition.to, last_transition_id: transitionId, last_transition_action: action };
 
     if (['submit_review', 'resubmit'].includes(action)) {
       if ((doc.missing_fields || []).length || (doc.unresolved_fields || []).length || doc.stale) {
