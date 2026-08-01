@@ -47,7 +47,7 @@ ok(fn.includes('prior.organization_id !== callerOrg'), 'idempotency cannot discl
 ok(fn.includes("redirect: 'manual'") && fn.includes('isPrivateHost'), 'staging redirects are bounded against SSRF');
 ok(fn.includes('expectedPrefix') && fn.includes('base44.app'), 'only this app public staging path is accepted');
 before(fn, 'fileHash = await sha256Hex', 'UploadPrivateFile', 'file is hashed before private upload');
-before(fn, 'UploadPrivateFile', 'fetchVerifiedPrivate', 'private upload is round-trip verified');
+before(fn, 'const uploaded = await sr.integrations.Core.UploadPrivateFile', 'await fetchVerifiedPrivate(sr, fileUri, fileHash)', 'private upload is round-trip verified');
 ok(fn.includes("startsWith('mp/private/')"), 'canonical evidence must use private storage');
 ok(fn.includes("hash_algorithm: 'SHA-256'"), 'SHA-256 is pinned');
 ok(fn.includes("review_status: 'Draft'"), 'new evidence is always Draft');
