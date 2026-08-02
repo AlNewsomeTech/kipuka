@@ -40,7 +40,9 @@ export function validNotApplicable(assessment) {
 
 export function validFinalEvidence(evidence, asOf = new Date()) {
   if (!evidence || evidence.review_status !== 'Accepted') return false;
-  if (!String(evidence.file_url || '').trim()) return false;
+  // Canonical evidence stores private file_uri; legacy records used public file_url.
+  const hasFile = Boolean(String(evidence.file_uri || '').trim()) || Boolean(String(evidence.file_url || '').trim());
+  if (!hasFile) return false;
   if (!String(evidence.hash_value || '').trim()) return false;
   if (evidence.expiration_date) {
     const expiry = new Date(`${evidence.expiration_date}T23:59:59.999Z`);
