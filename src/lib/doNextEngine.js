@@ -3,7 +3,8 @@
 // target level, ordered by SPRS point value descending, tie-broken by control
 // family order (AC, AT, AU, CM, IA, IR, MA, MP, PS, PE, RA, CA, SC, SI).
 
-import { pointValueFor, isMetStatus } from '@/lib/sprsScoring';
+import { pointValueFor } from '@/lib/sprsScoring';
+import { isSimpleDone } from '@/lib/simpleStatus';
 
 export const CANONICAL_DATASET_KEY = 'CMMC-2.13-SP800-171R2-2024-09';
 
@@ -69,12 +70,12 @@ export function buildGuidedQueue(library, assessments, project) {
 // The single highest-priority incomplete control (for the "Continue implementation" hero button).
 export function nextIncomplete(library, assessments, project) {
   const queue = buildGuidedQueue(library, assessments, project);
-  return queue.find((it) => !isMetStatus(it.status)) || null;
+  return queue.find((it) => !isSimpleDone(it.status)) || null;
 }
 
 // Progress counts for the hero strip: "X of Y controls done".
 export function queueCounts(library, assessments, project) {
   const queue = buildGuidedQueue(library, assessments, project);
-  const done = queue.filter((it) => isMetStatus(it.status)).length;
+  const done = queue.filter((it) => isSimpleDone(it.status)).length;
   return { done, total: queue.length };
 }

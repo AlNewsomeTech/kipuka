@@ -3,6 +3,7 @@
 // this only MAPS it to four buckets for display and writes back real statuses.
 
 import { isMetStatus, isInProgressStatus } from '@/lib/sprsScoring';
+import { isImplementedStatus } from '@/lib/canonicalReadiness';
 
 // The four client-facing buckets.
 export const SIMPLE_STATUS = {
@@ -20,7 +21,10 @@ export function toSimpleStatus(realStatus) {
   if (realStatus === 'Gap Identified' || realStatus === 'POA&M Linked') {
     return SIMPLE_STATUS.STUCK;
   }
-  if (isMetStatus(realStatus)) return SIMPLE_STATUS.DONE;
+  // Done = the control's implementation workflow is complete (implemented /
+  // evidence uploaded / verified). This is progress display only — it never
+  // feeds SPRS scoring or assessment MET findings.
+  if (isMetStatus(realStatus) || isImplementedStatus(realStatus)) return SIMPLE_STATUS.DONE;
   if (isInProgressStatus(realStatus)) return SIMPLE_STATUS.IN_PROGRESS;
   // Anything else (Not Applicable, etc.) — treat as in progress so it isn't lost.
   if (realStatus === 'Not Applicable') return SIMPLE_STATUS.DONE;

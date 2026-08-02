@@ -30,6 +30,12 @@ export function isImplementationComplete(assessment) {
   return IMPLEMENTED_STATUSES.has(assessment?.status) || validNotApplicable(assessment);
 }
 
+// Status-only check for display layers (guided queue, simple status badges).
+// Implementation progress ≠ an assessment MET finding — SPRS scoring stays strict.
+export function isImplementedStatus(status) {
+  return IMPLEMENTED_STATUSES.has(status);
+}
+
 export function validNotApplicable(assessment) {
   return assessment?.status === 'Not Applicable'
     && Boolean(String(assessment.not_applicable_justification || '').trim())

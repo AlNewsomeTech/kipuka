@@ -1,6 +1,7 @@
 import { base44 } from '@/api/base44Client';
 import { resolveProjectIdForClient } from '@/lib/clientProject';
 import { isMetStatus, isInProgressStatus } from '@/lib/sprsScoring';
+import { isImplementationComplete } from '@/lib/canonicalReadiness';
 
 // Canonical client progress.
 //
@@ -108,7 +109,7 @@ export async function loadCanonicalClientProgress(clientId) {
   assessments.forEach((a) => {
     const id = String(a.control_id || '').trim();
     if (!id) return;
-    if (isMetStatus(a.status)) done.add(id);
+    if (isMetStatus(a.status) || isImplementationComplete(a)) done.add(id);
     else if (isInProgressStatus(a.status)) started.add(id);
   });
   done.forEach((id) => started.delete(id));
