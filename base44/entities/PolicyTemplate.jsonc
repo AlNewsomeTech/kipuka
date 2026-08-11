@@ -57,6 +57,56 @@
       "type": "string",
       "format": "date"
     },
+    "review_request_id": {
+      "type": "string"
+    },
+    "review_source_sha256": {
+      "type": "string"
+    },
+    "review_requested_by_user_id": {
+      "type": "string"
+    },
+    "review_requested_by_email": {
+      "type": "string"
+    },
+    "review_requested_by_name": {
+      "type": "string"
+    },
+    "review_requested_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by_user_id": {
+      "type": "string"
+    },
+    "reviewed_by_email": {
+      "type": "string"
+    },
+    "reviewed_by_name": {
+      "type": "string"
+    },
+    "reviewed_by_role": {
+      "type": "string"
+    },
+    "reviewed_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_note": {
+      "type": "string"
+    },
+    "approval_record_id": {
+      "type": "string"
+    },
+    "approval_source_sha256": {
+      "type": "string"
+    },
+    "last_transition_id": {
+      "type": "string"
+    },
+    "last_transition_action": {
+      "type": "string"
+    },
     "is_master_template": {
       "type": "boolean",
       "default": false,
@@ -105,18 +155,9 @@
       ]
     },
     "write": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "__service_only__"
+      }
     }
   }
 }
