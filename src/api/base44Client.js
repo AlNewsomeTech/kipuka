@@ -84,8 +84,14 @@ const scopedEntities = new Proxy(rawClient.entities, {
         }
         return async (...args) => {
           const role = await resolveRole();
-          if (role !== 'client') return orig.apply(entityTarget, args);
           const { READ_GATED, WRITE_GATED, gatedEntityFor } = await loadOrgData();
+          // ControlAssessment is service-write-only. Every platform role uses
+          // the backend write gate so protected applicability fields cannot be
+          // changed through a direct SDK call.
+          if (WRITE_METHODS.has(method) && entityName === 'ControlAssessment') {
+            return gatedEntityFor(entityName)[method](...args);
+          }
+          if (role !== 'client') return orig.apply(entityTarget, args);
           const isGated = (READ_METHODS.has(method) && READ_GATED.has(entityName)) ||
             (WRITE_METHODS.has(method) && WRITE_GATED.has(entityName));
           if (!isGated) return orig.apply(entityTarget, args);
