@@ -1,4 +1,4 @@
-const KNOWN_TOOL_NAMES = [
+const KNOWN_TOOL_NAMES = /** @type {Array<[RegExp, string]>} */ ([
   [/entra|azure ad|identity/i, 'EntraID'],
   [/microsoft 365|office 365|m365/i, 'Microsoft365'],
   [/intune|endpoint manager/i, 'Intune'],
@@ -12,7 +12,7 @@ const KNOWN_TOOL_NAMES = [
   [/cortex/i, 'CortexXDR'],
   [/palo alto/i, 'PaloAlto'],
   [/google workspace/i, 'GoogleWorkspace'],
-];
+]);
 
 export function filenameSegment(value, fallback = '') {
   const cleaned = String(value || '')
