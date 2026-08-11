@@ -41,6 +41,7 @@ export default function GuidedWalkthrough() {
   const [selectedStack, setSelectedStack] = useState('');
   const [checks, setChecks] = useState({});
   const [saving, setSaving] = useState(false);
+  const [savingChecks, setSavingChecks] = useState(false);
   const [stuckOpen, setStuckOpen] = useState(false);
   const [stuckNote, setStuckNote] = useState('');
   const [savingStuck, setSavingStuck] = useState(false);
@@ -136,10 +137,16 @@ export default function GuidedWalkthrough() {
     persist({ selected_stack: key });
   };
 
-  const toggleCheck = (i) => {
+  const toggleCheck = async (i) => {
+    if (readOnly || savingChecks) return;
     const next = { ...checks, [i]: !checks[i] };
-    setChecks(next);
-    persist({ verify_checks: next });
+    setSavingChecks(true);
+    try {
+      const saved = await persist({ verify_checks: next });
+      if (saved?.id) setChecks(saved.verify_checks || next);
+    } finally {
+      setSavingChecks(false);
+    }
   };
 
   const manageApplicability = async (action, payload = {}) => {
@@ -161,6 +168,10 @@ export default function GuidedWalkthrough() {
 
   // VERIFY → save the canonical status first. Never show Done after a rejected write.
   const markDone = async () => {
+    if (readOnly) {
+      setActionError('Your access is read-only. Ask an authorized project member to finish this implementation step.');
+      return;
+    }
     if (!assessment?.id) {
       setActionError('Kipuka cannot mark this control done because its assessment record is missing.');
       return;
@@ -330,6 +341,8 @@ export default function GuidedWalkthrough() {
             onToggleCheck={toggleCheck}
             onMarkDone={markDone}
             saving={saving}
+            savingChecks={savingChecks}
+            readOnly={readOnly}
             assessment={assessment}
             currentStatus={assessment?.status || 'Not Started'}
             error={actionError}
