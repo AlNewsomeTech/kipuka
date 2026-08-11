@@ -393,7 +393,7 @@ export default function GuidedWalkthrough() {
         </div>
       )}
 
-      <ConfidentialityFooter />
+      <ConfidentialityFooter text="" />
     </div>
   );
 }
