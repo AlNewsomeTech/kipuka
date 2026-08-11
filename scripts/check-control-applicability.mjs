@@ -31,7 +31,8 @@ ok(eventSchema.rls?.write?.user_condition?.role === '__service_only__', 'applica
 for (const field of [
   'not_applicable_request_id', 'not_applicable_request_status',
   'not_applicable_decision_sha256', 'not_applicable_approved_by_email',
-  'not_applicable_approved_date',
+  'not_applicable_approved_date', 'not_applicable_last_transition_id',
+  'not_applicable_last_transition_input_sha256',
 ]) ok(Boolean(assessmentSchema.properties[field]), 'assessment schema has ' + field);
 for (const field of [
   'organization_id', 'project_id', 'control_assessment_id', 'control_id',
@@ -72,6 +73,14 @@ ok(fn.includes('event_sha256'), 'events are SHA-256 backed');
 ok(fn.includes('previous_event_sha256'), 'events form a hash chain');
 ok(fn.includes('transition_id was already used for a different action or payload'), 'idempotency keys cannot change payload');
 ok(fn.includes('idempotent_replay: true'), 'identical transition replay is safe');
+ok(fn.includes('audit_recovered: true'), 'partial transitions are explicitly recovered');
+ok(fn.includes('transitionRequests.length > 1'), 'duplicate partial-transition markers fail closed');
+ok(fn.includes('assessmentTransitionMatch'), 'assessment transitions carry recovery markers');
+ok(fn.includes("action === 'request'") && fn.includes('Interrupted request transition is inconsistent'), 'interrupted requests recover consistently');
+ok(fn.includes("action === 'approve' || action === 'reject'") && fn.includes('Interrupted review transition is inconsistent'), 'interrupted reviews recover consistently');
+ok(fn.includes("action === 'withdraw'") && fn.includes('Interrupted withdrawal transition is inconsistent'), 'interrupted withdrawals recover consistently');
+ok(fn.includes("action === 'restore'") && fn.includes('Interrupted restore transition is inconsistent'), 'interrupted restores recover consistently');
+ok((fn.match(/not_applicable_last_transition_id: transitionId/g) || []).length >= 8, 'all assessment transition and recovery paths persist idempotency markers');
 ok(fn.includes("action !== 'restore'"), 'legacy N/A can be restored without a request record');
 
 const writeGate = read('base44/functions/orgScopedWrite/entry.ts');
