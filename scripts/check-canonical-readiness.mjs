@@ -38,9 +38,28 @@ check('accepted evidence without a verified hash is 0% ready', noHash.readiness_
 check('valid final evidence requires hash', validFinalEvidence({ ...evidence[0], hash_value: '' }) === false);
 check('expired evidence is invalid', validFinalEvidence({ ...evidence[0], expiration_date: '2000-01-01' }) === false);
 
-const naAssessment = { ...assessments[0], status: 'Not Applicable', not_applicable_justification: 'Out of scope', not_applicable_scope_evidence: 'Approved boundary', not_applicable_confirmed_by: 'Reviewer', not_applicable_confirmed_date: '2026-07-31' };
-check('fully documented N/A is valid', validNotApplicable(naAssessment) === true);
+const naAssessment = {
+  ...assessments[0],
+  status: 'Not Applicable',
+  not_applicable_justification: 'Out of scope',
+  not_applicable_scope_evidence: 'Approved boundary',
+  not_applicable_confirmed_by: 'Reviewer',
+  not_applicable_confirmed_date: '2026-07-31',
+  not_applicable_request_id: 'na-request-1',
+  not_applicable_request_status: 'Approved',
+  not_applicable_decision_sha256: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  not_applicable_approved_by_email: 'reviewer@example.test',
+  not_applicable_approved_date: '2026-07-31T12:00:00Z',
+};
+check('independently approved N/A is valid', validNotApplicable(naAssessment) === true);
 check('N/A without reviewer is invalid', validNotApplicable({ ...naAssessment, not_applicable_confirmed_by: '' }) === false);
+check('legacy documented N/A without approved request is invalid', validNotApplicable({
+  ...naAssessment,
+  not_applicable_request_id: '',
+  not_applicable_request_status: '',
+  not_applicable_decision_sha256: '',
+}) === false);
+check('N/A with malformed decision hash is invalid', validNotApplicable({ ...naAssessment, not_applicable_decision_sha256: 'not-a-hash' }) === false);
 const oneNa = computeCanonicalReadiness({ project, assessments: [naAssessment, ...assessments.slice(1)], objectiveLibrary: objectives, objectiveLinks: [], evidence: [], poams: [] });
 check('documented N/A is equivalent to one MET requirement', oneNa.met === 1);
 const poamNoCredit = computeCanonicalReadiness({ project, assessments, objectiveLibrary: objectives, objectiveLinks: [], evidence: [], poams: [{ project_id: 'p1', control_id: 'C1', status: 'Open' }] });
