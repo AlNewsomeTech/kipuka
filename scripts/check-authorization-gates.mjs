@@ -244,6 +244,12 @@ function checkOrgScopedData(src, clean) {
 function checkOrgScopedWrite(src, clean) {
   assertAuthenticationGate(src, clean);
   const { svc } = checkOrgScopedShared(clean);
+  must(
+    clean,
+    /const\s+isPlatformAdmin\s*=\s*caller\.role\s*===\s*'admin'\s*\|\|\s*caller\._app_role\s*===\s*'admin'/,
+    'platform admin accepts only server-authenticated role fields',
+  );
+  mustNot(clean, /(?:body|data)\s*\.\s*_app_role/, 'request payload cannot supply the platform-admin role');
 
   const strip = must(clean, /delete\s+clean\.organization_id\s*;/,
     'client-supplied organization_id is stripped from every write payload');
