@@ -64,7 +64,7 @@ const scoping = read('src/components/project/scoping/ScopingModule.jsx');
   ['backend blocks incomplete implementation', backend.includes('canonical.implementation_percent !== 100')],
   ['backend blocks incomplete current evidence', backend.includes('finalEvidence.length !== currentEvidence.length')],
   ['backend blocks unapproved scope', backend.includes("scoping?.scope_status !== 'Approved'")],
-  ['backend blocks unfinalized inventory', backend.includes("project.inventory_status !== 'Finalized'")],
+  ['backend blocks unfinalized inventory', backend.includes("project?.inventory_status !== 'Finalized'")],
   ['backend blocks unapproved SSP', backend.includes("ssp.approval_status !== 'Approved'")],
   ['backend blocks unapproved policies', backend.includes('!policiesApproved')],
   ['backend blocks open high-risk POA&M', backend.includes('openHighRisk.length')],
