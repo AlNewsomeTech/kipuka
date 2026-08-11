@@ -4,6 +4,7 @@
 // Manual checkmarks still work and are OR-merged with these (a step is complete
 // if the user checked it OR the data proves it).
 import { isMetStatus } from '@/lib/sprsScoring';
+import { validApprovedSsp } from '@/lib/readinessGate';
 
 // All controls in the given families are MET (and at least one exists).
 function familiesDone(assessments, families) {
@@ -60,7 +61,7 @@ export function deriveAutoChecklist({ project, scoping, assessments = [], eviden
   set('finalize_cui_boundary', !!scoping?.boundary_summary && assets.some((a) => a.in_scope));
 
   // Phase 7 — final documentation (proven by generated artifacts)
-  set('gen_final_ssp', ssps.some((ssp) => ssp.approval_status === 'Approved'));
+  set('gen_final_ssp', ssps.some(validApprovedSsp));
   set('gen_final_poam', hasExport(exports, 'POA&M Export'));
   set('gen_final_evidence_index', hasExport(exports, 'Evidence Index'));
   set('gen_final_readiness_report', hasNamedExport(exports, 'Executive Readiness Report', 'Final Readiness Report'));
