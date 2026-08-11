@@ -3,8 +3,8 @@ import { resolveVariant } from '@/lib/implementationStacks';
 import { toSimpleStatus } from '@/lib/simpleStatus';
 import { validNotApplicable } from '@/lib/canonicalReadiness';
 
-// Step 5 VERIFY — validation_steps as a checklist. When all are checked and the
-// user confirms, the ControlAssessment status is written to the "done" status.
+// Step 5 VERIFY checks implementation progress. Finishing this step does not
+// accept evidence or create an assessor objective finding.
 export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, assessment, currentStatus, error }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant } = resolveVariant(libEntry, activeKey);
@@ -52,10 +52,10 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
               ? 'This control has an independently approved Not Applicable decision. Use the applicability panel above if the scope changes.'
               : 'This legacy Not Applicable label is not approved and does not count as complete. Use the applicability panel above.'
             : alreadyDone
-              ? 'This control is marked done. You can move to the next control.'
+              ? 'The implementation step is finished. Evidence acceptance and objective assessment remain separate.'
               : allChecked || steps.length === 0
-              ? 'All checks complete — mark this control done.'
-              : 'Complete the checklist above to mark this control done.'}
+              ? 'All checks complete. Finish the implementation step; evidence and objective review remain separate.'
+              : 'Complete the checklist above before finishing the implementation step.'}
         </div>
         <button
           onClick={onMarkDone}
@@ -63,7 +63,7 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-          {notApplicable ? approvedNotApplicable ? 'Approved Not Applicable' : 'N/A Review Required' : alreadyDone ? 'Marked Done' : 'Mark Control Done'}
+          {notApplicable ? approvedNotApplicable ? 'Approved Not Applicable' : 'N/A Review Required' : alreadyDone ? 'Implementation Finished' : 'Finish Implementation Step'}
         </button>
       </div>
     </div>
