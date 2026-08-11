@@ -5,7 +5,7 @@ import { toSimpleStatus, SIMPLE_STATUS } from '@/lib/simpleStatus';
 import { CANONICAL_DATASET_KEY, targetLevelsFor } from '@/lib/doNextEngine';
 import ControlAssessmentRow from './ControlAssessmentRow';
 
-const STATUSES = ['Not Started', 'Implementation Planned', 'Implementation In Progress', 'Implemented Pending Evidence', 'Gap Identified', 'POA&M Linked', 'Ready for Documentation', 'Implemented', 'Partially Implemented', 'Not Implemented', 'Not Applicable', 'Needs Review', 'Ready for Assessment'];
+const STATUSES = ['Not Started', 'Implementation Planned', 'Implementation In Progress', 'Implemented Pending Evidence', 'Gap Identified', 'POA&M Linked', 'Ready for Documentation', 'Implemented', 'Partially Implemented', 'Not Implemented', 'Needs Review', 'Ready for Assessment'];
 const SIMPLE_STATUSES = [SIMPLE_STATUS.NOT_STARTED, SIMPLE_STATUS.IN_PROGRESS, SIMPLE_STATUS.DONE, SIMPLE_STATUS.STUCK];
 const EVIDENCE_STATUSES = ['No Evidence', 'Evidence Uploaded', 'Needs Better Evidence', 'Accepted', 'Expired'];
 const RISKS = ['Low', 'Moderate', 'High', 'Critical'];
@@ -83,7 +83,7 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
   const filtered = useMemo(() => integrity.inScope.filter((a) => {
     if (filters.status) {
       // In client view the status filter holds a simple bucket; map before comparing.
-      if (isClient) { if (toSimpleStatus(a.status) !== filters.status) return false; }
+      if (isClient) { if (toSimpleStatus(a) !== filters.status) return false; }
       else if (a.status !== filters.status) return false;
     }
     if (filters.evidence_status && a.evidence_status !== filters.evidence_status) return false;
