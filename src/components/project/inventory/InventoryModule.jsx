@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Boxes, Plus, Loader2 } from 'lucide-react';
+import { Boxes, Plus, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { INVENTORY_PAGES } from '@/lib/assetInventory';
 import AssetRow from './AssetRow';
@@ -10,22 +10,52 @@ const INVENTORY_STATUSES = ['Not Started', 'Preliminary', 'In Progress', 'Needs 
 export default function InventoryModule({ project, readOnly, currentUser, refreshProject }) {
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [statusSaving, setStatusSaving] = useState(false);
+  const [statusError, setStatusError] = useState(null);
   const [tab, setTab] = useState('users');
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [invStatus, setInvStatus] = useState(project.inventory_status || 'Not Started');
 
+  const finalizationChecks = useMemo(() => [
+    { label: 'At least one asset is recorded', pass: assets.length > 0 },
+    { label: 'Every asset has an owner', pass: assets.length > 0 && assets.every((a) => String(a.owner || '').trim()) },
+    { label: 'Every asset has a final scope category', pass: assets.length > 0 && assets.every((a) => a.scope_category && a.scope_category !== 'Unknown') },
+    { label: 'Every asset has an active lifecycle status', pass: assets.length > 0 && assets.every((a) => a.status && a.status !== 'Unknown') },
+    { label: 'CUI assets identify how CUI is handled', pass: assets.filter((a) => a.scope_category === 'CUI Asset').every((a) => a.stores_cui || a.processes_cui || a.transmits_cui || a.handles_cui) },
+  ], [assets]);
+  const inventoryCanFinalize = finalizationChecks.every((c) => c.pass);
+
   const saveInvStatus = async (v) => {
-    setInvStatus(v);
-    await base44.entities.Project.update(project.id, { inventory_status: v });
-    refreshProject && refreshProject();
+    setStatusError(null);
+    if (v === 'Finalized' && !inventoryCanFinalize) {
+      setStatusError('Inventory cannot be finalized until every validation item below passes.');
+      return;
+    }
+    setStatusSaving(true);
+    try {
+      const savedProject = await base44.entities.Project.update(project.id, { inventory_status: v });
+      setInvStatus(savedProject.inventory_status || v);
+      if (refreshProject) await refreshProject();
+    } catch (error) {
+      setStatusError(error?.response?.data?.error || error?.message || 'Inventory status was not saved.');
+    } finally {
+      setStatusSaving(false);
+    }
   };
 
   const load = useCallback(async () => {
     setLoading(true);
-    const list = await base44.entities.Asset.filter({ project_id: project.id }).catch(() => []);
-    setAssets(list);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const list = await base44.entities.Asset.filter({ project_id: project.id });
+      setAssets(list);
+    } catch (error) {
+      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete asset inventory.');
+    } finally {
+      setLoading(false);
+    }
   }, [project.id]);
 
   useEffect(() => { load(); }, [load]);
@@ -40,6 +70,14 @@ export default function InventoryModule({ project, readOnly, currentUser, refres
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
   }
+  if (loadError) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+      <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> Asset inventory could not be verified</div>
+      <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
+      <p className="text-xs text-red-600 mt-1">Kipuka will not display an empty inventory or allow finalization from a partial load.</p>
+      <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -51,7 +89,7 @@ export default function InventoryModule({ project, readOnly, currentUser, refres
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <label className="text-xs font-semibold text-slate-500">Inventory status:</label>
-            <select className="form-input w-auto text-xs" value={invStatus} disabled={readOnly}
+            <select className="form-input w-auto text-xs" value={invStatus} disabled={readOnly || statusSaving}
               onChange={(e) => saveInvStatus(e.target.value)}>
               {INVENTORY_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
@@ -69,6 +107,18 @@ export default function InventoryModule({ project, readOnly, currentUser, refres
           tenant and endpoint controls are implemented so documentation reflects the actual configured environment.
           Late-stage inventory includes Intune inventory, hardware/endpoint inventory, device compliance, ownership
           validation, in/out-of-scope validation, and CUI / Security Protection asset confirmation.
+        </div>
+
+        <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div className="text-xs font-bold text-slate-700">Before selecting Finalized</div>
+          <ul className="mt-2 space-y-1">
+            {finalizationChecks.map((check) => (
+              <li key={check.label} className={`flex items-center gap-2 text-xs ${check.pass ? 'text-green-700' : 'text-amber-700'}`}>
+                {check.pass ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />} {check.label}
+              </li>
+            ))}
+          </ul>
+          {statusError && <p className="mt-2 text-xs font-semibold text-red-700">{statusError}</p>}
         </div>
 
         <div className="flex flex-wrap gap-2 mt-4">
