@@ -1,13 +1,15 @@
 import { computeCanonicalReadiness, validFinalEvidence } from '@/lib/canonicalReadiness';
 import { SCOPING_QUESTIONS } from '@/lib/scopingQuestions';
 
+const VALID_SCOPE_ENVIRONMENT_TYPES = new Set(['Entire Enterprise', 'Enclave', 'Hybrid']);
+
 // Shared readiness pre-check logic for gating FINAL document generation.
 // Draft generation remains available. Anything labeled final or assessor-ready
 // must pass these checks and fail closed when source data is incomplete.
 
 export function validApprovedScope(scoping) {
   if (scoping?.scope_status !== 'Approved') return false;
-  if (!String(scoping.scope_name || '').trim() || !scoping.environment_type || scoping.environment_type === 'Unknown') return false;
+  if (!String(scoping.scope_name || '').trim() || !VALID_SCOPE_ENVIRONMENT_TYPES.has(scoping.environment_type)) return false;
   if (!String(scoping.boundary_summary || '').trim() || !String(scoping.included_systems_summary || '').trim() || !String(scoping.data_flow_summary || '').trim()) return false;
   if (scoping.handles_fci && !String(scoping.fci_description || '').trim()) return false;
   if (scoping.handles_cui && !String(scoping.cui_description || '').trim()) return false;
