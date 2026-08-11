@@ -52,7 +52,10 @@ Deno.serve(async (req) => {
     // Resolve org membership + role server-side.
     // Tenant resolved from the caller's own user record only, and it must be
     // backed by an OrganizationUser membership with status exactly 'Active'.
-    const isPlatformAdmin = caller.role === 'admin';
+    // Base44 exposes the authenticated app role as `_app_role` in some
+    // function runtimes while preserving `role` in others. Both values come
+    // from auth.me(), never from the request payload.
+    const isPlatformAdmin = caller.role === 'admin' || caller._app_role === 'admin';
     let org = caller.organization_id || '';
     let orgRole = isPlatformAdmin ? 'Platform Admin' : '';
     if (!isPlatformAdmin) {
