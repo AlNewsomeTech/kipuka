@@ -19,6 +19,9 @@ const app = read('src/App.jsx');
 const layout = read('src/components/Layout.jsx');
 const inventory = read('src/components/project/inventory/InventoryModule.jsx');
 const scoping = read('src/components/project/scoping/ScopingModule.jsx');
+const scopingQuestions = read('src/lib/scopingQuestions.js');
+const richText = read('src/components/ui/RichTextField.jsx');
+const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].map((match) => match[1]);
 
 [
   ['canonical integrity handoff check', gate.includes('Canonical requirement and objective set is valid')],
@@ -94,6 +97,7 @@ const scoping = read('src/components/project/scoping/ScopingModule.jsx');
   ['scope approval requires systems', scoping.includes('Included systems are documented')],
   ['scope approval requires data flow', scoping.includes('Data flow is documented')],
   ['scope approval requires every wizard answer', scoping.includes('Every scoping question is answered')],
+  ['scope approval accepts only current environment types', scoping.includes("ENV_TYPES.includes(profile?.environment_type) && profile.environment_type !== 'Unknown'")],
   ['scope rejects premature Approved state', scoping.includes("payload.scope_status === 'Approved' && !scopeCanApprove")],
   ['scope approval action is disabled until complete', scoping.includes('disabled={saving || !scopeCanApprove}')],
   ['scope save failures are visible', scoping.includes('Scope was not saved')],
@@ -101,6 +105,10 @@ const scoping = read('src/components/project/scoping/ScopingModule.jsx');
   ['shared readiness validates finalized inventory content', gate.includes('validFinalInventory(project, assets)')],
   ['backend loads project assets for finalization proof', backend.includes('sr.entities.Asset.filter({ project_id: projectId })')],
   ['backend validates complete approved scope', backend.includes('!validApprovedScope(scoping)')],
+  ['shared readiness accepts only current environment types', gate.includes("VALID_SCOPE_ENVIRONMENT_TYPES.has(scoping.environment_type)")],
+  ['backend accepts only current environment types', backend.includes("VALID_SCOPE_ENVIRONMENT_TYPES.has(scoping.environment_type)")],
+  ['backend scoping questions match the canonical client questions', canonicalScopingKeys.length > 0 && canonicalScopingKeys.every((key) => backend.includes(`'${key}'`))],
+  ['rich text normalizes legacy array values', richText.includes("Array.isArray(value) ? value.join('\\n') : ''")],
   ['backend validates complete finalized inventory', backend.includes('!validFinalInventory(project, assets)')],
 ].forEach(([label, condition]) => check(condition, label));
 
