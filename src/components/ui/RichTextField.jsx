@@ -10,7 +10,7 @@ const MODULES = {
 };
 
 // Lightweight rich-text field used across Phase 3 project modules.
-export default function RichTextField({ label, value, onChange, placeholder, disabled, onBlur }) {
+export default function RichTextField({ label, value, onChange, placeholder = '', disabled = false, onBlur = () => {} }) {
   return (
     <div>
       {label && <label className="block text-xs font-semibold text-slate-600 mb-1">{label}</label>}
