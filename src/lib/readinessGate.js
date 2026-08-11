@@ -1,8 +1,8 @@
-import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
+import { computeCanonicalReadiness, validFinalEvidence } from '@/lib/canonicalReadiness';
 
 // Shared readiness pre-check logic for gating FINAL document generation.
-// Draft generation is never gated; only final outputs surface these warnings.
-// All checks are advisory (warnings, not hard blocks) so users may continue anyway.
+// Draft generation remains available. Anything labeled final or assessor-ready
+// must pass these checks and fail closed when source data is incomplete.
 
 // Compute a set of readiness signals from already-loaded project data.
 // Pass in whatever is available; missing arrays default to empty and read as "not ready".
@@ -16,6 +16,7 @@ export function computeReadiness({ assessments = [], objectiveLibrary = [], obje
 
   const evTotal = evidence.length;
   const evAccepted = evidence.filter((e) => e.review_status === 'Accepted').length;
+  const evValidFinal = evidence.filter((e) => validFinalEvidence(e)).length;
   const evReviewed = evidence.filter((e) => e.review_status !== 'Draft' && e.review_status !== 'Needs Review').length;
 
   const closed = ['Closed', 'Accepted Risk'];
@@ -42,7 +43,7 @@ export function computeReadiness({ assessments = [], objectiveLibrary = [], obje
     notMet: canonical.not_met,
     evidenceIncomplete: canonical.evidence_incomplete,
     notAssessed: canonical.not_assessed,
-    evTotal, evAccepted, evReviewed, evidenceAcceptPct,
+    evTotal, evAccepted, evValidFinal, evReviewed, evidenceAcceptPct,
     openHighRiskPoam, unlinkedGaps,
     inventoryFinalized, scopeFinalized,
     sprsStatus: sprs?.cmmc_status || sprs?.assessment_type || 'Not Started',
@@ -66,17 +67,21 @@ export function sspPrechecks(r) {
 }
 
 // Build the handoff-package pre-check list.
-export function handoffPrechecks(r, { sspApproved, policiesApproved, evidenceIndexReviewed, sprsUploaded } = { sspApproved: false, policiesApproved: false, evidenceIndexReviewed: false, sprsUploaded: false }) {
-  return [
+export function handoffPrechecks(r, { sspApproved, policiesApproved, evidenceIndexReviewed, sprsUploaded, requireSprs = true } = {}) {
+  const checks = [
+    { label: 'Canonical requirement and objective set is valid', pass: r.canonicalIntegrityOk },
+    { label: 'Every applicable requirement is MET from final evidence', pass: r.total > 0 && r.met >= r.total },
+    { label: 'Every applicable requirement is implementation-complete', pass: r.total > 0 && r.implemented >= r.total },
     { label: 'Scope approved', pass: r.scopeFinalized },
     { label: 'Asset inventory finalized', pass: r.inventoryFinalized },
     { label: 'SSP approved', pass: !!sspApproved },
-    { label: 'POA&M reviewed', pass: r.unlinkedGaps === 0 },
-    { label: 'Evidence index reviewed', pass: !!evidenceIndexReviewed },
+    { label: 'POA&M gaps linked', pass: r.unlinkedGaps === 0 },
+    { label: 'Evidence index contains only valid Accepted evidence', pass: !!evidenceIndexReviewed },
     { label: 'Policies approved', pass: !!policiesApproved },
-    { label: 'SPRS/PIEE artifacts uploaded', pass: !!sprsUploaded },
-    { label: 'High-risk blockers reviewed', pass: r.openHighRiskPoam === 0 },
+    { label: 'No open high/critical-risk POA&M items', pass: r.openHighRiskPoam === 0 },
   ];
+  if (requireSprs) checks.push({ label: 'SPRS/PIEE artifacts uploaded', pass: !!sprsUploaded });
+  return checks;
 }
 
 export function allPass(checks) {
@@ -84,4 +89,4 @@ export function allPass(checks) {
 }
 
 export const FINAL_DOC_WARNING =
-  'Final documentation may be incomplete because implementation, evidence, control validation, or final inventory is not complete. Generate a draft only, or continue anyway with a warning.';
+  'Final output is blocked because implementation, accepted evidence, objective findings, scope, inventory, or approvals are incomplete. Generate a clearly labeled draft or return to the workflow to resolve the failed checks.';
