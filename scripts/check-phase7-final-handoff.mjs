@@ -17,6 +17,8 @@ const generators = read('src/lib/reportGenerators.js');
 const checklist = read('src/lib/checklistAuto.js');
 const app = read('src/App.jsx');
 const layout = read('src/components/Layout.jsx');
+const inventory = read('src/components/project/inventory/InventoryModule.jsx');
+const scoping = read('src/components/project/scoping/ScopingModule.jsx');
 
 [
   ['canonical integrity handoff check', gate.includes('Canonical requirement and objective set is valid')],
@@ -77,6 +79,29 @@ const layout = read('src/components/Layout.jsx');
   ['legacy package route redirects', app.includes('<Navigate to="/projects" replace />')],
   ['legacy package component import removed', !app.includes("import SharePointPackage from '@/pages/SharePointPackage'" )],
   ['legacy package navigation removed', !layout.includes("to: '/sharepoint-package'")],
+  ['inventory load failures do not become empty data', !inventory.includes('Asset.filter({ project_id: project.id }).catch')],
+  ['inventory has explicit complete-load error', inventory.includes('Asset inventory could not be verified')],
+  ['inventory finalization requires assets', inventory.includes('At least one asset is recorded')],
+  ['inventory finalization requires owners', inventory.includes('Every asset has an owner')],
+  ['inventory finalization requires scope categories', inventory.includes('Every asset has a final scope category')],
+  ['inventory finalization validates CUI handling', inventory.includes('CUI assets identify how CUI is handled')],
+  ['inventory rejects premature Finalized state', inventory.includes("v === 'Finalized' && !inventoryCanFinalize")],
+  ['inventory changes visible status only after save', inventory.indexOf('await base44.entities.Project.update') < inventory.indexOf('setInvStatus(savedProject.inventory_status || v)')],
+  ['inventory surfaces status-save failures', inventory.includes('Inventory status was not saved')],
+  ['scope load failures do not become empty data', !scoping.includes('ScopingProfile.filter({ project_id: project.id }).catch')],
+  ['scope has explicit complete-load error', scoping.includes('Scoping profile could not be verified')],
+  ['scope approval requires boundary', scoping.includes('Assessment boundary is documented')],
+  ['scope approval requires systems', scoping.includes('Included systems are documented')],
+  ['scope approval requires data flow', scoping.includes('Data flow is documented')],
+  ['scope approval requires every wizard answer', scoping.includes('Every scoping question is answered')],
+  ['scope rejects premature Approved state', scoping.includes("payload.scope_status === 'Approved' && !scopeCanApprove")],
+  ['scope approval action is disabled until complete', scoping.includes('disabled={saving || !scopeCanApprove}')],
+  ['scope save failures are visible', scoping.includes('Scope was not saved')],
+  ['shared readiness validates approved scope content', gate.includes('validApprovedScope(scoping)')],
+  ['shared readiness validates finalized inventory content', gate.includes('validFinalInventory(project, assets)')],
+  ['backend loads project assets for finalization proof', backend.includes('sr.entities.Asset.filter({ project_id: projectId })')],
+  ['backend validates complete approved scope', backend.includes('!validApprovedScope(scoping)')],
+  ['backend validates complete finalized inventory', backend.includes('!validFinalInventory(project, assets)')],
 ].forEach(([label, condition]) => check(condition, label));
 
 if (failures.length) {
