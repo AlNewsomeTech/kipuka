@@ -5,7 +5,9 @@ import RichTextField from '@/components/ui/RichTextField';
 import ProgressBar from '@/components/ProgressBar';
 import { SSP_SECTIONS, sectionCompletion, buildSspDraft } from '@/lib/sspSections';
 import { generateSspPdf } from '@/lib/reportGenerators';
-import { computeReadiness, sspPrechecks, allPass, FINAL_DOC_WARNING } from '@/lib/readinessGate';
+import {
+  computeReadiness, sspPrechecks, allPass, FINAL_DOC_WARNING, validApprovedSsp,
+} from '@/lib/readinessGate';
 import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
 
 export default function SSPModule({ project, org, readOnly, currentUser }) {
@@ -20,6 +22,9 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [loadError, setLoadError] = useState(null);
   const [building, setBuilding] = useState(false);
   const [savingKey, setSavingKey] = useState(null);
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const [reviewError, setReviewError] = useState('');
+  const [reviewNote, setReviewNote] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,8 +78,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const checks = useMemo(() => [
     ...sspPrechecks(readiness),
     { label: 'Is every required SSP section complete?', pass: completion.pct === 100 },
-    { label: 'Has the SSP been approved?', pass: ssp?.approval_status === 'Approved' },
-  ], [readiness, completion.pct, ssp?.approval_status]);
+    { label: 'Has the SSP been independently approved?', pass: validApprovedSsp(ssp) },
+  ], [readiness, completion.pct, ssp]);
   const finalReady = allPass(checks);
   const [showFinalGate, setShowFinalGate] = useState(false);
 
@@ -91,7 +96,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const buildDraft = async () => {
     setBuilding(true);
     const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams });
-    const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0', approval_status: ssp?.approval_status || 'Draft' };
+    const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0' };
     let saved;
     if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);
     else saved = await base44.entities.SystemSecurityPlan.create(payload);
@@ -115,13 +120,34 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const commitSection = async (key) => {
     if (!ssp?.id) return;
     setSavingKey(key);
-    await base44.entities.SystemSecurityPlan.update(ssp.id, { [key]: ssp[key] });
-    setSavingKey(null);
+    try {
+      const saved = await base44.entities.SystemSecurityPlan.update(ssp.id, { [key]: ssp[key] });
+      setSsp(saved);
+    } finally {
+      setSavingKey(null);
+    }
   };
 
-  const updateApproval = async (patch) => {
-    const saved = await base44.entities.SystemSecurityPlan.update(ssp.id, patch);
-    setSsp(saved);
+  const runReview = async (action) => {
+    if (!ssp?.id) return;
+    setReviewBusy(true);
+    setReviewError('');
+    try {
+      const transitionId = `ssp_${action}_${crypto.randomUUID().replace(/-/g, '')}`;
+      const response = await base44.functions.invoke('manageFinalDocumentReview', {
+        source_entity: 'SystemSecurityPlan',
+        record_id: ssp.id,
+        action,
+        transition_id: transitionId,
+        note: reviewNote,
+      });
+      setSsp(response.data.document);
+      setReviewNote('');
+    } catch (error) {
+      setReviewError(error?.response?.data?.error || error?.message || 'The SSP review transition failed closed.');
+    } finally {
+      setReviewBusy(false);
+    }
   };
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
@@ -225,8 +251,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
 
           {/* Approval block */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
-            <h3 className="text-sm font-bold text-slate-800 mb-3">Approval & Revision</h3>
-            <div className="grid sm:grid-cols-3 gap-3">
+            <h3 className="text-sm font-bold text-slate-800 mb-3">Independent Review &amp; Revision</h3>
+            <div className="grid sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Version</label>
                 <input className="form-input" value={ssp.version || ''} disabled={readOnly}
@@ -234,17 +260,50 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Approval Status</label>
-                <select className="form-input" value={ssp.approval_status} disabled={readOnly}
-                  onChange={(e) => updateApproval({ approval_status: e.target.value })}>
-                  {['Draft', 'In Review', 'Approved', 'Archived'].map((o) => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Approved By</label>
-                <input className="form-input" value={ssp.approved_by || ''} disabled={readOnly}
-                  onChange={(e) => setSsp((s) => ({ ...s, approved_by: e.target.value }))} onBlur={() => commitSection('approved_by')} />
+                <div className="form-input bg-slate-50">
+                  {ssp.approval_status === 'Approved' && !validApprovedSsp(ssp)
+                    ? 'Legacy Approved — independent review required'
+                    : ssp.approval_status}
+                </div>
               </div>
             </div>
+            {!readOnly && (
+              <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs text-slate-600">
+                  Submission pins the current SSP content with SHA-256. The submitter cannot approve the same version.
+                  Any later edit returns it to Draft and clears approval credit.
+                </p>
+                {ssp.approval_status === 'In Review' && (
+                  <textarea className="form-input mt-2" rows={2} value={reviewNote}
+                    onChange={(e) => setReviewNote(e.target.value)}
+                    placeholder="Reviewer note. Required when rejecting." />
+                )}
+                {reviewError && <p className="text-xs text-red-700 mt-2">{reviewError}</p>}
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {(ssp.approval_status === 'Draft' || (ssp.approval_status === 'Approved' && !validApprovedSsp(ssp))) && (
+                    <button onClick={() => runReview('submit_review')} disabled={reviewBusy}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
+                      Submit for Independent Review
+                    </button>
+                  )}
+                  {ssp.approval_status === 'In Review' && (
+                    <>
+                      <button onClick={() => runReview('approve')} disabled={reviewBusy}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-green-700 disabled:opacity-60">Approve Current Hash</button>
+                      <button onClick={() => runReview('reject')} disabled={reviewBusy || reviewNote.trim().length < 5}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-red-700 disabled:opacity-60">Reject to Draft</button>
+                      <button onClick={() => runReview('withdraw')} disabled={reviewBusy}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 disabled:opacity-60">Withdraw My Submission</button>
+                    </>
+                  )}
+                </div>
+                {validApprovedSsp(ssp) && (
+                  <p className="text-xs text-green-700 mt-2">
+                    Approved by {ssp.reviewed_by_name || ssp.approved_by} on {ssp.approved_date}. Approval record {ssp.approval_record_id}.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="mt-3">
               <RichTextField label="Revision History" value={ssp.revision_history} placeholder="" disabled={readOnly}
                 onChange={(v) => setSsp((s) => ({ ...s, revision_history: v }))} onBlur={() => commitSection('revision_history')} />
