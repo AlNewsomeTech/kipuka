@@ -25,7 +25,7 @@ const layout = read('src/components/Layout.jsx');
   ['valid final evidence handoff check', gate.includes('Evidence index contains only valid Accepted evidence')],
   ['current evidence filter', gate.includes("(e.lifecycle_status || 'Current') === 'Current'")],
   ['valid final evidence helper use', gate.includes('validFinalEvidence(e)')],
-  ['optional SPRS flag', gate.includes('requireSprs = true')],
+  ['optional SPRS flag', gate.includes('options.requireSprs !== false')],
   ['strict final warning', gate.includes('Final output is blocked')],
   ['reports complete-load error state', reports.includes('Final-document data could not be verified')],
   ['reports complete-load retry', reports.includes('Retry complete load')],
