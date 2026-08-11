@@ -14,7 +14,7 @@ const QUALITY_KEYS = ['readable', 'dated', 'identifies_org', 'supports_control',
 const ALLOWED_EXTENSIONS = ['png', 'jpg', 'jpeg', 'pdf', 'docx', 'xlsx', 'csv', 'txt', 'json', 'zip', 'log'];
 const ALLOWED_KEYS = [
   'action', 'transition_id', 'project_id', 'evidence_id', 'prior_evidence_id', 'file_url',
-  'original_file_name', 'evidence_title', 'evidence_type', 'control_ids', 'objective_ids',
+  'original_file_name', 'file_name_description', 'evidence_title', 'evidence_type', 'control_ids', 'objective_ids',
   'description', 'evidence_date', 'expiration_date', 'retention_until', 'owner', 'source_system',
   'source_tool', 'provenance_type', 'provenance_details', 'quality_notes', 'quality_checklist', 'note',
 ];
@@ -41,7 +41,14 @@ function isIsoDate(value: string): boolean {
   return !value || /^\d{4}-\d{2}-\d{2}$/.test(value);
 }
 function sanitizePart(value: any, fallback: string): string {
-  const cleaned = String(value || '').normalize('NFKD').replace(/[^A-Za-z0-9.-]+/g, '').slice(0, 70);
+  const cleaned = String(value || '')
+    .normalize('NFKD')
+    .trim()
+    .replace(/&/g, ' And ')
+    .replace(/[^A-Za-z0-9.-]+/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^[_\-.]+|[_\-.]+$/g, '')
+    .slice(0, 70);
   return cleaned || fallback;
 }
 function extensionOf(name: string): string {
@@ -235,9 +242,10 @@ Deno.serve(async (req) => {
         fileHash = await sha256Hex(loaded.bytes);
         const date = cleanText(body.evidence_date, 10) || new Date().toISOString().slice(0, 10);
         const normalized = [
-          sanitizePart(organization?.short_name || organization?.organization_name, 'Company'),
+          sanitizePart(organization?.legal_name || organization?.organization_name || organization?.short_name, 'Company'),
           sanitizePart(evidenceType, 'Evidence'), sanitizePart(controlIds[0], 'Control'),
-          sanitizePart(body.source_tool || body.source_system, 'Source'), sanitizePart(title, 'Evidence'), date,
+          sanitizePart(body.source_tool || body.source_system, 'Source'),
+          sanitizePart(body.file_name_description || title, 'Evidence'), date,
         ].join('_') + `.${ext}`;
         const uploaded = await sr.integrations.Core.UploadPrivateFile({ file: new File([loaded.bytes], normalized, { type: loaded.mime }) });
         if (!uploaded?.file_uri) return Response.json({ error: 'Private evidence upload failed.' }, { status: 502 });
