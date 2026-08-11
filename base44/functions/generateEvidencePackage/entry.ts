@@ -110,6 +110,56 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+function stableStringify(value: any): string {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
+  return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(',')}}`;
+}
+const SSP_REVIEW_FIELDS = [
+  'ssp_title', 'system_name', 'system_description', 'system_purpose',
+  'authorization_boundary', 'environment_description', 'cui_description',
+  'fci_description', 'user_population', 'asset_summary', 'network_summary',
+  'cloud_services_summary', 'external_service_provider_summary',
+  'roles_and_responsibilities', 'inherited_controls_summary',
+  'shared_responsibility_summary', 'control_implementation_summary',
+  'linked_poam_summary', 'revision_history', 'version',
+];
+const POLICY_REVIEW_FIELDS = [
+  'policy_name', 'policy_category', 'mapped_control_ids', 'policy_body',
+  'version', 'owner', 'effective_date', 'review_date', 'family_code',
+  'doc_kind', 'unresolved_placeholders', 'unresolved_placeholders_count',
+];
+async function reviewedSourceHash(sourceEntity: string, record: any): Promise<string> {
+  const fields = sourceEntity === 'SystemSecurityPlan' ? SSP_REVIEW_FIELDS : POLICY_REVIEW_FIELDS;
+  const payload: Record<string, any> = {
+    source_entity: sourceEntity,
+    record_id: record.id || '',
+    organization_id: record.organization_id || '',
+    project_id: record.project_id || '',
+  };
+  for (const field of fields) {
+    const value = record[field];
+    payload[field] = Array.isArray(value) ? [...value].sort() : (value ?? '');
+  }
+  return await sha256Hex(new TextEncoder().encode(stableStringify(payload)));
+}
+async function validIndependentApproval(sourceEntity: string, record: any): Promise<boolean> {
+  if (!record || record.approval_status !== 'Approved') return false;
+  const reviewHash = String(record.review_source_sha256 || '');
+  const approvalHash = String(record.approval_source_sha256 || '');
+  const requesterId = String(record.review_requested_by_user_id || '');
+  const requesterEmail = String(record.review_requested_by_email || '').toLowerCase();
+  const reviewerId = String(record.reviewed_by_user_id || '');
+  const reviewerEmail = String(record.reviewed_by_email || '').toLowerCase();
+  const independent = reviewerId && requesterId
+    ? reviewerId !== requesterId
+    : reviewerEmail && requesterEmail && reviewerEmail !== requesterEmail;
+  if (!/^[a-f0-9]{64}$/i.test(reviewHash) || reviewHash !== approvalHash || !independent
+    || !record.review_request_id || !record.approval_record_id || !record.reviewed_date || !record.approved_date) {
+    return false;
+  }
+  return (await reviewedSourceHash(sourceEntity, record)) === approvalHash;
+}
 async function fetchVerifiedPrivate(serviceClient: any, evidence: any): Promise<Uint8Array> {
   const fileUri = String(evidence?.file_uri || '');
   const expectedHash = String(evidence?.hash_value || '');
@@ -240,10 +290,12 @@ Deno.serve(async (req) => {
     const currentEvidence = evidence.filter((e) => (e.lifecycle_status || 'Current') === 'Current'
       && !['Archived', 'Superseded'].includes(e.review_status));
     const finalEvidence = currentEvidence.filter((e) => validEvidence(e) && String(e.file_uri || '').startsWith('mp/private/'));
-    const policies = sameOrg(policiesAll, 'policy').filter((p) => !p.is_master_template);
-    const approvedPolicies = policies.filter((p) => p.approval_status === 'Approved');
+    const policies = sameOrg(policiesAll, 'policy').filter((p) => !p.is_master_template && p.approval_status !== 'Archived');
+    const policyApprovalResults = await Promise.all(policies.map((policy) => validIndependentApproval('PolicyTemplate', policy)));
+    const approvedPolicies = policies.filter((_policy, index) => policyApprovalResults[index]);
     const assets = sameOrg(assetsAll, 'asset');
     const ssp = sspList[0] || null;
+    const sspApproved = await validIndependentApproval('SystemSecurityPlan', ssp);
     const scoping = scopingList[0] || null;
     const sprs = sprsList[0] || null;
 
@@ -323,8 +375,8 @@ Deno.serve(async (req) => {
     if (currentEvidence.length === 0 || finalEvidence.length !== currentEvidence.length) hardBlockers.push('Every current evidence item must be Accepted, unexpired, hash-backed, and stored in canonical private storage.');
     if (!validApprovedScope(scoping)) hardBlockers.push('Assessment scope must be Approved and complete.');
     if (!validFinalInventory(project, assets)) hardBlockers.push('Asset inventory must be Finalized and complete.');
-    if (!ssp || ssp.approval_status !== 'Approved') hardBlockers.push('SSP must be Approved.');
-    if (!policiesApproved) hardBlockers.push('Every current project policy must be Approved.');
+    if (!sspApproved) hardBlockers.push('SSP must have an independent, current, hash-backed approval.');
+    if (!policiesApproved) hardBlockers.push('Every current project policy must have an independent, current, hash-backed approval.');
     if (openHighRisk.length) hardBlockers.push('Open high/critical-risk POA&M items must be resolved.');
     if (!sprsUploaded) hardBlockers.push('SPRS/PIEE artifacts must be uploaded.');
 
@@ -334,8 +386,8 @@ Deno.serve(async (req) => {
     if (controlsNoEvidence.length) warnings.push(`${controlsNoEvidence.length} control(s) have no linked evidence.`);
     if (evNotAccepted.length) warnings.push(`${evNotAccepted.length} evidence item(s) are not yet Accepted (still Draft / Needs Review / Rejected / Expired).`);
     if (evNoFile.length) warnings.push(`${evNotAccepted.length ? '' : ''}${evNoFile.length} evidence item(s) have no attached file and will be marked MISSING in the package.`);
-    if (!ssp || ssp.approval_status !== 'Approved') warnings.push('SSP is not yet Approved.');
-    if (!policiesApproved) warnings.push('One or more current project policies are missing or not Approved.');
+    if (!sspApproved) warnings.push('SSP lacks an independent, current, hash-backed approval.');
+    if (!policiesApproved) warnings.push('One or more current project policies lack an independent, current, hash-backed approval.');
     if (!validFinalInventory(project, assets)) warnings.push('Asset inventory is not Finalized and complete.');
     if (!sprsUploaded) warnings.push('SPRS/PIEE artifacts are not uploaded.');
     if (openHighRisk.length) warnings.push(`${openHighRisk.length} open high/critical-risk POA&M item(s) remain.`);
@@ -356,7 +408,7 @@ Deno.serve(async (req) => {
       evidence_total: currentEvidence.length,
       evidence_accepted: finalEvidence.length,
       policies_included: approvedPolicies.length,
-      ssp_approved: ssp?.approval_status === 'Approved',
+      ssp_approved: sspApproved,
       open_high_risk_poam: openHighRisk.length,
     };
 
