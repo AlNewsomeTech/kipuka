@@ -1,8 +1,26 @@
 import { computeCanonicalReadiness, validFinalEvidence } from '@/lib/canonicalReadiness';
+import { SCOPING_QUESTIONS } from '@/lib/scopingQuestions';
 
 // Shared readiness pre-check logic for gating FINAL document generation.
 // Draft generation remains available. Anything labeled final or assessor-ready
 // must pass these checks and fail closed when source data is incomplete.
+
+export function validApprovedScope(scoping) {
+  if (scoping?.scope_status !== 'Approved') return false;
+  if (!String(scoping.scope_name || '').trim() || !scoping.environment_type || scoping.environment_type === 'Unknown') return false;
+  if (!String(scoping.boundary_summary || '').trim() || !String(scoping.included_systems_summary || '').trim() || !String(scoping.data_flow_summary || '').trim()) return false;
+  if (scoping.handles_fci && !String(scoping.fci_description || '').trim()) return false;
+  if (scoping.handles_cui && !String(scoping.cui_description || '').trim()) return false;
+  return SCOPING_QUESTIONS.every((q) => String((scoping.wizard_answers || {})[q.key] || '').trim());
+}
+
+export function validFinalInventory(project, assets = []) {
+  if (project?.inventory_status !== 'Finalized' || assets.length === 0) return false;
+  return assets.every((asset) => String(asset.owner || '').trim()
+    && asset.scope_category && asset.scope_category !== 'Unknown'
+    && asset.status && asset.status !== 'Unknown'
+    && (asset.scope_category !== 'CUI Asset' || asset.stores_cui || asset.processes_cui || asset.transmits_cui || asset.handles_cui));
+}
 
 // Compute a set of readiness signals from already-loaded project data.
 // Pass in whatever is available; missing arrays default to empty and read as "not ready".
@@ -29,9 +47,9 @@ export function computeReadiness({ assessments = [], objectiveLibrary = [], obje
   const poamControlIds = new Set(poams.map((p) => p.control_id).filter(Boolean));
   const unlinkedGaps = gapControls.filter((a) => !poamControlIds.has(a.control_id)).length;
 
-  // Inventory is "finalized" when the project marks it so; scope is finalized when the profile is Approved.
-  const inventoryFinalized = project?.inventory_status === 'Finalized';
-  const scopeFinalized = scoping?.scope_status === 'Approved';
+  // Final states are valid only when their source records pass the same completeness rules as the editor.
+  const inventoryFinalized = validFinalInventory(project, assets);
+  const scopeFinalized = validApprovedScope(scoping);
 
   const controlPct = canonical.integrity_ok ? canonical.implementation_pct : null;
   const reviewPct = canonical.integrity_ok ? canonical.readiness_pct : null;
