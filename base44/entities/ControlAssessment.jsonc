@@ -109,6 +109,33 @@
       "type": "string",
       "description": "The prior status restored if the control becomes applicable again."
     },
+    "not_applicable_request_id": {
+      "type": "string",
+      "description": "The latest service-created applicability request."
+    },
+    "not_applicable_request_status": {
+      "type": "string",
+      "enum": [
+        "Pending Review",
+        "Approved",
+        "Rejected",
+        "Withdrawn",
+        "Restored"
+      ],
+      "description": "Server-controlled workflow state. Pending or legacy records never earn readiness credit."
+    },
+    "not_applicable_decision_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the independently approved applicability decision."
+    },
+    "not_applicable_approved_by_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "not_applicable_approved_date": {
+      "type": "string",
+      "format": "date-time"
+    },
     "last_reviewed_by": {
       "type": "string"
     },
@@ -137,18 +164,9 @@
       ]
     },
     "write": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "__service_only__"
+      }
     }
   }
 }
