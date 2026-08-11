@@ -102,6 +102,19 @@ ok(panel.includes('Legacy N/A record requires independent review'), 'legacy reco
 ok(panel.includes('Approve N/A') && panel.includes('Reject request'), 'reviewer decisions are exposed');
 ok(!assessmentModule.match(/const STATUSES[^\n]*'Not Applicable'/), 'generic status menu cannot select N/A');
 
+const verifyStep = read('src/components/guided/StepVerify.jsx');
+ok(!/ControlAssessment\.update\([\s\S]{0,400}\.catch\(\(\) => \{\}\)/.test(guided), 'guided completion never swallows an assessment write failure');
+ok(!/ProjectPOAM\.create\([\s\S]{0,500}\.catch\(\(\) => \{\}\)/.test(guided), 'guided stuck flow never swallows a POA&M write failure');
+ok(guided.includes("if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.')"), 'guided transitions require a confirmed saved assessment');
+ok(guided.includes("setActionError(actionErrorMessage("), 'guided transitions surface backend errors');
+ok(guided.includes("role=\"alert\""), 'guided page renders accessible workflow errors');
+ok(verifyStep.includes('role="alert"') && verifyStep.includes('{error}'), 'verify step displays a failed completion message');
+before(guided, 'ProjectPOAM.filter({ project_id: projectId, control_id: controlId })', 'ProjectPOAM.create({', 'stuck flow checks for an existing open item before creating one');
+ok(guided.includes("!['Closed', 'Deferred', 'Accepted Risk'].includes(item.status)"), 'closed or inactive POA&M items are never reused');
+before(guided, 'ControlAssessment.update(assessment.id, { status: GUIDED_STUCK_STATUS })', 'setStuckOpen(false)', 'stuck panel closes only after the canonical status save');
+ok(guided.includes("setProgressError(actionErrorMessage("), 'walkthrough progress failures are visible');
+ok(!guided.includes("saveGuidedProgress(progress, {\n      projectId, organizationId: org, controlId, patch,\n    }).catch(() => null)"), 'walkthrough progress no longer hides save failures');
+
 const approved = {
   status: 'Not Applicable',
   not_applicable_request_id: 'req-1',
