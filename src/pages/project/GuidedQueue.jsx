@@ -7,8 +7,8 @@ import { toSimpleStatus, SIMPLE_STATUS, SIMPLE_STATUS_TONE } from '@/lib/simpleS
 import ControlMetaBadges from '@/components/guided/ControlMetaBadges';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
-function SimpleBadge({ realStatus }) {
-  const simple = toSimpleStatus(realStatus);
+function SimpleBadge({ assessment, realStatus }) {
+  const simple = toSimpleStatus(assessment || realStatus);
   const t = SIMPLE_STATUS_TONE[simple];
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full font-semibold text-[11px] px-2.5 py-0.5 ${t.bg} ${t.text}`}>
@@ -61,7 +61,7 @@ export default function GuidedQueue() {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
   }
 
-  const done = queue.filter((it) => toSimpleStatus(it.status) === SIMPLE_STATUS.DONE).length;
+  const done = queue.filter((it) => toSimpleStatus(it.assessment || it.status) === SIMPLE_STATUS.DONE).length;
 
   return (
     <div className="space-y-4">
@@ -85,7 +85,7 @@ export default function GuidedQueue() {
       ) : (
         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
           {queue.map((it) => {
-            const isDone = toSimpleStatus(it.status) === SIMPLE_STATUS.DONE;
+            const isDone = toSimpleStatus(it.assessment || it.status) === SIMPLE_STATUS.DONE;
             return (
               <button
                 key={it.control_id}
@@ -98,7 +98,7 @@ export default function GuidedQueue() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono font-semibold text-slate-500">{it.control_id}</span>
-                    <SimpleBadge realStatus={it.status} />
+                    <SimpleBadge assessment={it.assessment} realStatus={it.status} />
                   </div>
                   <div className="text-sm font-medium text-slate-800 truncate mt-0.5">{it.control_title}</div>
                 </div>
