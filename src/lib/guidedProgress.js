@@ -3,8 +3,7 @@ import { base44 } from '@/api/base44Client';
 
 export async function loadGuidedProgress(projectId, controlId) {
   const rows = await base44.entities.GuidedProgress
-    .filter({ project_id: projectId, control_id: controlId }, '-updated_date', 1)
-    .catch(() => []);
+    .filter({ project_id: projectId, control_id: controlId }, '-updated_date', 1);
   return rows[0] || null;
 }
 
