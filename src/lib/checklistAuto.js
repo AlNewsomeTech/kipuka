@@ -15,7 +15,11 @@ function familiesDone(assessments, families) {
 }
 
 function hasExport(exports, ...types) {
-  return (exports || []).some((e) => types.includes(e.report_type));
+  return (exports || []).some((e) => e.report_status === 'Generated' && types.includes(e.report_type));
+}
+function hasNamedExport(exports, reportType, reportTitle) {
+  return (exports || []).some((e) => e.report_status === 'Generated'
+    && e.report_type === reportType && e.report_title === reportTitle);
 }
 
 // Returns { [stepKey]: true } for every step provably complete from live data.
@@ -56,10 +60,10 @@ export function deriveAutoChecklist({ project, scoping, assessments = [], eviden
   set('finalize_cui_boundary', !!scoping?.boundary_summary && assets.some((a) => a.in_scope));
 
   // Phase 7 — final documentation (proven by generated artifacts)
-  set('gen_final_ssp', ssps.length > 0);
+  set('gen_final_ssp', ssps.some((ssp) => ssp.approval_status === 'Approved'));
   set('gen_final_poam', hasExport(exports, 'POA&M Export'));
   set('gen_final_evidence_index', hasExport(exports, 'Evidence Index'));
-  set('gen_final_readiness_report', hasExport(exports, 'Executive Readiness Report', 'Gap Assessment Report'));
+  set('gen_final_readiness_report', hasNamedExport(exports, 'Executive Readiness Report', 'Final Readiness Report'));
   set('gen_handoff_package', hasExport(exports, 'C3PAO Handoff Package', 'C3PAO Evidence Package'));
 
   // Phase 8 — SPRS / PIEE
