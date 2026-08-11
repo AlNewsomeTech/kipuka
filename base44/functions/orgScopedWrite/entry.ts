@@ -16,7 +16,7 @@ const WRITE_WHITELIST = new Set([
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
   'IncidentLog', 'MockAssessmentSession', 'MockAssessmentObjective',
   'ObjectiveEvidenceLink', 'SPRSRecord', 'MaintenanceTask', 'RemediationComment',
-  'PolicyTemplate', 'GuidedProgress', 'CompanyProfile', 'PostureAssessment',
+  'PolicyTemplate', 'SystemSecurityPlan', 'GuidedProgress', 'CompanyProfile', 'PostureAssessment',
 ]);
 
 // Org roles that are read-only and may not write anything.
@@ -24,6 +24,25 @@ const READ_ONLY_ORG_ROLES = new Set(['Auditor Viewer', 'Executive Viewer']);
 
 // Fields clients must never set/change, stripped from every write payload.
 const STRIP_FIELDS = ['pacsec_internal_notes'];
+const REVIEW_PROVENANCE_FIELDS = new Set([
+  'approval_status', 'approved_by', 'approved_date', 'review_request_id',
+  'review_source_sha256', 'review_requested_by_user_id', 'review_requested_by_email',
+  'review_requested_by_name', 'review_requested_date', 'reviewed_by_user_id',
+  'reviewed_by_email', 'reviewed_by_name', 'reviewed_by_role', 'reviewed_date',
+  'review_note', 'approval_record_id', 'approval_source_sha256',
+  'last_transition_id', 'last_transition_action',
+]);
+const REVIEWED_SOURCE_ENTITIES = new Set(['PolicyTemplate', 'SystemSecurityPlan']);
+const REVIEW_INVALIDATION = {
+  approval_status: 'Draft', approved_by: '', approved_date: '',
+  review_request_id: '', review_source_sha256: '',
+  review_requested_by_user_id: '', review_requested_by_email: '',
+  review_requested_by_name: '', review_requested_date: '',
+  reviewed_by_user_id: '', reviewed_by_email: '', reviewed_by_name: '',
+  reviewed_by_role: '', reviewed_date: '', review_note: '',
+  approval_record_id: '', approval_source_sha256: '',
+  last_transition_id: '', last_transition_action: '',
+};
 
 function stripForbidden(data: any) {
   const clean = { ...(data || {}) };
@@ -45,7 +64,7 @@ Deno.serve(async (req) => {
     if (!WRITE_WHITELIST.has(entity)) {
       return Response.json({ error: `Entity not writable: ${entity}` }, { status: 403 });
     }
-    if (!['create', 'update'].includes(operation)) {
+    if (!['create', 'update', 'bulkCreate'].includes(operation)) {
       return Response.json({ error: `Unsupported operation: ${operation}` }, { status: 400 });
     }
 
@@ -87,8 +106,14 @@ Deno.serve(async (req) => {
 
     const svc = base44.asServiceRole.entities[entity];
     const clean = stripForbidden(data);
-    // organization_id is never accepted from the client on any operation.
+    // organization_id and review provenance are never accepted from the client.
     delete clean.organization_id;
+    if (REVIEWED_SOURCE_ENTITIES.has(entity)) {
+      const protectedKeys = Object.keys(clean).filter((key) => REVIEW_PROVENANCE_FIELDS.has(key));
+      if (protectedKeys.length) {
+        return Response.json({ error: 'Approval and review fields require the independent final-document review workflow.' }, { status: 403 });
+      }
+    }
 
     // Applicability fields and the Not Applicable status are controlled only by
     // manageControlApplicability, including for platform technicians/support.
@@ -112,14 +137,46 @@ Deno.serve(async (req) => {
       return p.organization_id === org;
     };
 
-    if (operation === 'create') {
-      // PolicyTemplate: never let clients create master templates.
-      if (entity === 'PolicyTemplate') clean.is_master_template = false;
-      if (clean.project_id && !(await projectBelongsToOrg(clean.project_id))) {
-        return Response.json({ error: 'Not found' }, { status: 404 });
+    const prepareCreate = async (input: any) => {
+      const item = stripForbidden(input);
+      delete item.organization_id;
+      if (REVIEWED_SOURCE_ENTITIES.has(entity)) {
+        for (const key of REVIEW_PROVENANCE_FIELDS) delete item[key];
       }
-      const record = await svc.create({ ...clean, organization_id: org });
+      const isMasterPolicy = entity === 'PolicyTemplate' && item.is_master_template === true;
+      if (isMasterPolicy && !isPlatformAdmin) {
+        return { error: Response.json({ error: 'Only a platform admin may create master templates.' }, { status: 403 }) };
+      }
+      if (entity === 'PolicyTemplate') item.is_master_template = isMasterPolicy;
+      if (REVIEWED_SOURCE_ENTITIES.has(entity)) item.approval_status = isMasterPolicy ? 'Template' : 'Draft';
+      if (!isMasterPolicy) {
+        if (!item.project_id || !(await projectBelongsToOrg(item.project_id))) {
+          return { error: Response.json({ error: 'Not found' }, { status: 404 }) };
+        }
+      }
+      return { item: { ...item, organization_id: isMasterPolicy ? '' : org } };
+    };
+
+    if (operation === 'create') {
+      const prepared = await prepareCreate(clean);
+      if (prepared.error) return prepared.error;
+      const record = await svc.create(prepared.item);
       return Response.json({ record });
+    }
+
+    if (operation === 'bulkCreate') {
+      const rows = Array.isArray(data) ? data : body.records;
+      if (!Array.isArray(rows) || rows.length < 1 || rows.length > 100) {
+        return Response.json({ error: 'bulkCreate requires 1-100 records.' }, { status: 400 });
+      }
+      const preparedRows = [];
+      for (const row of rows) {
+        const prepared = await prepareCreate(row);
+        if (prepared.error) return prepared.error;
+        preparedRows.push(prepared.item);
+      }
+      const records = await svc.bulkCreate(preparedRows);
+      return Response.json({ records });
     }
 
     // update — verify the target belongs to the caller's org.
@@ -129,8 +186,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Not found' }, { status: 404 });
     }
     if (isPlatformAdmin) org = existing.organization_id || '';
-    // PolicyTemplate: master templates are read-only to clients.
-    if (entity === 'PolicyTemplate' && existing.is_master_template === true) {
+    // PolicyTemplate: master templates are read-only except to platform admins.
+    if (entity === 'PolicyTemplate' && existing.is_master_template === true && !isPlatformAdmin) {
       return Response.json({ error: 'Master templates are read-only.' }, { status: 403 });
     }
     // The record's existing project (if any) must belong to the caller's org,
@@ -144,7 +201,12 @@ Deno.serve(async (req) => {
     }
     // organization_id (already stripped above) and master flag can never change.
     if (entity === 'PolicyTemplate') delete clean.is_master_template;
-    const record = await svc.update(id, clean);
+    const updateData = REVIEWED_SOURCE_ENTITIES.has(entity)
+      && ['In Review', 'Approved'].includes(existing.approval_status)
+      && Object.keys(clean).length > 0
+      ? { ...clean, ...REVIEW_INVALIDATION }
+      : clean;
+    const record = await svc.update(id, updateData);
     return Response.json({ record });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
