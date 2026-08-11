@@ -17,33 +17,40 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [objectiveLinks, setObjectiveLinks] = useState([]);
   const [ctx, setCtx] = useState({ scoping: null, assets: [], poams: [], providers: [], diagrams: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [building, setBuilding] = useState(false);
   const [savingKey, setSavingKey] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [sspList, stmts, asmt, ev, objectives, links, scope, assets, poams, providers, diagrams] = await Promise.all([
-      base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.SSPControlStatement.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
-      base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
-      base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ServiceProvider.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ProjectDiagram.filter({ project_id: project.id }).catch(() => []),
-    ]);
-    setSsp(sspList[0] || null);
-    setStatements(stmts);
-    setAssessments(asmt);
-    setEvidence(ev);
-    setObjectiveLibrary(objectives);
-    setObjectiveLinks(links);
-    setCtx({ scoping: scope[0] || null, assets, poams, providers, diagrams });
-    setLoading(false);
-  }, [project.id]);
+    setLoadError(null);
+    try {
+      const [sspList, stmts, asmt, ev, objectives, links, scope, assets, poams, providers, diagrams] = await Promise.all([
+        base44.entities.SystemSecurityPlan.filter({ project_id: project.id }),
+        base44.entities.SSPControlStatement.filter({ project_id: project.id }),
+        base44.entities.ControlAssessment.filter({ project_id: project.id }),
+        base44.entities.ProjectEvidence.filter({ project_id: project.id }),
+        base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500),
+        base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500),
+        base44.entities.ScopingProfile.filter({ project_id: project.id }),
+        base44.entities.Asset.filter({ project_id: project.id }),
+        base44.entities.ProjectPOAM.filter({ project_id: project.id }),
+        base44.entities.ServiceProvider.filter({ project_id: project.id }),
+        base44.entities.ProjectDiagram.filter({ project_id: project.id }),
+      ]);
+      setSsp(sspList[0] || null);
+      setStatements(stmts);
+      setAssessments(asmt);
+      setEvidence(ev);
+      setObjectiveLibrary(objectives);
+      setObjectiveLinks(links);
+      setCtx({ scoping: scope[0] || null, assets, poams, providers, diagrams });
+    } catch (error) {
+      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete SSP source data.');
+    } finally {
+      setLoading(false);
+    }
+  }, [project.id, project.target_cmmc_level]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -63,15 +70,21 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     () => computeReadiness({ assessments, objectiveLibrary, objectiveLinks, evidence, poams: ctx.poams, assets: ctx.assets, scoping: ctx.scoping, project }),
     [assessments, objectiveLibrary, objectiveLinks, evidence, ctx, project]
   );
-  const checks = useMemo(() => sspPrechecks(readiness), [readiness]);
+  const checks = useMemo(() => [
+    ...sspPrechecks(readiness),
+    { label: 'Is every required SSP section complete?', pass: completion.pct === 100 },
+    { label: 'Has the SSP been approved?', pass: ssp?.approval_status === 'Approved' },
+  ], [readiness, completion.pct, ssp?.approval_status]);
   const finalReady = allPass(checks);
   const [showFinalGate, setShowFinalGate] = useState(false);
 
-  // "Final SSP" = mark approval status In Review and export. Gated by pre-checks
-  // but never hard-blocked — user may continue anyway.
+  // Final output is fail-closed. Draft PDF generation remains available at any time.
   const exportFinal = async () => {
-    if (ssp?.approval_status === 'Draft') await updateApproval({ approval_status: 'In Review' });
-    generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
+    if (!finalReady) {
+      setShowFinalGate(true);
+      return;
+    }
+    await generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
     setShowFinalGate(false);
   };
 
@@ -112,6 +125,14 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   };
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
+  if (loadError) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+      <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> SSP source data could not be verified</div>
+      <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
+      <p className="text-xs text-red-600 mt-1">Kipuka will not build or export an SSP from a partial data load.</p>
+      <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -165,8 +186,6 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           <div className="flex flex-wrap gap-2">
             <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Generate Draft SSP</button>
-            <button onClick={exportFinal}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700">Continue Anyway</button>
             <button onClick={() => setShowFinalGate(false)}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Return to Implementation Checklist</button>
           </div>
