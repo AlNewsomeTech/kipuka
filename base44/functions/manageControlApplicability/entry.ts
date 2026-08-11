@@ -212,6 +212,132 @@ Deno.serve(async (req) => {
       return sr.entities.ControlApplicabilityEvent.create({ ...payload, event_sha256: eventSha });
     }
 
+    // If a prior attempt committed part of a transition but not its audit event,
+    // finish the protected assessment state and append the missing event.
+    const transitionRequests = orderedRequests.filter((row: any) => row.last_transition_id === transitionId);
+    const assessmentTransitionMatch = assessment.not_applicable_last_transition_id === transitionId;
+    if (transitionRequests.length > 1) {
+      return Response.json({ error: 'Duplicate request transition markers exist.' }, { status: 409 });
+    }
+    const transitionRequest = transitionRequests[0] || null;
+    if (transitionRequest && transitionRequest.last_transition_input_sha256 !== transitionInputSha) {
+      return Response.json({ error: 'transition_id was already used for a different request payload.' }, { status: 409 });
+    }
+    if (assessmentTransitionMatch && assessment.not_applicable_last_transition_input_sha256 !== transitionInputSha) {
+      return Response.json({ error: 'transition_id was already used for a different assessment payload.' }, { status: 409 });
+    }
+    if (transitionRequest || assessmentTransitionMatch) {
+      let recoveredAssessment = assessment;
+      let recoveredRequest = transitionRequest;
+
+      if (action === 'request') {
+        if (!transitionRequest || transitionRequest.status !== 'Pending Review') {
+          return Response.json({ error: 'Interrupted request transition is inconsistent.' }, { status: 409 });
+        }
+        if (transitionRequest.supersedes_request_id) {
+          const superseded = orderedRequests.find((row: any) => row.id === transitionRequest.supersedes_request_id);
+          if (superseded?.status === 'Pending Review') {
+            await sr.entities.ControlApplicabilityRequest.update(superseded.id, {
+              status: 'Superseded',
+              superseded_by_request_id: transitionRequest.id,
+            });
+          }
+        }
+        recoveredAssessment = await sr.entities.ControlAssessment.update(assessment.id, {
+          not_applicable_request_id: transitionRequest.id,
+          not_applicable_request_status: 'Pending Review',
+          not_applicable_last_transition_id: transitionId,
+          not_applicable_last_transition_input_sha256: transitionInputSha,
+        });
+        await appendEvent({
+          request_id: transitionRequest.id,
+          action: 'Requested',
+          from_status: assessment.status || 'Not Started',
+          to_status: 'Pending Review',
+          note: 'Independent review requested.',
+          request_sha256: transitionRequest.request_sha256,
+        });
+      } else if (action === 'approve' || action === 'reject') {
+        const expectedStatus = action === 'approve' ? 'Approved' : 'Rejected';
+        if (!transitionRequest || transitionRequest.status !== expectedStatus) {
+          return Response.json({ error: 'Interrupted review transition is inconsistent.' }, { status: 409 });
+        }
+        const patch: any = action === 'approve' ? {
+          status: 'Not Applicable',
+          not_applicable_justification: transitionRequest.justification,
+          not_applicable_scope_evidence: transitionRequest.scope_evidence,
+          not_applicable_confirmed_by: transitionRequest.reviewed_by_name,
+          not_applicable_confirmed_date: text(transitionRequest.reviewed_date).slice(0, 10),
+          not_applicable_previous_status: transitionRequest.previous_assessment_status || 'Not Started',
+          not_applicable_request_id: transitionRequest.id,
+          not_applicable_request_status: 'Approved',
+          not_applicable_decision_sha256: transitionRequest.decision_sha256,
+          not_applicable_approved_by_email: transitionRequest.reviewed_by_email,
+          not_applicable_approved_date: transitionRequest.reviewed_date,
+          last_reviewed_by: transitionRequest.reviewed_by_name,
+          last_reviewed_date: text(transitionRequest.reviewed_date).slice(0, 10),
+          not_applicable_last_transition_id: transitionId,
+          not_applicable_last_transition_input_sha256: transitionInputSha,
+        } : {
+          not_applicable_request_id: transitionRequest.id,
+          not_applicable_request_status: 'Rejected',
+          not_applicable_last_transition_id: transitionId,
+          not_applicable_last_transition_input_sha256: transitionInputSha,
+        };
+        recoveredAssessment = await sr.entities.ControlAssessment.update(assessment.id, patch);
+        await appendEvent({
+          request_id: transitionRequest.id,
+          action: expectedStatus,
+          from_status: 'Pending Review',
+          to_status: expectedStatus,
+          note: transitionRequest.review_note,
+          request_sha256: transitionRequest.request_sha256,
+          decision_sha256: transitionRequest.decision_sha256,
+        });
+      } else if (action === 'withdraw') {
+        if (!transitionRequest || transitionRequest.status !== 'Withdrawn') {
+          return Response.json({ error: 'Interrupted withdrawal transition is inconsistent.' }, { status: 409 });
+        }
+        recoveredAssessment = await sr.entities.ControlAssessment.update(assessment.id, {
+          not_applicable_request_id: transitionRequest.id,
+          not_applicable_request_status: 'Withdrawn',
+          not_applicable_last_transition_id: transitionId,
+          not_applicable_last_transition_input_sha256: transitionInputSha,
+        });
+        await appendEvent({
+          request_id: transitionRequest.id,
+          action: 'Withdrawn',
+          from_status: 'Pending Review',
+          to_status: 'Withdrawn',
+          note: transitionRequest.review_note || 'Withdrawn by requester.',
+          request_sha256: transitionRequest.request_sha256,
+        });
+      } else if (action === 'restore') {
+        if (!assessmentTransitionMatch || assessment.status === 'Not Applicable') {
+          return Response.json({ error: 'Interrupted restore transition is inconsistent.' }, { status: 409 });
+        }
+        recoveredRequest = text(assessment.not_applicable_request_id)
+          ? await sr.entities.ControlApplicabilityRequest.get(assessment.not_applicable_request_id).catch(() => null)
+          : null;
+        await appendEvent({
+          request_id: text(assessment.not_applicable_request_id),
+          action: 'Restored Applicable',
+          from_status: 'Not Applicable',
+          to_status: assessment.status,
+          note: text(body.review_note) || 'Control restored as applicable.',
+          decision_sha256: text(recoveredRequest?.decision_sha256),
+        });
+      } else {
+        return Response.json({ error: 'Interrupted transition is inconsistent.' }, { status: 409 });
+      }
+      return Response.json({
+        request: recoveredRequest,
+        assessment: recoveredAssessment,
+        idempotent_replay: true,
+        audit_recovered: true,
+      });
+    }
+
     if (action === 'request') {
       const justification = text(body.justification);
       const scopeEvidence = text(body.scope_evidence);
@@ -263,6 +389,8 @@ Deno.serve(async (req) => {
       await sr.entities.ControlAssessment.update(assessment.id, {
         not_applicable_request_id: created.id,
         not_applicable_request_status: 'Pending Review',
+        not_applicable_last_transition_id: transitionId,
+        not_applicable_last_transition_input_sha256: transitionInputSha,
       });
       await appendEvent({
         request_id: created.id,
@@ -335,9 +463,13 @@ Deno.serve(async (req) => {
         not_applicable_approved_date: now,
         last_reviewed_by: actorName,
         last_reviewed_date: today,
+        not_applicable_last_transition_id: transitionId,
+        not_applicable_last_transition_input_sha256: transitionInputSha,
       } : {
         not_applicable_request_id: target.id,
         not_applicable_request_status: 'Rejected',
+        not_applicable_last_transition_id: transitionId,
+        not_applicable_last_transition_input_sha256: transitionInputSha,
       };
       const updatedAssessment = await sr.entities.ControlAssessment.update(assessment.id, assessmentPatch);
       await appendEvent({
@@ -367,6 +499,8 @@ Deno.serve(async (req) => {
       const updatedAssessment = await sr.entities.ControlAssessment.update(assessment.id, {
         not_applicable_request_id: target.id,
         not_applicable_request_status: 'Withdrawn',
+        not_applicable_last_transition_id: transitionId,
+        not_applicable_last_transition_input_sha256: transitionInputSha,
       });
       await appendEvent({
         request_id: target.id,
@@ -392,6 +526,8 @@ Deno.serve(async (req) => {
         not_applicable_approved_date: '',
         last_reviewed_by: actorName,
         last_reviewed_date: today,
+        not_applicable_last_transition_id: transitionId,
+        not_applicable_last_transition_input_sha256: transitionInputSha,
       });
       await appendEvent({
         request_id: text(assessment.not_applicable_request_id),
