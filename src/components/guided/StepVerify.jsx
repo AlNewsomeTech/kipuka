@@ -5,7 +5,7 @@ import { validNotApplicable } from '@/lib/canonicalReadiness';
 
 // Step 5 VERIFY checks implementation progress. Finishing this step does not
 // accept evidence or create an assessor objective finding.
-export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, assessment, currentStatus, error }) {
+export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, savingChecks, readOnly, assessment, currentStatus, error }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant } = resolveVariant(libEntry, activeKey);
   const steps = Array.isArray(variant?.validation_steps) ? variant.validation_steps : [];
@@ -27,7 +27,12 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
           <ul className="space-y-2">
             {steps.map((s, i) => (
               <li key={i}>
-                <button onClick={() => onToggleCheck(i)} className="flex items-start gap-2.5 text-left w-full group">
+                <button
+                  onClick={() => onToggleCheck(i)}
+                  disabled={readOnly || savingChecks}
+                  aria-pressed={!!checks[i]}
+                  className="flex items-start gap-2.5 text-left w-full group disabled:cursor-not-allowed disabled:opacity-60"
+                >
                   {checks[i]
                     ? <CheckSquare className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                     : <Square className="w-4 h-4 text-slate-300 mt-0.5 flex-shrink-0 group-hover:text-slate-400" />}
@@ -47,7 +52,9 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
 
       <div className="flex items-center justify-between flex-wrap gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
         <div className="text-sm text-green-900">
-          {notApplicable
+          {readOnly
+            ? 'Your access is read-only. You can review these checks, but an authorized project member must save them and finish implementation.'
+            : notApplicable
             ? approvedNotApplicable
               ? 'This control has an independently approved Not Applicable decision. Use the applicability panel above if the scope changes.'
               : 'This legacy Not Applicable label is not approved and does not count as complete. Use the applicability panel above.'
@@ -59,11 +66,11 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
         </div>
         <button
           onClick={onMarkDone}
-          disabled={saving || (steps.length > 0 && !allChecked) || alreadyDone || notApplicable}
+          disabled={readOnly || saving || savingChecks || (steps.length > 0 && !allChecked) || alreadyDone || notApplicable}
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-          {notApplicable ? approvedNotApplicable ? 'Approved Not Applicable' : 'N/A Review Required' : alreadyDone ? 'Implementation Finished' : 'Finish Implementation Step'}
+          {readOnly ? 'Read-only access' : notApplicable ? approvedNotApplicable ? 'Approved Not Applicable' : 'N/A Review Required' : alreadyDone ? 'Implementation Finished' : savingChecks ? 'Saving checklist…' : 'Finish Implementation Step'}
         </button>
       </div>
     </div>
