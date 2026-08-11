@@ -140,6 +140,14 @@ ok(evidenceFunction.includes('sanitizePart(body.file_name_description || title')
 ok(evidenceFunction.includes("replace(/[^A-Za-z0-9.-]+/g, '_')"), 'backend filename sanitizer matches the guided underscore format');
 ok(verifyStep.includes('Finish Implementation Step'), 'verify step labels implementation progress without claiming assessment completion');
 ok(verifyStep.includes('Evidence acceptance and objective assessment remain separate'), 'verify step explains the canonical readiness boundary');
+ok(guided.includes('if (readOnly || savingChecks) return;'), 'verification checklist mutations are blocked for read-only and in-flight saves');
+ok(guided.includes('const saved = await persist({ verify_checks: next });'), 'verification checklist waits for canonical progress persistence');
+before(guided, 'const saved = await persist({ verify_checks: next });', 'setChecks(saved.verify_checks || next)', 'verification checklist updates locally only after a confirmed save');
+ok(guided.includes("if (saved?.id) setChecks(saved.verify_checks || next)"), 'failed verification saves never unlock local completion');
+ok(guided.includes("if (readOnly) {\n      setActionError('Your access is read-only."), 'mark-done handler rejects read-only callers before any write');
+ok(verifyStep.includes('disabled={readOnly || savingChecks}'), 'read-only and saving checkboxes are disabled');
+ok(verifyStep.includes('disabled={readOnly || saving || savingChecks'), 'finish action is blocked until checklist persistence settles');
+ok(verifyStep.includes("'Read-only access'"), 'verify step explains read-only access in plain language');
 
 const filenamePlan = buildEvidenceFilePlan({
   organization: { legal_name: 'Acme Defense' },
