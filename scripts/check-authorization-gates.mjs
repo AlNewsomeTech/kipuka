@@ -204,8 +204,8 @@ function checkGenerateEvidencePackage(src, clean) {
 }
 
 function checkOrgScopedShared(clean) {
-  const orgDerive = must(clean, /const\s+org\s*=\s*caller\s*\.\s*organization_id\s*;/,
-    'organization derived solely from caller.organization_id');
+  const orgDerive = must(clean, /(?:const|let)\s+org\s*=\s*caller\s*\.\s*organization_id(?:\s*\|\|\s*'')?\s*;/,
+    'non-admin organization starts from caller.organization_id');
   mustNot(clean, /const\s+org\s*=\s*(?:body|query)\s*\./, 'organization taken from the request body');
   must(clean, /if\s*\(\s*!\s*org\s*\)[\s\S]{0,220}status:\s*403/, 'caller without an organization receives 403');
 
@@ -252,15 +252,15 @@ function checkOrgScopedWrite(src, clean) {
 
   const projectGuard = must(
     clean,
-    /projectBelongsToOrg[\s\S]{0,240}p\.organization_id\s*===\s*org/,
+    /projectBelongsToOrg[\s\S]{0,520}return\s+p\.organization_id\s*===\s*org/,
     'project ownership helper compares Project.organization_id to the caller organization',
   );
   must(clean, /clean\.project_id\s*&&\s*!\s*\(\s*await\s+projectBelongsToOrg/,
     'newly supplied project_id is validated against the caller organization');
   must(clean, /existing\.project_id\s*&&\s*!\s*\(\s*await\s+projectBelongsToOrg/,
     "the existing record's project_id is validated against the caller organization");
-  must(clean, /existing\.organization_id\s*!==\s*org[\s\S]{0,160}status:\s*404/,
-    'updates to another organization\'s record return 404');
+  must(clean, /!\s*isPlatformAdmin\s*&&\s*existing\.organization_id\s*!==\s*org[\s\S]{0,160}status:\s*404/,
+    'non-admin updates to another organization\'s record return 404');
 
   const create = at(clean, /svc\s*\.\s*create\s*\(/);
   const update = at(clean, /svc\s*\.\s*update\s*\(/);
