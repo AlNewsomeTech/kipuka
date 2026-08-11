@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Crosshair, Save, CheckCircle2, Loader2 } from 'lucide-react';
+import { Crosshair, Save, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { SCOPING_QUESTIONS } from '@/lib/scopingQuestions';
 import RichTextField from '@/components/ui/RichTextField';
@@ -12,47 +12,73 @@ const SCOPE_STATUSES = ['Not Started', 'Draft', 'Needs Review', 'Approved'];
 export default function ScopingModule({ project, readOnly, currentUser }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+  const [saveError, setSaveError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const existing = await base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []);
-    if (existing.length > 0) {
-      setProfile(existing[0]);
-    } else {
-      setProfile({
-        organization_id: project.organization_id,
-        project_id: project.id,
-        scope_name: `${project.project_name} — Assessment Scope`,
-        handles_fci: false, handles_cui: false,
-        environment_type: 'Unknown',
-        included_locations: [], excluded_locations: [],
-        wizard_answers: {},
-        scope_status: 'Not Started',
-      });
+    setLoadError(null);
+    try {
+      const existing = await base44.entities.ScopingProfile.filter({ project_id: project.id });
+      if (existing.length > 0) {
+        setProfile(existing[0]);
+      } else {
+        setProfile({
+          organization_id: project.organization_id,
+          project_id: project.id,
+          scope_name: `${project.project_name} — Assessment Scope`,
+          handles_fci: false, handles_cui: false,
+          environment_type: 'Unknown',
+          included_locations: [], excluded_locations: [],
+          wizard_answers: {},
+          scope_status: 'Not Started',
+        });
+      }
+    } catch (error) {
+      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete scoping profile.');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [project.id, project.organization_id, project.project_name]);
 
   useEffect(() => { load(); }, [load]);
 
   const set = (field, value) => setProfile((p) => ({ ...p, [field]: value }));
   const setAnswer = (key, value) => setProfile((p) => ({ ...p, wizard_answers: { ...(p.wizard_answers || {}), [key]: value } }));
+  const scopeApprovalChecks = [
+    { label: 'Scope name is complete', pass: Boolean(String(profile?.scope_name || '').trim()) },
+    { label: 'Environment type is selected', pass: profile?.environment_type && profile.environment_type !== 'Unknown' },
+    { label: 'Assessment boundary is documented', pass: Boolean(String(profile?.boundary_summary || '').trim()) },
+    { label: 'Included systems are documented', pass: Boolean(String(profile?.included_systems_summary || '').trim()) },
+    { label: 'Data flow is documented', pass: Boolean(String(profile?.data_flow_summary || '').trim()) },
+    { label: 'FCI description is complete when FCI is handled', pass: !profile?.handles_fci || Boolean(String(profile?.fci_description || '').trim()) },
+    { label: 'CUI description is complete when CUI is handled', pass: !profile?.handles_cui || Boolean(String(profile?.cui_description || '').trim()) },
+    { label: 'Every scoping question is answered', pass: SCOPING_QUESTIONS.every((q) => Boolean(String((profile?.wizard_answers || {})[q.key] || '').trim())) },
+  ];
+  const scopeCanApprove = scopeApprovalChecks.every((c) => c.pass);
 
   const save = async (extra = {}) => {
-    setSaving(true);
+    setSaveError(null);
     const payload = { ...profile, ...extra };
-    let result;
-    if (profile.id) {
-      result = await base44.entities.ScopingProfile.update(profile.id, payload);
-    } else {
-      result = await base44.entities.ScopingProfile.create(payload);
+    if (payload.scope_status === 'Approved' && !scopeCanApprove) {
+      setSaveError('Scope cannot be approved until every validation item below passes.');
+      return;
     }
-    setProfile(result);
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaving(true);
+    try {
+      const result = profile.id
+        ? await base44.entities.ScopingProfile.update(profile.id, payload)
+        : await base44.entities.ScopingProfile.create(payload);
+      setProfile(result);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (error) {
+      setSaveError(error?.response?.data?.error || error?.message || 'Scope was not saved.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const approve = () => save({
@@ -64,6 +90,14 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
   if (loading) {
     return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
   }
+  if (loadError) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+      <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> Scoping profile could not be verified</div>
+      <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
+      <p className="text-xs text-red-600 mt-1">Kipuka will not display a blank scope or allow approval from a partial load.</p>
+      <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -150,6 +184,20 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
       </div>
 
       {!readOnly && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="text-xs font-bold text-slate-700">Before approving final scope</div>
+          <ul className="mt-2 grid gap-1 sm:grid-cols-2">
+            {scopeApprovalChecks.map((check) => (
+              <li key={check.label} className={`flex items-center gap-2 text-xs ${check.pass ? 'text-green-700' : 'text-amber-700'}`}>
+                {check.pass ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />} {check.label}
+              </li>
+            ))}
+          </ul>
+          {saveError && <p className="mt-2 text-xs font-semibold text-red-700">{saveError}</p>}
+        </div>
+      )}
+
+      {!readOnly && (
         <div className="flex items-center gap-3 flex-wrap">
           <select className="form-input max-w-[180px]" value={profile.scope_status}
             onChange={(e) => set('scope_status', e.target.value)}>
@@ -159,7 +207,7 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52] disabled:opacity-60">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Scope
           </button>
-          <button onClick={approve} disabled={saving}
+          <button onClick={approve} disabled={saving || !scopeCanApprove}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 border border-green-200">
             <CheckCircle2 className="w-4 h-4" /> Approve Scope
           </button>
