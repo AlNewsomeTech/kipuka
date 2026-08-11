@@ -118,6 +118,10 @@ ok(guided.includes("setProgressError(actionErrorMessage("), 'walkthrough progres
 ok(!guided.includes("saveGuidedProgress(progress, {\n      projectId, organizationId: org, controlId, patch,\n    }).catch(() => null)"), 'walkthrough progress no longer hides save failures');
 ok(guidedProgress.includes('const saveQueues = new Map()') && guidedProgress.includes('previous.catch(() => {}).then'), 'walkthrough saves are serialized per project and control');
 before(guidedProgress, 'await loadGuidedProgress(projectId, controlId)', 'GuidedProgress.create({', 'stale tabs recheck existing progress before creating a row');
+ok(!guidedProgress.includes(".catch(() => [])"), 'progress lookup failures cannot masquerade as no existing progress');
+ok(!guided.includes("ControlLibrary.filter({ active: true }).catch") && !guided.includes("ControlAssessment.filter({ project_id: projectId }).catch"), 'critical guided reads never fall back to empty arrays');
+ok(!guided.includes("manageControlApplicability', {\n        action: 'get'") || !guided.includes("}).catch(() => null)"), 'applicability load failures never become an empty workflow');
+ok(guided.includes('Retry guided workflow') && guided.includes('No empty or missing state has been assumed'), 'guided load failures show a fail-closed retry state');
 
 const stepUpload = read('src/components/guided/StepUpload.jsx');
 const uploadModal = read('src/components/project/evidence/EvidenceUploadModal.jsx');
@@ -129,6 +133,10 @@ ok(stepUpload.includes("transition(item, 'download')"), 'guided downloads use ha
 ok(stepUpload.includes("transition(item, 'submit_review')"), 'guided Draft and Rejected evidence can be submitted for review');
 ok(!stepUpload.includes('href={item.file_url}') && !stepUpload.includes('href={e.file_url}'), 'guided evidence never opens a legacy public URL');
 ok(stepUpload.includes("!['Archived', 'Superseded'].includes(item.review_status)"), 'guided view excludes inactive evidence versions');
+ok(!stepUpload.includes('.catch(() => setEvidence([]))'), 'evidence read failures never masquerade as no evidence');
+ok(stepUpload.includes('setEvidenceLoaded(false)') && stepUpload.includes('No empty evidence state has been assumed'), 'evidence load failures fail closed');
+ok(stepUpload.includes('!evidenceLoaded ?') && stepUpload.includes('Evidence is unavailable until the complete project evidence list loads successfully.'), 'evidence list stays unavailable until a complete read succeeds');
+ok(stepUpload.includes('<button onClick={load}') && stepUpload.includes('>Retry</button>'), 'evidence load failure offers a bounded retry');
 ok(stepUpload.includes('Only Accepted evidence can support readiness'), 'guided copy explains the evidence readiness boundary');
 ok(stepUpload.includes('does not replace the assessor’s objective finding'), 'guided copy separates evidence from assessor findings');
 ok(uploadModal.includes('file_name_description: form.file_name_description'), 'guided filename description reaches canonical ingestion');
