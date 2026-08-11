@@ -52,30 +52,34 @@ Deno.serve(async (req) => {
     // Resolve org membership + role server-side.
     // Tenant resolved from the caller's own user record only, and it must be
     // backed by an OrganizationUser membership with status exactly 'Active'.
-    const org = caller.organization_id;
-    if (!org) {
-      return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
-    }
-    const memberships = await base44.asServiceRole.entities.OrganizationUser
-      .filter({ user_email: caller.email, organization_id: org })
-      .catch(() => []);
-    const active = memberships.filter((m: any) => m.status === 'Active');
-    if (active.length !== 1) {
-      return Response.json({ error: 'Your organization membership is missing or ambiguous. Contact your administrator.' }, { status: 403 });
-    }
-    const orgRole = active[0].role;
-    if (READ_ONLY_ORG_ROLES.has(orgRole)) {
-      return Response.json({ error: `Your role (${orgRole}) has read-only access and cannot make changes.` }, { status: 403 });
-    }
+    const isPlatformAdmin = caller.role === 'admin';
+    let org = caller.organization_id || '';
+    let orgRole = isPlatformAdmin ? 'Platform Admin' : '';
+    if (!isPlatformAdmin) {
+      if (!org) {
+        return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
+      }
+      const memberships = await base44.asServiceRole.entities.OrganizationUser
+        .filter({ user_email: caller.email, organization_id: org })
+        .catch(() => []);
+      const active = memberships.filter((m: any) => m.status === 'Active');
+      if (active.length !== 1) {
+        return Response.json({ error: 'Your organization membership is missing or ambiguous. Contact your administrator.' }, { status: 403 });
+      }
+      orgRole = active[0].role;
+      if (READ_ONLY_ORG_ROLES.has(orgRole)) {
+        return Response.json({ error: `Your role (${orgRole}) has read-only access and cannot make changes.` }, { status: 403 });
+      }
 
-    // Org gating: fully disabled or expired subscription → clean 403.
-    const orgRecord = await base44.asServiceRole.entities.Organization.get(org).catch(() => null);
-    if (orgRecord?.fully_disabled === true) {
-      return Response.json({ error: 'Your organization\'s access has been disabled. Contact Pac-Sec support.' }, { status: 403 });
-    }
-    const endDate = orgRecord?.subscription_end_date;
-    if (endDate && new Date(endDate) < new Date(new Date().toDateString())) {
-      return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
+      // Org gating: fully disabled or expired subscription → clean 403.
+      const orgRecord = await base44.asServiceRole.entities.Organization.get(org).catch(() => null);
+      if (orgRecord?.fully_disabled === true) {
+        return Response.json({ error: 'Your organization\'s access has been disabled. Contact Pac-Sec support.' }, { status: 403 });
+      }
+      const endDate = orgRecord?.subscription_end_date;
+      if (endDate && new Date(endDate) < new Date(new Date().toDateString())) {
+        return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
+      }
     }
 
     const svc = base44.asServiceRole.entities[entity];
@@ -83,10 +87,26 @@ Deno.serve(async (req) => {
     // organization_id is never accepted from the client on any operation.
     delete clean.organization_id;
 
+    // Applicability fields and the Not Applicable status are controlled only by
+    // manageControlApplicability, including for platform technicians/support.
+    if (entity === 'ControlAssessment') {
+      const protectedFields = Object.keys(clean).filter((key) => key.startsWith('not_applicable_'));
+      if (protectedFields.length || clean.status === 'Not Applicable') {
+        return Response.json({ error: 'Not Applicable findings require an independent applicability review.' }, { status: 403 });
+      }
+    }
+
     // Any project_id referenced by this write must belong to the caller's org.
+    // Platform admins may operate across tenants, but the record is still
+    // forced to the organization derived from its Project.
     const projectBelongsToOrg = async (projectId: string) => {
       const p = await base44.asServiceRole.entities.Project.get(projectId).catch(() => null);
-      return !!p && p.organization_id === org;
+      if (!p?.organization_id) return false;
+      if (isPlatformAdmin) {
+        org = p.organization_id;
+        return true;
+      }
+      return p.organization_id === org;
     };
 
     if (operation === 'create') {
@@ -102,9 +122,10 @@ Deno.serve(async (req) => {
     // update — verify the target belongs to the caller's org.
     if (!id) return Response.json({ error: 'id required' }, { status: 400 });
     const existing = await svc.get(id).catch(() => null);
-    if (!existing || existing.organization_id !== org) {
+    if (!existing || (!isPlatformAdmin && existing.organization_id !== org)) {
       return Response.json({ error: 'Not found' }, { status: 404 });
     }
+    if (isPlatformAdmin) org = existing.organization_id || '';
     // PolicyTemplate: master templates are read-only to clients.
     if (entity === 'PolicyTemplate' && existing.is_master_template === true) {
       return Response.json({ error: 'Master templates are read-only.' }, { status: 403 });
