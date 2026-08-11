@@ -88,7 +88,7 @@ const assessmentModule = read('src/components/project/assessment/AssessmentModul
 ok(guided.includes("functions.invoke('manageControlApplicability'"), 'guided page invokes applicability backend');
 ok(!/ControlAssessment\.(?:create|update)[\s\S]{0,500}not_applicable_/.test(guided), 'guided page has no direct N/A write');
 ok(panel.includes('Submit for independent review'), 'plain-language request action is present');
-ok(panel.includes('the requester cannot review it'), 'UI explains reviewer separation');
+ok(panel.includes('you cannot review it'), 'UI explains reviewer separation');
 ok(panel.includes('Legacy N/A record requires independent review'), 'legacy records are clearly identified');
 ok(panel.includes('Approve N/A') && panel.includes('Reject request'), 'reviewer decisions are exposed');
 ok(!assessmentModule.match(/const STATUSES[^\n]*'Not Applicable'/), 'generic status menu cannot select N/A');
