@@ -92,12 +92,12 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes);
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
-async function fetchVerifiedPrivate(sr: any, evidence: any): Promise<Uint8Array> {
+async function fetchVerifiedPrivate(serviceClient: any, evidence: any): Promise<Uint8Array> {
   const fileUri = String(evidence?.file_uri || '');
   const expectedHash = String(evidence?.hash_value || '');
   if (!fileUri.startsWith('mp/private/')) throw new Error(`Evidence ${evidence?.id || ''} is not stored in canonical private storage.`);
   if (!/^[a-f0-9]{64}$/i.test(expectedHash)) throw new Error(`Evidence ${evidence?.id || ''} is missing a valid SHA-256 hash.`);
-  const signed = await sr.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
+  const signed = await serviceClient.integrations.Core.CreateFileSignedUrl({ file_uri: fileUri });
   const response = await fetch(signed.signed_url);
   if (!response.ok) throw new Error(`Evidence ${evidence?.id || ''} bytes could not be fetched.`);
   const bytes = new Uint8Array(await response.arrayBuffer());
