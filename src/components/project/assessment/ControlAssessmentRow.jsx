@@ -67,7 +67,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
         </div>
         {!isClient && <span className={`hidden sm:inline text-[11px] px-2 py-0.5 rounded-full font-semibold ${RISK_TONE[assessment.risk_rating] || RISK_TONE.Moderate}`}>{assessment.risk_rating}</span>}
         {isClient
-          ? <SimpleStatusBadge status={assessment.status} size="xs" />
+          ? <SimpleStatusBadge assessment={assessment} status={assessment.status} size="xs" />
           : <StatusBadge status={assessment.status} size="xs" />}
       </button>
 
