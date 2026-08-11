@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
 
     const status = record.approval_status || 'Draft';
     const transitions: Record<string, { from: string[], to: string, label: string }> = {
-      submit_review: { from: ['Draft'], to: 'In Review', label: 'Submitted for Review' },
+      submit_review: { from: ['Draft', 'Approved'], to: 'In Review', label: 'Submitted for Review' },
       approve: { from: ['In Review'], to: 'Approved', label: 'Approved' },
       reject: { from: ['In Review'], to: 'Draft', label: 'Rejected' },
       withdraw: { from: ['In Review'], to: 'Draft', label: 'Withdrawn' },
@@ -178,6 +178,11 @@ Deno.serve(async (req) => {
     const transition = transitions[action];
     if (!transition.from.includes(status)) {
       return Response.json({ error: `${action} is not valid from status ${status}.` }, { status: 409 });
+    }
+    if (action === 'submit_review' && status === 'Approved'
+      && record.review_source_sha256 && record.review_source_sha256 === record.approval_source_sha256
+      && record.approval_record_id) {
+      return Response.json({ error: 'Edit the approved document before starting a new review.' }, { status: 409 });
     }
     if (action === 'withdraw') {
       const sameRequester = (record.review_requested_by_user_id && record.review_requested_by_user_id === caller.id)
