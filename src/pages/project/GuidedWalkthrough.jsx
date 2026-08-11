@@ -12,7 +12,6 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilename } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
-import { AUDIT_ACTIONS, logAudit } from '@/lib/auditLog';
 import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
 import StepDo from '@/components/guided/StepDo';
@@ -42,20 +41,27 @@ export default function GuidedWalkthrough() {
   const [stuckNote, setStuckNote] = useState('');
   const [savingStuck, setSavingStuck] = useState(false);
   const [savingApplicability, setSavingApplicability] = useState(false);
+  const [applicabilityWorkflow, setApplicabilityWorkflow] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const p = await base44.entities.Project.get(projectId).catch(() => null);
     if (!p) { setProject(null); setLoading(false); return; }
     const levels = targetLevelsFor(p);
-    const [lib, asmt, prog] = await Promise.all([
+    const [lib, asmt, prog, applicabilityResponse] = await Promise.all([
       base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
       base44.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
       loadGuidedProgress(projectId, controlId),
+      base44.functions.invoke('manageControlApplicability', {
+        action: 'get',
+        project_id: projectId,
+        control_id: controlId,
+      }).catch(() => null),
     ]);
     setProject(p);
     setLibrary(lib.filter((c) => levels.includes(c.cmmc_level)));
     setAssessments(asmt);
+    setApplicabilityWorkflow(applicabilityResponse?.data || null);
     setProgress(prog);
     setStep(prog?.current_step || 1);
     setCompletedSteps(prog?.completed_steps || []);
@@ -119,86 +125,18 @@ export default function GuidedWalkthrough() {
     persist({ verify_checks: next });
   };
 
-  const markNotApplicable = async ({ justification, scopeEvidence }) => {
+  const manageApplicability = async (action, payload = {}) => {
     setSavingApplicability(true);
-    const today = new Date().toISOString().slice(0, 10);
-    const reviewer = user?.full_name || user?.email || '';
-    const patch = {
-      status: 'Not Applicable',
-      not_applicable_justification: justification,
-      not_applicable_scope_evidence: scopeEvidence,
-      not_applicable_confirmed_by: reviewer,
-      not_applicable_confirmed_date: today,
-      not_applicable_previous_status: assessment?.status === 'Not Applicable'
-        ? assessment.not_applicable_previous_status || 'Not Started'
-        : assessment?.status || 'Not Started',
-      last_reviewed_by: reviewer,
-      last_reviewed_date: today,
-    };
-
     try {
-      let saved;
-      if (assessment?.id) {
-        saved = await base44.entities.ControlAssessment.update(assessment.id, patch);
-      } else {
-        saved = await base44.entities.ControlAssessment.create({
-          organization_id: project.organization_id,
-          project_id: projectId,
-          control_id: controlId,
-          control_title: libEntry.control_title,
-          domain: libEntry.domain,
-          cmmc_level: libEntry.cmmc_level,
-          evidence_status: 'No Evidence',
-          risk_rating: 'Moderate',
-          ...patch,
-        });
-      }
-      const savedRecord = { ...(assessment || {}), ...(saved || {}), ...patch };
-      const savedId = savedRecord.id;
-      setAssessments((prev) => prev.some((a) => a.id === savedId)
-        ? prev.map((a) => (a.id === savedId ? savedRecord : a))
-        : [...prev, savedRecord]);
-      const allSteps = [1, 2, 3, 4, 5];
-      setCompletedSteps(allSteps);
-      await persist({ completed_steps: allSteps });
-      logAudit({
-        organizationId: project.organization_id,
-        user,
-        actionType: AUDIT_ACTIONS.ASSESSMENT_STATUS_CHANGE,
-        targetEntity: 'ControlAssessment',
-        targetRecordId: savedId,
-        summary: `${controlId} marked Not Applicable. Justification: ${justification}. Scope evidence: ${scopeEvidence}`,
+      const response = await base44.functions.invoke('manageControlApplicability', {
+        action,
+        project_id: projectId,
+        control_id: controlId,
+        transition_id: crypto.randomUUID(),
+        ...payload,
       });
-    } catch (error) {
-      window.alert(`Could not mark this control Not Applicable: ${error.message}`);
-    } finally {
-      setSavingApplicability(false);
-    }
-  };
-
-  const restoreApplicable = async () => {
-    if (!assessment?.id) return;
-    setSavingApplicability(true);
-    const restoredStatus = assessment.not_applicable_previous_status || 'Not Started';
-    const today = new Date().toISOString().slice(0, 10);
-    const reviewer = user?.full_name || user?.email || '';
-    try {
-      await base44.entities.ControlAssessment.update(assessment.id, {
-        status: restoredStatus,
-        last_reviewed_by: reviewer,
-        last_reviewed_date: today,
-      });
-      setAssessments((prev) => prev.map((a) => (a.id === assessment.id ? { ...a, status: restoredStatus } : a)));
-      logAudit({
-        organizationId: project.organization_id,
-        user,
-        actionType: AUDIT_ACTIONS.ASSESSMENT_STATUS_CHANGE,
-        targetEntity: 'ControlAssessment',
-        targetRecordId: assessment.id,
-        summary: `${controlId} restored from Not Applicable to ${restoredStatus}.`,
-      });
-    } catch (error) {
-      window.alert(`Could not restore this control: ${error.message}`);
+      await load();
+      return response?.data;
     } finally {
       setSavingApplicability(false);
     }
@@ -307,8 +245,8 @@ export default function GuidedWalkthrough() {
         libEntry={libEntry}
         readOnly={readOnly}
         saving={savingApplicability}
-        onMarkNotApplicable={markNotApplicable}
-        onRestoreApplicable={restoreApplicable}
+        workflow={applicabilityWorkflow}
+        onAction={manageApplicability}
       />
 
       {/* Step content */}
