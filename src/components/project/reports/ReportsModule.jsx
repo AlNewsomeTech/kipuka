@@ -123,8 +123,8 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
       run: () => generateEvidenceIndex({ project, evidence: data.evidence, generatedBy: genBy }),
     },
     {
-      key: 'policy', icon: ScrollText, title: 'Policy Package',
-      desc: 'Approved policies, status, mapped controls, and review dates.',
+      key: 'policy', icon: ScrollText, title: 'Draft Policy Register', badge: 'Draft',
+      desc: 'Working register of policy status, mappings, review dates, and independently approved counts. This is not an assessor-ready package.',
       run: () => generatePolicyPackage({ project, org, policies: data.policies, generatedBy: genBy }),
     },
     {
