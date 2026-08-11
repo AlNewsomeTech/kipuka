@@ -5,7 +5,7 @@ import { validNotApplicable } from '@/lib/canonicalReadiness';
 
 // Step 5 VERIFY — validation_steps as a checklist. When all are checked and the
 // user confirms, the ControlAssessment status is written to the "done" status.
-export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, assessment, currentStatus }) {
+export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, assessment, currentStatus, error }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant } = resolveVariant(libEntry, activeKey);
   const steps = Array.isArray(variant?.validation_steps) ? variant.validation_steps : [];
@@ -38,6 +38,12 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
           </ul>
         )}
       </div>
+
+      {error && (
+        <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm font-semibold text-red-800">
+          {error}
+        </div>
+      )}
 
       <div className="flex items-center justify-between flex-wrap gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
         <div className="text-sm text-green-900">
