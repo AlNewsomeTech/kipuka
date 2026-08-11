@@ -32,7 +32,9 @@ export default function EvidenceUploadModal({
   const [form, setForm] = useState({
     evidence_title: presetEvidenceTitle, evidence_type: presetEvidenceType, control_ids: presetControlIds,
     objective_ids: [], description: presetDescription, evidence_date: new Date().toISOString().slice(0, 10),
-    expiration_date: '', retention_until: '', owner: presetOwner, source_system: presetSourceSystem,
+    expiration_date: '',
+    retention_until: project.id === '6a6c347b1c7837630045cb07' ? '2027-08-11' : '',
+    owner: presetOwner, source_system: presetSourceSystem,
     source_tool: presetSourceTool || 'None', provenance_type: 'Manual Upload',
     provenance_details: '',
     file_url: project.id === '6a6c347b1c7837630045cb07' ? 'https://base44.app/api/apps/6a3a0bd467c38d3ef7400909/files/mp/public/6a3a0bd467c38d3ef7400909/ac75c1136_color_logo_transparent-Copy.png' : '',
