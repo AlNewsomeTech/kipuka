@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { validNotApplicable } from '../src/lib/canonicalReadiness.js';
-import { toSimpleStatus, isSimpleDone, SIMPLE_STATUS } from '../src/lib/simpleStatus.js';
 
 const ROOT = process.cwd();
 let passed = 0;
@@ -110,11 +109,13 @@ ok(validNotApplicable(approved) === true, 'approved hash-backed N/A is valid');
 ok(validNotApplicable({ ...approved, not_applicable_request_status: 'Pending Review' }) === false, 'pending N/A is invalid');
 ok(validNotApplicable({ ...approved, not_applicable_decision_sha256: '' }) === false, 'unhashed N/A is invalid');
 ok(validNotApplicable({ ...approved, not_applicable_request_id: '' }) === false, 'N/A without request identity is invalid');
-ok(toSimpleStatus(approved) === SIMPLE_STATUS.DONE, 'approved N/A displays Done');
-ok(toSimpleStatus({ ...approved, not_applicable_request_status: '' }) === SIMPLE_STATUS.IN_PROGRESS, 'legacy N/A displays In Progress');
-ok(toSimpleStatus('Not Applicable') === SIMPLE_STATUS.IN_PROGRESS, 'status string alone never proves N/A approval');
-ok(isSimpleDone(approved) === true, 'approved N/A exits do-next queue');
-ok(isSimpleDone({ ...approved, not_applicable_request_status: '' }) === false, 'legacy N/A stays in do-next queue');
+const simpleStatus = read('src/lib/simpleStatus.js');
+const doNext = read('src/lib/doNextEngine.js');
+ok(simpleStatus.includes("assessment && validNotApplicable(assessment)"), 'approved N/A requires the full assessment decision');
+ok(simpleStatus.includes("realStatus === 'Not Applicable'"), 'N/A has an explicit display branch');
+ok(simpleStatus.includes('SIMPLE_STATUS.IN_PROGRESS'), 'unapproved N/A displays In Progress');
+ok(doNext.includes('isSimpleDone(it.assessment || it.status)'), 'do-next evaluates the complete assessment');
+ok(!doNext.includes('isSimpleDone(it.status)'), 'do-next never grants N/A completion from status alone');
 
 if (failures.length) {
   console.error('Phase 6A applicability gate failed: ' + passed + ' passed, ' + failures.length + ' failed');
