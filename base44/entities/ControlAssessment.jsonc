@@ -136,6 +136,14 @@
       "type": "string",
       "format": "date-time"
     },
+    "not_applicable_last_transition_id": {
+      "type": "string",
+      "description": "Last server-controlled applicability transition, used for idempotent recovery."
+    },
+    "not_applicable_last_transition_input_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the last applicability transition input, used to reject conflicting retries."
+    },
     "last_reviewed_by": {
       "type": "string"
     },
