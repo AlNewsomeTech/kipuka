@@ -46,8 +46,8 @@ export const SIMPLE_STATUS_TONE = {
   'Stuck': { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
 };
 
-// The real status the VERIFY step writes when a user completes a control in guided mode.
-// Uses a real taxonomy value that counts as MET for SPRS.
+// The real status the VERIFY step writes when a user completes guided implementation.
+// This is progress only. Canonical readiness still requires objective findings and accepted evidence.
 export const GUIDED_DONE_STATUS = 'Ready for Documentation';
 
 // The real status the "I'm stuck" action sets.
