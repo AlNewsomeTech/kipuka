@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { validNotApplicable } from '../src/lib/canonicalReadiness.js';
+import { buildEvidenceFilePlan } from '../src/lib/evidenceFilename.js';
 
 const ROOT = process.cwd();
 let passed = 0;
@@ -117,6 +118,45 @@ ok(guided.includes("setProgressError(actionErrorMessage("), 'walkthrough progres
 ok(!guided.includes("saveGuidedProgress(progress, {\n      projectId, organizationId: org, controlId, patch,\n    }).catch(() => null)"), 'walkthrough progress no longer hides save failures');
 ok(guidedProgress.includes('const saveQueues = new Map()') && guidedProgress.includes('previous.catch(() => {}).then'), 'walkthrough saves are serialized per project and control');
 before(guidedProgress, 'await loadGuidedProgress(projectId, controlId)', 'GuidedProgress.create({', 'stale tabs recheck existing progress before creating a row');
+
+const stepUpload = read('src/components/guided/StepUpload.jsx');
+const uploadModal = read('src/components/project/evidence/EvidenceUploadModal.jsx');
+const evidenceFunction = read('base44/functions/manageProjectEvidence/entry.ts');
+ok(guided.includes('buildEvidenceFilePlan'), 'guided walkthrough builds one canonical evidence filename plan');
+ok(guided.includes('filenamePlan={filenamePlan}') && guided.includes('readOnly={readOnly}'), 'guided upload receives canonical naming and read-only state');
+ok(stepUpload.includes("functions.invoke('manageProjectEvidence'"), 'guided evidence actions use the canonical backend');
+ok(stepUpload.includes("transition(item, 'download')"), 'guided downloads use hash-verified signed URLs');
+ok(stepUpload.includes("transition(item, 'submit_review')"), 'guided Draft and Rejected evidence can be submitted for review');
+ok(!stepUpload.includes('href={item.file_url}') && !stepUpload.includes('href={e.file_url}'), 'guided evidence never opens a legacy public URL');
+ok(stepUpload.includes("!['Archived', 'Superseded'].includes(item.review_status)"), 'guided view excludes inactive evidence versions');
+ok(stepUpload.includes('Only Accepted evidence can support readiness'), 'guided copy explains the evidence readiness boundary');
+ok(stepUpload.includes('does not replace the assessor’s objective finding'), 'guided copy separates evidence from assessor findings');
+ok(uploadModal.includes('file_name_description: form.file_name_description'), 'guided filename description reaches canonical ingestion');
+ok(uploadModal.includes('Maximum size: 50 MB'), 'upload form explains the enforced size limit');
+ok(uploadModal.includes('accept=".png,.jpg,.jpeg,.pdf,.docx,.xlsx,.csv,.txt,.json,.zip,.log"'), 'upload picker mirrors the backend extension allowlist');
+ok(uploadModal.includes('Save Draft, then submit the saved record for independent review'), 'upload form explains the review handoff');
+ok(evidenceFunction.includes("'file_name_description'"), 'backend explicitly allows the bounded filename description');
+ok(evidenceFunction.includes('sanitizePart(body.file_name_description || title'), 'backend constructs the stored filename from the guided description');
+ok(evidenceFunction.includes("replace(/[^A-Za-z0-9.-]+/g, '_')"), 'backend filename sanitizer matches the guided underscore format');
+ok(verifyStep.includes('Finish Implementation Step'), 'verify step labels implementation progress without claiming assessment completion');
+ok(verifyStep.includes('Evidence acceptance and objective assessment remain separate'), 'verify step explains the canonical readiness boundary');
+
+const filenamePlan = buildEvidenceFilePlan({
+  organization: { legal_name: 'Acme Defense' },
+  project: { implementation_stack: 'Microsoft 365 E5' },
+  libEntry: { control_id: 'AC.L2-3.1.1', control_title: 'Authorized Access Control' },
+  variant: {
+    where_to_go: { name: 'Microsoft Entra ID' },
+    screenshot_instructions: 'Capture the Conditional Access policy',
+  },
+  controlType: 'Screenshot',
+  date: '2026-08-10',
+});
+ok(
+  filenamePlan.baseName === 'Acme_Defense_Screenshot_AC.L2-3.1.1_EntraID_Capture_the_Conditional_Access_policy_2026-08-10',
+  'canonical guided filename uses CompanyName_ControlType_CONTROLID_ToolName_Description_YYYY-MM-DD',
+);
+ok(filenamePlan.tool === 'EntraID' && filenamePlan.description === 'Capture_the_Conditional_Access_policy', 'filename plan exposes backend naming inputs');
 
 const approved = {
   status: 'Not Applicable',
