@@ -16,27 +16,37 @@ import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
 export default function ReportsModule({ project, org, readOnly, currentUser }) {
   const [data, setData] = useState(null);
   const [history, setHistory] = useState([]);
+  const [loadError, setLoadError] = useState(null);
+  const [actionError, setActionError] = useState(null);
   const [busy, setBusy] = useState(null);
   const [preview, setPreview] = useState(null);
   const [gate, setGate] = useState(null); // { report, checks, title }
   const [pkgResult, setPkgResult] = useState(null); // completeness result after building the ZIP
 
   const load = useCallback(async () => {
-    const [assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping, assets, sspList, policies, exports] = await Promise.all([
-      base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500).catch(() => []),
-      base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500).catch(() => []),
-      base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.Asset.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.PolicyTemplate.filter({ project_id: project.id }).catch(() => []),
-      base44.entities.ReportExport.filter({ project_id: project.id }, '-generated_date', 15).catch(() => []),
-    ]);
-    setData({ assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping: scoping[0] || null, assets, ssp: sspList[0] || null, policies: policies.filter((p) => !p.is_master_template) });
-    setHistory(exports);
-  }, [project.id]);
+    setLoadError(null);
+    try {
+      const [assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping, assets, sspList, policies, sprsList, exports] = await Promise.all([
+        base44.entities.ControlAssessment.filter({ project_id: project.id }),
+        base44.entities.ProjectEvidence.filter({ project_id: project.id }),
+        base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500),
+        base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500),
+        base44.entities.ProjectPOAM.filter({ project_id: project.id }),
+        base44.entities.ScopingProfile.filter({ project_id: project.id }),
+        base44.entities.Asset.filter({ project_id: project.id }),
+        base44.entities.SystemSecurityPlan.filter({ project_id: project.id }),
+        base44.entities.PolicyTemplate.filter({ project_id: project.id }),
+        base44.entities.SPRSRecord.filter({ project_id: project.id }),
+        base44.entities.ReportExport.filter({ project_id: project.id }, '-generated_date', 15),
+      ]);
+      setData({ assessments, evidence, objectiveLibrary, objectiveLinks, poams, scoping: scoping[0] || null, assets, ssp: sspList[0] || null, policies: policies.filter((p) => !p.is_master_template), sprs: sprsList[0] || null });
+      setHistory(exports);
+    } catch (error) {
+      setData(null);
+      setHistory([]);
+      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not load the complete final-document data set.');
+    }
+  }, [project.id, project.target_cmmc_level]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -45,24 +55,45 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
 
   const run = async (key, fn) => {
     setBusy(key);
-    try { await fn(); } finally { setBusy(null); setGate(null); load(); }
+    setActionError(null);
+    try {
+      await fn();
+      setGate(null);
+      await load();
+    } catch (error) {
+      setActionError(error?.response?.data?.error || error?.message || 'The export did not complete. No final output was recorded.');
+    } finally {
+      setBusy(null);
+    }
   };
+
+  if (loadError) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+      <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> Final-document data could not be verified</div>
+      <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
+      <p className="text-xs text-red-600 mt-1">Kipuka will not show empty readiness data or generate a final export from a partial load.</p>
+      <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
+    </div>
+  );
 
   if (!data) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
 
   const readiness = computeReadiness({ ...data, project });
+  const policiesApproved = data.policies.length > 0 && data.policies.every((p) => p.approval_status === 'Approved');
+  const evidenceIndexReviewed = readiness.evTotal > 0 && readiness.evValidFinal === readiness.evTotal;
+  const sprsUploaded = (data.sprs?.evidence_item_ids || []).length > 0;
   const handoffChecks = handoffPrechecks(readiness, {
     sspApproved: data.ssp?.approval_status === 'Approved',
-    policiesApproved: data.policies.length > 0,
-    evidenceIndexReviewed: readiness.evReviewed >= readiness.evTotal && readiness.evTotal > 0,
-    sprsUploaded: false,
+    policiesApproved,
+    evidenceIndexReviewed,
+    sprsUploaded,
   });
   const finalReadyChecks = handoffPrechecks(readiness, {
     sspApproved: data.ssp?.approval_status === 'Approved',
-    policiesApproved: data.policies.length > 0,
-    evidenceIndexReviewed: readiness.evReviewed >= readiness.evTotal && readiness.evTotal > 0,
-    sprsUploaded: true,
-  }).slice(0, 6);
+    policiesApproved,
+    evidenceIndexReviewed,
+    requireSprs: false,
+  });
 
   // gated=true reports require passing pre-checks (advisory) before final generation.
   const REPORTS = [
@@ -126,12 +157,17 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
         </p>
       </div>
 
+      {actionError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-[13px] text-red-800">
+          <div className="font-bold">Export failed closed</div>
+          <p className="mt-1">{actionError}</p>
+        </div>
+      )}
+
       {gate && (
         <div className="space-y-3">
           <ReadinessPrecheck title={`${gate.title} — Readiness Pre-Check`} checks={gate.checks} warning={FINAL_DOC_WARNING} />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => run(gate.key, gate.run)}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700">Continue Anyway</button>
             <button onClick={() => setGate(null)}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Return to Implementation Checklist</button>
           </div>
