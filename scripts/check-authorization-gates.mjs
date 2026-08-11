@@ -278,8 +278,8 @@ function checkOrgScopedWrite(src, clean) {
     fail('project ownership validation must precede the update write');
   }
   if (svc !== -1 && create !== -1 && svc > create) fail('unexpected write ordering');
-  must(clean, /svc\s*\.\s*create\s*\(\s*\{[\s\S]{0,80}organization_id:\s*org\s*\}/,
-    'creates are bound server-side to the caller organization');
+  must(clean, /return\s*\{\s*item:\s*\{\s*\.\.\.item,\s*organization_id:\s*isMasterPolicy\s*\?\s*''\s*:\s*org\s*\}\s*\}/,
+    'creates are bound server-side to the caller organization except platform-admin master templates');
 }
 
 function checkOrgAssetWrite(src, clean) {
