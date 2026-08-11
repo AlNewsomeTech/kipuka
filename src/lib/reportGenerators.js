@@ -27,7 +27,7 @@ function downloadCsv(rows, filename) {
 }
 
 // 1. Executive Readiness Report
-export async function generateExecutiveReadiness({ project, org, assessments, objectiveLibrary, objectiveLinks, poams, evidence, generatedBy }) {
+export async function generateExecutiveReadiness({ project, org, assessments, objectiveLibrary, objectiveLinks, poams, evidence, generatedBy, isFinal = false }) {
   const canonical = computeCanonicalReadiness({ project, assessments, objectiveLibrary, objectiveLinks, evidence, poams });
   const total = canonical.expected_requirements;
   const implemented = canonical.implemented;
@@ -35,7 +35,8 @@ export async function generateExecutiveReadiness({ project, org, assessments, ob
   const openPoams = poams.filter((p) => !['Closed', 'Accepted Risk'].includes(p.status));
   const blockers = assessments.filter((a) => a.status === 'Not Implemented' && ['High', 'Critical'].includes(a.risk_rating));
 
-  const r = createReportPdf({ title: 'Executive Readiness Report', project, org, generatedBy });
+  const reportTitle = isFinal ? 'Final Readiness Report' : 'Executive Progress Report';
+  const r = createReportPdf({ title: reportTitle, project, org, generatedBy });
   r.heading('Assessment Overview');
   r.label('Target CMMC Level', project.target_cmmc_level);
   r.label('Assessment Path', project.assessment_path);
@@ -66,8 +67,8 @@ export async function generateExecutiveReadiness({ project, org, assessments, ob
   steps.forEach((s) => r.text(`• ${s}`));
 
   r.disclaimerNote(BRAND.disclaimer);
-  r.save(`${safeFileName(project.project_name)}_Executive_Readiness.pdf`);
-  await logExport(project, 'Executive Readiness Report', 'Executive Readiness Report', generatedBy);
+  r.save(`${safeFileName(project.project_name)}_${isFinal ? 'Final_Readiness' : 'Executive_Progress'}.pdf`);
+  await logExport(project, 'Executive Readiness Report', reportTitle, generatedBy);
 }
 
 // 2. Gap Assessment Report
