@@ -38,10 +38,15 @@ export function isImplementedStatus(status) {
 
 export function validNotApplicable(assessment) {
   return assessment?.status === 'Not Applicable'
+    && assessment?.not_applicable_request_status === 'Approved'
+    && Boolean(String(assessment.not_applicable_request_id || '').trim())
+    && /^[a-f0-9]{64}$/i.test(String(assessment.not_applicable_decision_sha256 || '').trim())
     && Boolean(String(assessment.not_applicable_justification || '').trim())
     && Boolean(String(assessment.not_applicable_scope_evidence || '').trim())
     && Boolean(String(assessment.not_applicable_confirmed_by || '').trim())
-    && Boolean(String(assessment.not_applicable_confirmed_date || '').trim());
+    && Boolean(String(assessment.not_applicable_confirmed_date || '').trim())
+    && Boolean(String(assessment.not_applicable_approved_by_email || '').trim())
+    && Boolean(String(assessment.not_applicable_approved_date || '').trim());
 }
 
 export function validFinalEvidence(evidence, asOf = new Date()) {
