@@ -18,21 +18,31 @@ export default function StepUpload({
 }) {
   const [modal, setModal] = useState(false);
   const [evidence, setEvidence] = useState([]);
+  const [evidenceLoaded, setEvidenceLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [busy, setBusy] = useState('');
   const [error, setError] = useState('');
 
-  const load = useCallback(() => {
-    base44.entities.ProjectEvidence.filter({ project_id: project.id })
-      .then((rows) => setEvidence(
+  const load = useCallback(async () => {
+    setLoadError('');
+    try {
+      const rows = await base44.entities.ProjectEvidence.filter({ project_id: project.id });
+      setEvidence(
         rows
           .filter((item) => !['Archived', 'Superseded'].includes(item.review_status))
           .filter((item) => (item.control_ids || []).includes(controlId))
           .sort((a, b) => String(b.uploaded_date || '').localeCompare(String(a.uploaded_date || ''))),
-      ))
-      .catch(() => setEvidence([]));
+      );
+      setEvidenceLoaded(true);
+      return true;
+    } catch (loadFailure) {
+      setLoadError(loadFailure?.message || 'Kipuka could not load the complete evidence list. No empty evidence state has been assumed.');
+      setEvidenceLoaded(false);
+      return false;
+    }
   }, [project.id, controlId]);
 
-  useEffect(load, [load]);
+  useEffect(() => { load(); }, [load]);
 
   const transition = async (item, action) => {
     const busyKey = `${action}:${item.id}`;
@@ -88,10 +98,18 @@ export default function StepUpload({
           <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" /> {error}
         </div>
       )}
+      {loadError && (
+        <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">
+          <span className="flex gap-2"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" /> {loadError}</span>
+          <button onClick={load} className="text-xs font-semibold underline">Retry</button>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <div className="text-xs font-semibold text-slate-600 mb-2">Current evidence mapped to this control ({evidence.length})</div>
-        {evidence.length === 0 ? (
+        {!evidenceLoaded ? (
+          <p className="text-sm text-slate-500">Evidence is unavailable until the complete project evidence list loads successfully.</p>
+        ) : evidence.length === 0 ? (
           <p className="text-sm text-slate-500">{readOnly ? 'No current evidence is mapped to this control.' : 'No evidence yet. Choose Add Evidence and follow the four steps in the form.'}</p>
         ) : (
           <ul className="space-y-2">
