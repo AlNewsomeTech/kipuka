@@ -1,16 +1,18 @@
 import { CheckSquare, Square, ShieldCheck, Loader2 } from 'lucide-react';
 import { resolveVariant } from '@/lib/implementationStacks';
 import { toSimpleStatus } from '@/lib/simpleStatus';
+import { validNotApplicable } from '@/lib/canonicalReadiness';
 
 // Step 5 VERIFY — validation_steps as a checklist. When all are checked and the
 // user confirms, the ControlAssessment status is written to the "done" status.
-export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, currentStatus }) {
+export default function StepVerify({ libEntry, projectStackKey, selectedStack, checks, onToggleCheck, onMarkDone, saving, assessment, currentStatus }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant } = resolveVariant(libEntry, activeKey);
   const steps = Array.isArray(variant?.validation_steps) ? variant.validation_steps : [];
   const allChecked = steps.length > 0 && steps.every((_, i) => checks[i]);
   const notApplicable = currentStatus === 'Not Applicable';
-  const alreadyDone = toSimpleStatus(currentStatus) === 'Done';
+  const approvedNotApplicable = validNotApplicable(assessment);
+  const alreadyDone = toSimpleStatus(assessment || currentStatus) === 'Done';
 
   return (
     <div className="space-y-4">
@@ -40,7 +42,9 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
       <div className="flex items-center justify-between flex-wrap gap-3 bg-green-50 border border-green-200 rounded-xl p-4">
         <div className="text-sm text-green-900">
           {notApplicable
-            ? 'This control is documented as Not Applicable. Use the applicability panel above if the scope changes.'
+            ? approvedNotApplicable
+              ? 'This control has an independently approved Not Applicable decision. Use the applicability panel above if the scope changes.'
+              : 'This legacy Not Applicable label is not approved and does not count as complete. Use the applicability panel above.'
             : alreadyDone
               ? 'This control is marked done. You can move to the next control.'
               : allChecked || steps.length === 0
@@ -53,7 +57,7 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-          {notApplicable ? 'Marked Not Applicable' : alreadyDone ? 'Marked Done' : 'Mark Control Done'}
+          {notApplicable ? approvedNotApplicable ? 'Approved Not Applicable' : 'N/A Review Required' : alreadyDone ? 'Marked Done' : 'Mark Control Done'}
         </button>
       </div>
     </div>
