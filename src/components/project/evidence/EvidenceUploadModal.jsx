@@ -12,13 +12,29 @@ const TOOL_NAMING = {
 const CONTROL_ID_PREFIX = /^[A-Z]{2}\.L\d-\d/;
 const PROVENANCE_TYPES = ['Manual Upload', 'System Export', 'Screenshot', 'Policy Record', 'Procedure Record', 'Third-Party Attestation'];
 
-export default function EvidenceUploadModal({ project, controls = [], objectives = [], presetControlIds = [], presetSourceTool = null, existing = null, onClose, onSaved }) {
+export default function EvidenceUploadModal({
+  project,
+  controls = [],
+  objectives = [],
+  presetControlIds = [],
+  presetSourceTool = null,
+  presetSourceSystem = '',
+  presetEvidenceTitle = '',
+  presetEvidenceType = 'Screenshot',
+  presetDescription = '',
+  presetOwner = '',
+  fileNameDescription = '',
+  expectedFilename = '',
+  existing = null,
+  onClose,
+  onSaved,
+}) {
   const [form, setForm] = useState({
-    evidence_title: '', evidence_type: 'Screenshot', control_ids: presetControlIds,
-    objective_ids: [], description: '', evidence_date: new Date().toISOString().slice(0, 10),
-    expiration_date: '', retention_until: '', owner: '', source_system: '',
+    evidence_title: presetEvidenceTitle, evidence_type: presetEvidenceType, control_ids: presetControlIds,
+    objective_ids: [], description: presetDescription, evidence_date: new Date().toISOString().slice(0, 10),
+    expiration_date: '', retention_until: '', owner: presetOwner, source_system: presetSourceSystem,
     source_tool: presetSourceTool || 'None', provenance_type: 'Manual Upload',
-    provenance_details: '', file_url: '', original_file_name: '',
+    provenance_details: '', file_url: '', original_file_name: '', file_name_description: fileNameDescription,
   });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -97,6 +113,7 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
         prior_evidence_id: existing?.id || undefined,
         file_url: form.file_url || undefined,
         original_file_name: form.original_file_name,
+        file_name_description: form.file_name_description,
         evidence_title: form.evidence_title,
         evidence_type: form.evidence_type,
         control_ids: form.control_ids,
@@ -125,6 +142,10 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
   if (form.source_tool && !sourceToolOptions.includes(form.source_tool)) sourceToolOptions.splice(1, 0, form.source_tool);
   const naming = TOOL_NAMING[form.source_tool];
   const filenameWarn = naming && form.original_file_name && !CONTROL_ID_PREFIX.test(form.original_file_name);
+  const selectedExtension = form.original_file_name.match(/\.([A-Za-z0-9]+)$/)?.[1]?.toLowerCase() || '';
+  const expectedStoredFilename = expectedFilename
+    ? `${expectedFilename}${selectedExtension ? `.${selectedExtension}` : ''}`
+    : '';
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -138,14 +159,41 @@ export default function EvidenceUploadModal({ project, controls = [], objectives
         </div>
         <div className="p-5 space-y-4">
           {error && <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />{error}</div>}
+
+          {expectedFilename && !existing && (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-[13px] text-blue-950">
+              <div className="font-semibold">What happens after you choose the file</div>
+              <ol className="mt-1.5 space-y-1 list-decimal pl-4">
+                <li>Kipuka verifies the file, calculates its SHA-256 hash, and stores a private copy.</li>
+                <li>Complete the owner, evidence date, source, and Retain Until fields below.</li>
+                <li>Save Draft, then submit the saved record for independent review from the guided upload step.</li>
+                <li>Only Accepted evidence can support readiness. Uploading a file does not mark an assessment objective MET.</li>
+              </ol>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">File {existing ? '(optional for a metadata-only new version)' : '*'}</label>
             <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-slate-300 cursor-pointer hover:bg-slate-50 text-sm text-slate-600">
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {form.original_file_name || 'Choose evidence file'}
-              <input type="file" className="hidden" onChange={handleFile} />
+              <input
+                type="file"
+                accept=".png,.jpg,.jpeg,.pdf,.docx,.xlsx,.csv,.txt,.json,.zip,.log"
+                className="hidden"
+                onChange={handleFile}
+              />
             </label>
+            <p className="mt-1 text-[11px] text-slate-500">Allowed: PNG, JPG, PDF, DOCX, XLSX, CSV, TXT, JSON, ZIP, or LOG. Maximum size: 50 MB.</p>
           </div>
+
+          {expectedStoredFilename && (
+            <div className="bg-slate-900 rounded-lg p-3">
+              <div className="text-[10px] text-slate-400 uppercase tracking-wide">Private stored filename with the guided defaults</div>
+              <div className="text-green-400 font-mono text-[11px] break-all mt-1">{expectedStoredFilename}</div>
+              <p className="text-[11px] text-slate-400 mt-1">Kipuka preserves the original filename in provenance and uses the standardized name for the verified private copy.</p>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-slate-600 mb-1">Evidence Title *</label>
