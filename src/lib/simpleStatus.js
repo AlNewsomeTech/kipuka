@@ -3,7 +3,7 @@
 // this only MAPS it to four buckets for display and writes back real statuses.
 
 import { isMetStatus, isInProgressStatus } from '@/lib/sprsScoring';
-import { isImplementedStatus } from '@/lib/canonicalReadiness';
+import { isImplementedStatus, validNotApplicable } from '@/lib/canonicalReadiness';
 
 // The four client-facing buckets.
 export const SIMPLE_STATUS = {
@@ -14,20 +14,27 @@ export const SIMPLE_STATUS = {
 };
 
 // Map any of the 13 real statuses to one of the four simple buckets.
-export function toSimpleStatus(realStatus) {
+export function toSimpleStatus(value) {
+  const assessment = value && typeof value === 'object' ? value : null;
+  const realStatus = assessment?.status || value;
   if (!realStatus || realStatus === 'Not Started' || realStatus === 'Not Implemented') {
     return SIMPLE_STATUS.NOT_STARTED;
   }
   if (realStatus === 'Gap Identified' || realStatus === 'POA&M Linked') {
     return SIMPLE_STATUS.STUCK;
   }
+  // N/A is Done only when the complete, independently approved decision is
+  // present on the assessment. A status string alone can never prove approval.
+  if (realStatus === 'Not Applicable') {
+    return assessment && validNotApplicable(assessment)
+      ? SIMPLE_STATUS.DONE
+      : SIMPLE_STATUS.IN_PROGRESS;
+  }
   // Done = the control's implementation workflow is complete (implemented /
   // evidence uploaded / verified). This is progress display only — it never
   // feeds SPRS scoring or assessment MET findings.
   if (isMetStatus(realStatus) || isImplementedStatus(realStatus)) return SIMPLE_STATUS.DONE;
   if (isInProgressStatus(realStatus)) return SIMPLE_STATUS.IN_PROGRESS;
-  // Anything else (Not Applicable, etc.) — treat as in progress so it isn't lost.
-  if (realStatus === 'Not Applicable') return SIMPLE_STATUS.DONE;
   return SIMPLE_STATUS.IN_PROGRESS;
 }
 
@@ -47,6 +54,6 @@ export const GUIDED_DONE_STATUS = 'Ready for Documentation';
 export const GUIDED_STUCK_STATUS = 'Gap Identified';
 
 // Is this control considered done (for do-next queue filtering)?
-export function isSimpleDone(realStatus) {
-  return toSimpleStatus(realStatus) === SIMPLE_STATUS.DONE;
+export function isSimpleDone(value) {
+  return toSimpleStatus(value) === SIMPLE_STATUS.DONE;
 }
