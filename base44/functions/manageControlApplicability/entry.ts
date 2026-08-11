@@ -33,9 +33,6 @@ function assessmentSource(assessment: any) {
     not_applicable_justification: assessment.not_applicable_justification || '',
     not_applicable_scope_evidence: assessment.not_applicable_scope_evidence || '',
     not_applicable_previous_status: assessment.not_applicable_previous_status || '',
-    not_applicable_request_id: assessment.not_applicable_request_id || '',
-    not_applicable_request_status: assessment.not_applicable_request_status || '',
-    not_applicable_decision_sha256: assessment.not_applicable_decision_sha256 || '',
   };
 }
 function safePreviousStatus(assessment: any): string {
@@ -280,7 +277,7 @@ Deno.serve(async (req) => {
 
     const requestId = text(body.request_id);
     const target = requestId ? await sr.entities.ControlApplicabilityRequest.get(requestId).catch(() => null) : pending;
-    if (!target || target.project_id !== projectId || target.control_id !== controlId || target.organization_id !== project.organization_id) {
+    if (action !== 'restore' && (!target || target.project_id !== projectId || target.control_id !== controlId || target.organization_id !== project.organization_id)) {
       return Response.json({ error: 'Applicability request not found.' }, { status: 404 });
     }
 
