@@ -1,0 +1,109 @@
+{
+  "name": "ControlApplicabilityEvent",
+  "type": "object",
+  "description": "Immutable, hash-chained history for control applicability request and review transitions.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_assessment_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "Requested",
+        "Approved",
+        "Rejected",
+        "Withdrawn",
+        "Restored Applicable",
+        "Audit Recovered"
+      ]
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "transition_id": {
+      "type": "string"
+    },
+    "transition_input_sha256": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "request_sha256": {
+      "type": "string"
+    },
+    "decision_sha256": {
+      "type": "string"
+    },
+    "previous_event_sha256": {
+      "type": "string"
+    },
+    "event_sha256": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "control_assessment_id",
+    "control_id",
+    "action",
+    "transition_id",
+    "transition_input_sha256",
+    "actor_email",
+    "event_sha256",
+    "event_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
