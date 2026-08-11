@@ -21,6 +21,14 @@ const inventory = read('src/components/project/inventory/InventoryModule.jsx');
 const scoping = read('src/components/project/scoping/ScopingModule.jsx');
 const scopingQuestions = read('src/lib/scopingQuestions.js');
 const richText = read('src/components/ui/RichTextField.jsx');
+const policyEditor = read('src/components/project/policies/PolicyEditorModal.jsx');
+const policiesModule = read('src/components/project/policies/PoliciesModule.jsx');
+const lifecycle = read('base44/functions/manageFinalDocumentReview/entry.ts');
+const writeGate = read('base44/functions/orgScopedWrite/entry.ts');
+const client = read('src/api/base44Client.js');
+const sspSchema = read('base44/entities/SystemSecurityPlan.jsonc');
+const policySchema = read('base44/entities/PolicyTemplate.jsonc');
+const eventSchema = read('base44/entities/FinalDocumentReviewEvent.jsonc');
 const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].map((match) => match[1]);
 
 [
@@ -37,7 +45,7 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['reports critical assessment read is not swallowed', !reports.includes('ControlAssessment.filter({ project_id: project.id }).catch')],
   ['reports critical evidence read is not swallowed', !reports.includes('ProjectEvidence.filter({ project_id: project.id }).catch')],
   ['reports loads SPRS records', reports.includes('base44.entities.SPRSRecord.filter')],
-  ['reports requires all policies approved', reports.includes("data.policies.every((p) => p.approval_status === 'Approved')")],
+  ['reports requires independently approved policies', reports.includes('validApprovedPolicies(data.policies)')],
   ['reports requires all current evidence valid', reports.includes('readiness.evValidFinal === readiness.evTotal')],
   ['reports uses server preflight for handoff PDF', reports.includes('await previewEvidencePackage({ project })')],
   ['reports shows failed-closed export error', reports.includes('Export failed closed')],
@@ -45,7 +53,7 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['SSP complete-load error state', ssp.includes('SSP source data could not be verified')],
   ['SSP critical evidence read is not swallowed', !ssp.includes('ProjectEvidence.filter({ project_id: project.id }).catch')],
   ['SSP requires every section complete', ssp.includes('completion.pct === 100')],
-  ['SSP requires Approved status', ssp.includes("ssp?.approval_status === 'Approved'")],
+  ['SSP requires independent approved provenance', ssp.includes('validApprovedSsp(ssp)')],
   ['SSP final export rechecks gate', ssp.includes('if (!finalReady)')],
   ['SSP final export does not self-promote approval', !ssp.includes("await updateApproval({ approval_status: 'In Review' })")],
   ['SSP has no continue-anyway action', !ssp.includes('Continue Anyway')],
@@ -68,7 +76,7 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['backend blocks incomplete current evidence', backend.includes('finalEvidence.length !== currentEvidence.length')],
   ['backend blocks unapproved scope', backend.includes("scoping?.scope_status !== 'Approved'")],
   ['backend blocks unfinalized inventory', backend.includes("project?.inventory_status !== 'Finalized'")],
-  ['backend blocks unapproved SSP', backend.includes("ssp.approval_status !== 'Approved'")],
+  ['backend blocks SSP without current independent approval', backend.includes("validIndependentApproval('SystemSecurityPlan', ssp)")],
   ['backend blocks unapproved policies', backend.includes('!policiesApproved')],
   ['backend blocks open high-risk POA&M', backend.includes('openHighRisk.length')],
   ['backend blocks missing SPRS artifacts', backend.includes('!sprsUploaded')],
@@ -76,7 +84,7 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['backend generation returns 409 on blockers', backend.includes("{ status: 409 }")],
   ['final readiness has distinct title', generators.includes("isFinal ? 'Final Readiness Report' : 'Executive Progress Report'")],
   ['final readiness has distinct filename', generators.includes("isFinal ? 'Final_Readiness' : 'Executive_Progress'")],
-  ['checklist requires approved SSP', checklist.includes("ssp.approval_status === 'Approved'")],
+  ['checklist requires independently approved SSP', checklist.includes('ssps.some(validApprovedSsp)')],
   ['checklist requires generated export status', checklist.includes("e.report_status === 'Generated'")],
   ['checklist requires exact final readiness title', checklist.includes("'Final Readiness Report'" )],
   ['legacy package route redirects', app.includes('<Navigate to="/projects" replace />')],
@@ -110,6 +118,33 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['backend scoping questions match the canonical client questions', canonicalScopingKeys.length > 0 && canonicalScopingKeys.every((key) => backend.includes(`'${key}'`))],
   ['rich text normalizes legacy array values', richText.includes("Array.isArray(value) ? value.join('\\n') : ''")],
   ['backend validates complete finalized inventory', backend.includes('!validFinalInventory(project, assets)')],
+  ['SSP schema is service-write-only', sspSchema.includes('"role": "__service_only__"')],
+  ['policy schema is service-write-only', policySchema.includes('"role": "__service_only__"')],
+  ['review event schema is immutable service-write-only', eventSchema.includes('"role": "__service_only__"')],
+  ['review event schema records previous hash', eventSchema.includes('"previous_event_sha256"')],
+  ['review lifecycle authenticates before service role', lifecycle.indexOf('base44.auth.me()') < lifecycle.indexOf('base44.asServiceRole')],
+  ['review lifecycle supports only named source entities', lifecycle.includes("SOURCE_ENTITIES = ['SystemSecurityPlan', 'PolicyTemplate']")],
+  ['review lifecycle hashes stable source content', lifecycle.includes('sourceHash(sourceEntity, record)')],
+  ['review lifecycle blocks self review', lifecycle.includes('You cannot review a document you submitted.')],
+  ['review lifecycle uses organization review roles', lifecycle.includes('REVIEW_ROLES')],
+  ['review lifecycle verifies current hash before approval', lifecycle.includes('hash !== record.review_source_sha256')],
+  ['review lifecycle appends hash chained event', lifecycle.includes('previous_event_sha256: prior[0]?.event_sha256')],
+  ['review lifecycle is idempotent by transition id', lifecycle.includes('record.last_transition_id === transitionId')],
+  ['write gate protects approval provenance fields', writeGate.includes('REVIEW_PROVENANCE_FIELDS')],
+  ['write gate invalidates approval when source content changes', writeGate.includes('REVIEW_INVALIDATION')],
+  ['write gate cannot accept client approval status', writeGate.includes("'approval_status', 'approved_by', 'approved_date'")],
+  ['all SSP and policy browser writes route through service', client.includes("['ControlAssessment', 'PolicyTemplate', 'SystemSecurityPlan'].includes(entityName)")],
+  ['SSP UI invokes final document review lifecycle', ssp.includes("manageFinalDocumentReview")],
+  ['SSP UI hides reviewer actions from submitter', ssp.includes("approval_status === 'In Review' && !isReviewSubmitter")],
+  ['policy UI invokes final document review lifecycle', policyEditor.includes("manageFinalDocumentReview")],
+  ['policy UI hides reviewer actions from submitter', policyEditor.includes("approval_status === 'In Review' && !isSubmitter")],
+  ['policy editor cannot directly write approval fields', !policyEditor.includes('approval_status: form.approval_status')],
+  ['policy screen fails closed on read errors', policiesModule.includes('Policy data could not be verified')],
+  ['legacy policy delete action retired', !policyEditor.includes('Trash2') && !policiesModule.includes('PolicyTemplate.delete')],
+  ['draft policy register is not mislabeled final', generators.includes("title: 'Draft Policy Register'")],
+  ['shared approval validator requires equal SHA-256 hashes', gate.includes('reviewHash === approvalHash')],
+  ['shared approval validator requires independent identities', gate.includes('reviewerId !== requesterId')],
+  ['backend recomputes SSP and policy content hashes', backend.includes('reviewedSourceHash(sourceEntity, record)')],
 ].forEach(([label, condition]) => check(condition, label));
 
 if (failures.length) {
