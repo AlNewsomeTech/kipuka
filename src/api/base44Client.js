@@ -65,7 +65,7 @@ function resolveRole() {
 }
 
 const READ_METHODS = new Set(['list', 'filter', 'get']);
-const WRITE_METHODS = new Set(['create', 'update']);
+const WRITE_METHODS = new Set(['create', 'update', 'bulkCreate']);
 
 // Lazy import to avoid a circular module load at startup.
 function loadOrgData() {
@@ -85,10 +85,10 @@ const scopedEntities = new Proxy(rawClient.entities, {
         return async (...args) => {
           const role = await resolveRole();
           const { READ_GATED, WRITE_GATED, gatedEntityFor } = await loadOrgData();
-          // ControlAssessment is service-write-only. Every platform role uses
-          // the backend write gate so protected applicability fields cannot be
+          // Security-sensitive entities are service-write-only. Every platform
+          // role uses the backend gate so protected lifecycle fields cannot be
           // changed through a direct SDK call.
-          if (WRITE_METHODS.has(method) && entityName === 'ControlAssessment') {
+          if (WRITE_METHODS.has(method) && ['ControlAssessment', 'PolicyTemplate', 'SystemSecurityPlan'].includes(entityName)) {
             return gatedEntityFor(entityName)[method](...args);
           }
           if (role !== 'client') return orig.apply(entityTarget, args);
