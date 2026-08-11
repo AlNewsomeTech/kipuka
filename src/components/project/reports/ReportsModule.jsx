@@ -10,7 +10,10 @@ import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
   generatePolicyPackage, generateC3PAOHandoff, generateEvidencePackageZip, previewEvidencePackage,
 } from '@/lib/reportGenerators';
-import { computeReadiness, handoffPrechecks, allPass, FINAL_DOC_WARNING } from '@/lib/readinessGate';
+import {
+  computeReadiness, handoffPrechecks, allPass, FINAL_DOC_WARNING,
+  validApprovedSsp, validApprovedPolicies,
+} from '@/lib/readinessGate';
 import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
 
 export default function ReportsModule({ project, org, readOnly, currentUser }) {
@@ -79,17 +82,18 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
   if (!data) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
 
   const readiness = computeReadiness({ ...data, project });
-  const policiesApproved = data.policies.length > 0 && data.policies.every((p) => p.approval_status === 'Approved');
+  const sspApproved = validApprovedSsp(data.ssp);
+  const policiesApproved = validApprovedPolicies(data.policies);
   const evidenceIndexReviewed = readiness.evTotal > 0 && readiness.evValidFinal === readiness.evTotal;
   const sprsUploaded = (data.sprs?.evidence_item_ids || []).length > 0;
   const handoffChecks = handoffPrechecks(readiness, {
-    sspApproved: data.ssp?.approval_status === 'Approved',
+    sspApproved,
     policiesApproved,
     evidenceIndexReviewed,
     sprsUploaded,
   });
   const finalReadyChecks = handoffPrechecks(readiness, {
-    sspApproved: data.ssp?.approval_status === 'Approved',
+    sspApproved,
     policiesApproved,
     evidenceIndexReviewed,
     requireSprs: false,
