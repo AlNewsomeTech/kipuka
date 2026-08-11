@@ -264,6 +264,7 @@ export default function GuidedWalkthrough() {
             onToggleCheck={toggleCheck}
             onMarkDone={markDone}
             saving={saving}
+            assessment={assessment}
             currentStatus={assessment?.status || 'Not Started'}
           />
         )}
