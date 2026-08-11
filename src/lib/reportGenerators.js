@@ -3,6 +3,7 @@
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, BRAND, stripHtml, safeFileName } from '@/lib/reportBranding';
 import { computeCanonicalReadiness } from '@/lib/canonicalReadiness';
+import { validIndependentDocumentApproval } from '@/lib/readinessGate';
 
 async function logExport(project, report_type, report_title, generatedBy) {
   await base44.entities.ReportExport.create({
@@ -124,10 +125,10 @@ export async function generateEvidenceIndex({ project, evidence, generatedBy }) 
   await logExport(project, 'Evidence Index', 'Evidence Index', generatedBy);
 }
 
-// 4. Policy Package (PDF listing approved policies)
+// 4. Draft policy register. Final handoff is gated separately.
 export async function generatePolicyPackage({ project, org, policies, generatedBy }) {
-  const r = createReportPdf({ title: 'Policy Package', project, org, generatedBy });
-  const approved = policies.filter((p) => p.approval_status === 'Approved');
+  const r = createReportPdf({ title: 'Draft Policy Register', project, org, generatedBy });
+  const approved = policies.filter(validIndependentDocumentApproval);
   r.heading('Policy Register');
   r.label('Total Project Policies', policies.length);
   r.label('Approved Policies', approved.length);
@@ -141,8 +142,8 @@ export async function generatePolicyPackage({ project, org, policies, generatedB
     r.space(6);
   });
   r.disclaimerNote(BRAND.disclaimer);
-  r.save(`${safeFileName(project.project_name)}_Policy_Package.pdf`);
-  await logExport(project, 'Policy Package', 'Policy Package', generatedBy);
+  r.save(`${safeFileName(project.project_name)}_Draft_Policy_Register.pdf`);
+  await logExport(project, 'Policy Package', 'Draft Policy Register', generatedBy);
 }
 
 // 5. C3PAO Handoff Package (Premium) — comprehensive PDF
