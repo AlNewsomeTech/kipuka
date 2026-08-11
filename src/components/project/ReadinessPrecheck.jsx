@@ -1,8 +1,8 @@
 import { CheckCircle2, XCircle, AlertTriangle } from 'lucide-react';
 import { allPass } from '@/lib/readinessGate';
 
-// Displays a list of readiness pre-check questions before final document generation.
-// Advisory only — the parent decides whether to allow "Continue Anyway".
+// Displays the strict readiness checks for final document generation.
+// Failed checks block final output; draft/progress artifacts remain separate.
 export default function ReadinessPrecheck({ title, checks, warning }) {
   const ready = allPass(checks);
   return (
