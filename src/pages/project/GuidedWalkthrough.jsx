@@ -36,6 +36,7 @@ export default function GuidedWalkthrough() {
   const [assessments, setAssessments] = useState([]);
   const [progress, setProgress] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
   const [step, setStep] = useState(1);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [selectedStack, setSelectedStack] = useState('');
@@ -52,29 +53,42 @@ export default function GuidedWalkthrough() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const p = await base44.entities.Project.get(projectId).catch(() => null);
-    if (!p) { setProject(null); setLoading(false); return; }
-    const levels = targetLevelsFor(p);
-    const [lib, asmt, prog, applicabilityResponse] = await Promise.all([
-      base44.entities.ControlLibrary.filter({ active: true }).catch(() => []),
-      base44.entities.ControlAssessment.filter({ project_id: projectId }).catch(() => []),
-      loadGuidedProgress(projectId, controlId),
-      base44.functions.invoke('manageControlApplicability', {
-        action: 'get',
-        project_id: projectId,
-        control_id: controlId,
-      }).catch(() => null),
-    ]);
-    setProject(p);
-    setLibrary(lib.filter((c) => levels.includes(c.cmmc_level)));
-    setAssessments(asmt);
-    setApplicabilityWorkflow(applicabilityResponse?.data || null);
-    setProgress(prog);
-    setStep(prog?.current_step || 1);
-    setCompletedSteps(prog?.completed_steps || []);
-    setSelectedStack(prog?.selected_stack || '');
-    setChecks(prog?.verify_checks || {});
-    setLoading(false);
+    setLoadError('');
+    try {
+      const p = await base44.entities.Project.get(projectId);
+      if (!p) {
+        setProject(null);
+        setLoadError('Kipuka could not find this project.');
+        return;
+      }
+      const levels = targetLevelsFor(p);
+      const [lib, asmt, prog, applicabilityResponse] = await Promise.all([
+        base44.entities.ControlLibrary.filter({ active: true }),
+        base44.entities.ControlAssessment.filter({ project_id: projectId }),
+        loadGuidedProgress(projectId, controlId),
+        base44.functions.invoke('manageControlApplicability', {
+          action: 'get',
+          project_id: projectId,
+          control_id: controlId,
+        }),
+      ]);
+      setProject(p);
+      setLibrary(lib.filter((c) => levels.includes(c.cmmc_level)));
+      setAssessments(asmt);
+      setApplicabilityWorkflow(applicabilityResponse?.data || null);
+      setProgress(prog);
+      setStep(prog?.current_step || 1);
+      setCompletedSteps(prog?.completed_steps || []);
+      setSelectedStack(prog?.selected_stack || '');
+      setChecks(prog?.verify_checks || {});
+    } catch (error) {
+      setLoadError(actionErrorMessage(
+        error,
+        'Kipuka could not load the complete guided workflow. No empty or missing state has been assumed. Retry when the connection is available.',
+      ));
+    } finally {
+      setLoading(false);
+    }
   }, [projectId, controlId]);
 
   useEffect(() => { load(); }, [load]);
@@ -247,6 +261,16 @@ export default function GuidedWalkthrough() {
 
   if (loading) {
     return <div className="flex justify-center py-20"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
+  }
+  if (loadError) {
+    return (
+      <div role="alert" className="max-w-2xl mx-auto rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-900">
+        <div className="font-semibold">{loadError}</div>
+        <button onClick={load} className="mt-3 rounded-lg bg-red-700 px-3 py-2 text-xs font-semibold text-white">
+          Retry guided workflow
+        </button>
+      </div>
+    );
   }
   if (!project) return <div className="p-6 text-sm text-slate-500">Project not found. <Link to="/projects" className="text-blue-600 hover:underline">Back to projects</Link></div>;
   if (!libEntry) {
