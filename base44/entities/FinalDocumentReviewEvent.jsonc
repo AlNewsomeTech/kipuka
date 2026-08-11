@@ -1,0 +1,102 @@
+{
+  "name": "FinalDocumentReviewEvent",
+  "type": "object",
+  "description": "Immutable, hash-chained audit event for legacy SSP and policy review transitions. Browser writes are prohibited.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "source_entity": {
+      "type": "string",
+      "enum": [
+        "SystemSecurityPlan",
+        "PolicyTemplate"
+      ]
+    },
+    "source_record_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "Submitted for Review",
+        "Approved",
+        "Rejected",
+        "Withdrawn"
+      ]
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "transition_id": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string"
+    },
+    "note": {
+      "type": "string"
+    },
+    "source_sha256": {
+      "type": "string"
+    },
+    "previous_event_sha256": {
+      "type": "string"
+    },
+    "event_sha256": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "source_entity",
+    "source_record_id",
+    "action",
+    "transition_id",
+    "actor_email",
+    "source_sha256",
+    "event_sha256",
+    "event_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
