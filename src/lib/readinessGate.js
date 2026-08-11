@@ -24,6 +24,35 @@ export function validFinalInventory(project, assets = []) {
     && (asset.scope_category !== 'CUI Asset' || asset.stores_cui || asset.processes_cui || asset.transmits_cui || asset.handles_cui));
 }
 
+export function validIndependentDocumentApproval(record) {
+  if (record?.approval_status !== 'Approved') return false;
+  const reviewHash = String(record.review_source_sha256 || '');
+  const approvalHash = String(record.approval_source_sha256 || '');
+  const requesterId = String(record.review_requested_by_user_id || '');
+  const requesterEmail = String(record.review_requested_by_email || '').toLowerCase();
+  const reviewerId = String(record.reviewed_by_user_id || '');
+  const reviewerEmail = String(record.reviewed_by_email || '').toLowerCase();
+  const independentlyReviewed = reviewerId && requesterId
+    ? reviewerId !== requesterId
+    : reviewerEmail && requesterEmail && reviewerEmail !== requesterEmail;
+  return /^[a-f0-9]{64}$/i.test(reviewHash)
+    && reviewHash === approvalHash
+    && independentlyReviewed
+    && !!record.review_request_id
+    && !!record.approval_record_id
+    && !!record.reviewed_date
+    && !!record.approved_date;
+}
+
+export function validApprovedSsp(ssp) {
+  return !!ssp && validIndependentDocumentApproval(ssp);
+}
+
+export function validApprovedPolicies(policies = []) {
+  const current = policies.filter((policy) => !policy.is_master_template && policy.approval_status !== 'Archived');
+  return current.length > 0 && current.every(validIndependentDocumentApproval);
+}
+
 // Compute a set of readiness signals from already-loaded project data.
 // Pass in whatever is available; missing arrays default to empty and read as "not ready".
 export function computeReadiness({ assessments = [], objectiveLibrary = [], objectiveLinks = [], evidence = [], poams = [], assets = [], scoping = null, sprs = null, project = null } = {}) {
