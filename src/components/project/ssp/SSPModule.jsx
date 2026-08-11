@@ -60,6 +60,10 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   useEffect(() => { load(); }, [load]);
 
   const completion = useMemo(() => sectionCompletion(ssp), [ssp]);
+  const isReviewSubmitter = Boolean(ssp?.review_requested_by_user_id
+    && ssp.review_requested_by_user_id === currentUser?.id)
+    || Boolean(ssp?.review_requested_by_email
+      && String(ssp.review_requested_by_email).toLowerCase() === String(currentUser?.email || '').toLowerCase());
 
   // Controls missing an SSP control statement, and controls without evidence.
   const evByControl = useMemo(() => {
@@ -286,14 +290,16 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
                       Submit for Independent Review
                     </button>
                   )}
-                  {ssp.approval_status === 'In Review' && (
+                  {ssp.approval_status === 'In Review' && isReviewSubmitter && (
+                    <button onClick={() => runReview('withdraw')} disabled={reviewBusy}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 disabled:opacity-60">Withdraw My Submission</button>
+                  )}
+                  {ssp.approval_status === 'In Review' && !isReviewSubmitter && (
                     <>
                       <button onClick={() => runReview('approve')} disabled={reviewBusy}
                         className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-green-700 disabled:opacity-60">Approve Current Hash</button>
                       <button onClick={() => runReview('reject')} disabled={reviewBusy || reviewNote.trim().length < 5}
                         className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-red-700 disabled:opacity-60">Reject to Draft</button>
-                      <button onClick={() => runReview('withdraw')} disabled={reviewBusy}
-                        className="px-3 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-300 disabled:opacity-60">Withdraw My Submission</button>
                     </>
                   )}
                 </div>
