@@ -69,7 +69,13 @@ export function sspPrechecks(r) {
 }
 
 // Build the handoff-package pre-check list.
-export function handoffPrechecks(r, { sspApproved = false, policiesApproved = false, evidenceIndexReviewed = false, sprsUploaded = false, requireSprs = true } = { sspApproved: false, policiesApproved: false, evidenceIndexReviewed: false, sprsUploaded: false, requireSprs: true }) {
+/**
+ * @param {any} r
+ * @param {{sspApproved?: boolean, policiesApproved?: boolean, evidenceIndexReviewed?: boolean, sprsUploaded?: boolean, requireSprs?: boolean}} [options]
+ */
+export function handoffPrechecks(r, options = {}) {
+  const { sspApproved = false, policiesApproved = false, evidenceIndexReviewed = false, sprsUploaded = false } = options;
+  const requireSprs = options.requireSprs !== false;
   const checks = [
     { label: 'Canonical requirement and objective set is valid', pass: r.canonicalIntegrityOk },
     { label: 'Every applicable requirement is MET from final evidence', pass: r.total > 0 && r.met >= r.total },
