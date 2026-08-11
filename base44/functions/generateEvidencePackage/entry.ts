@@ -66,6 +66,23 @@ function stripHtml(html) {
 
 const CMMC_TOTALS = { 'Level 1': { requirements: 15, objectives: 59 }, 'Level 2': { requirements: 110, objectives: 320 } };
 const IMPLEMENTED = new Set(['Implemented Pending Evidence', 'Evidence Uploaded', 'Evidence Needs Review', 'Evidence Accepted', 'Ready for Documentation', 'Implemented', 'Ready for Assessment']);
+const SCOPING_KEYS = ['fci_location', 'cui_location', 'cui_access', 'cui_systems', 'cui_cloud', 'cui_endpoints', 'external_providers', 'separate_enclave', 'out_of_scope', 'exclusion_reason', 'boundary_evidence'];
+
+function validApprovedScope(scoping) {
+  if (scoping?.scope_status !== 'Approved') return false;
+  if (!String(scoping.scope_name || '').trim() || !scoping.environment_type || scoping.environment_type === 'Unknown') return false;
+  if (!String(scoping.boundary_summary || '').trim() || !String(scoping.included_systems_summary || '').trim() || !String(scoping.data_flow_summary || '').trim()) return false;
+  if (scoping.handles_fci && !String(scoping.fci_description || '').trim()) return false;
+  if (scoping.handles_cui && !String(scoping.cui_description || '').trim()) return false;
+  return SCOPING_KEYS.every((key) => String((scoping.wizard_answers || {})[key] || '').trim());
+}
+function validFinalInventory(project, assets) {
+  if (project?.inventory_status !== 'Finalized' || assets.length === 0) return false;
+  return assets.every((asset) => String(asset.owner || '').trim()
+    && asset.scope_category && asset.scope_category !== 'Unknown'
+    && asset.status && asset.status !== 'Unknown'
+    && (asset.scope_category !== 'CUI Asset' || asset.stores_cui || asset.processes_cui || asset.transmits_cui || asset.handles_cui));
+}
 
 function validNa(a) {
   return a?.status === 'Not Applicable'
@@ -195,7 +212,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Your organization\'s subscription has ended. Contact Pac-Sec support to restore access.' }, { status: 403 });
     }
 
-    const [org, assessments, evidenceAll, sspList, poams, policiesAll, scopingList, sprsList, objectiveLibrary, objectiveLinks] = await Promise.all([
+    const [org, assessments, evidenceAll, sspList, poams, policiesAll, scopingList, assetsAll, sprsList, objectiveLibrary, objectiveLinks] = await Promise.all([
       Promise.resolve(orgRecord),
       sr.entities.ControlAssessment.filter({ project_id: projectId }),
       sr.entities.ProjectEvidence.filter({ project_id: projectId }),
@@ -203,6 +220,7 @@ Deno.serve(async (req) => {
       sr.entities.ProjectPOAM.filter({ project_id: projectId }),
       sr.entities.PolicyTemplate.filter({ project_id: projectId }),
       sr.entities.ScopingProfile.filter({ project_id: projectId }),
+      sr.entities.Asset.filter({ project_id: projectId }),
       sr.entities.SPRSRecord.filter({ project_id: projectId }),
       sr.entities.AssessmentObjectiveLibrary.list('sort_order', 500),
       sr.entities.ObjectiveEvidenceLink.filter({ project_id: projectId }),
@@ -223,6 +241,7 @@ Deno.serve(async (req) => {
     const finalEvidence = currentEvidence.filter((e) => validEvidence(e) && String(e.file_uri || '').startsWith('mp/private/'));
     const policies = sameOrg(policiesAll, 'policy').filter((p) => !p.is_master_template);
     const approvedPolicies = policies.filter((p) => p.approval_status === 'Approved');
+    const assets = sameOrg(assetsAll, 'asset');
     const ssp = sspList[0] || null;
     const scoping = scopingList[0] || null;
     const sprs = sprsList[0] || null;
@@ -301,8 +320,8 @@ Deno.serve(async (req) => {
     if (!canonical.assessment_ready) hardBlockers.push('Every applicable requirement must be MET from valid final evidence.');
     if (canonical.implementation_percent !== 100) hardBlockers.push('Every applicable requirement must be implementation-complete.');
     if (currentEvidence.length === 0 || finalEvidence.length !== currentEvidence.length) hardBlockers.push('Every current evidence item must be Accepted, unexpired, hash-backed, and stored in canonical private storage.');
-    if (scoping?.scope_status !== 'Approved') hardBlockers.push('Assessment scope must be Approved.');
-    if (project.inventory_status !== 'Finalized') hardBlockers.push('Asset inventory must be Finalized.');
+    if (!validApprovedScope(scoping)) hardBlockers.push('Assessment scope must be Approved and complete.');
+    if (!validFinalInventory(project, assets)) hardBlockers.push('Asset inventory must be Finalized and complete.');
     if (!ssp || ssp.approval_status !== 'Approved') hardBlockers.push('SSP must be Approved.');
     if (!policiesApproved) hardBlockers.push('Every current project policy must be Approved.');
     if (openHighRisk.length) hardBlockers.push('Open high/critical-risk POA&M items must be resolved.');
@@ -316,10 +335,10 @@ Deno.serve(async (req) => {
     if (evNoFile.length) warnings.push(`${evNotAccepted.length ? '' : ''}${evNoFile.length} evidence item(s) have no attached file and will be marked MISSING in the package.`);
     if (!ssp || ssp.approval_status !== 'Approved') warnings.push('SSP is not yet Approved.');
     if (!policiesApproved) warnings.push('One or more current project policies are missing or not Approved.');
-    if (project.inventory_status !== 'Finalized') warnings.push('Asset inventory is not Finalized.');
+    if (!validFinalInventory(project, assets)) warnings.push('Asset inventory is not Finalized and complete.');
     if (!sprsUploaded) warnings.push('SPRS/PIEE artifacts are not uploaded.');
     if (openHighRisk.length) warnings.push(`${openHighRisk.length} open high/critical-risk POA&M item(s) remain.`);
-    if (scoping?.scope_status !== 'Approved') warnings.push('Assessment scope is not yet Approved.');
+    if (!validApprovedScope(scoping)) warnings.push('Assessment scope is not Approved and complete.');
     isolationWarnings.forEach((w) => warnings.push(w));
 
     const completeness = {
