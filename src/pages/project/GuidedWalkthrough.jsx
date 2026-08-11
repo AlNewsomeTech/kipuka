@@ -21,6 +21,10 @@ import StepVerify from '@/components/guided/StepVerify';
 import ApplicabilityPanel from '@/components/guided/ApplicabilityPanel';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
+function actionErrorMessage(error, fallback) {
+  return error?.response?.data?.error || error?.message || fallback;
+}
+
 export default function GuidedWalkthrough() {
   const { id: projectId, controlId } = useParams();
   const navigate = useNavigate();
@@ -42,6 +46,8 @@ export default function GuidedWalkthrough() {
   const [savingStuck, setSavingStuck] = useState(false);
   const [savingApplicability, setSavingApplicability] = useState(false);
   const [applicabilityWorkflow, setApplicabilityWorkflow] = useState(null);
+  const [actionError, setActionError] = useState('');
+  const [progressError, setProgressError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -85,13 +91,24 @@ export default function GuidedWalkthrough() {
     [organizations, project?.organization_id],
   );
 
-  // Persist progress helper.
+  // Persist progress without pretending a failed save succeeded.
   const persist = useCallback(async (patch) => {
-    const org = project?.organization_id;
-    const saved = await saveGuidedProgress(progress, {
-      projectId, organizationId: org, controlId, patch,
-    }).catch(() => null);
-    if (saved) setProgress(saved);
+    setProgressError('');
+    try {
+      const org = project?.organization_id;
+      const saved = await saveGuidedProgress(progress, {
+        projectId, organizationId: org, controlId, patch,
+      });
+      if (!saved?.id) throw new Error('Kipuka did not return a saved walkthrough record.');
+      setProgress(saved);
+      return saved;
+    } catch (error) {
+      setProgressError(actionErrorMessage(
+        error,
+        'Your walkthrough position could not be saved. Keep this page open and try that step again.',
+      ));
+      return null;
+    }
   }, [progress, project, projectId, controlId]);
 
   const goToStep = (n) => {
@@ -142,42 +159,79 @@ export default function GuidedWalkthrough() {
     }
   };
 
-  // VERIFY → write the control done via the simple-status mapping (real taxonomy value).
+  // VERIFY → save the canonical status first. Never show Done after a rejected write.
   const markDone = async () => {
-    if (!assessment) return;
+    if (!assessment?.id) {
+      setActionError('Kipuka cannot mark this control done because its assessment record is missing.');
+      return;
+    }
+    setActionError('');
     setSaving(true);
-    await base44.entities.ControlAssessment.update(assessment.id, {
-      status: GUIDED_DONE_STATUS,
-      last_reviewed_by: user?.full_name || user?.email || '',
-      last_reviewed_date: new Date().toISOString().slice(0, 10),
-    }).catch(() => {});
-    const nextCompleted = Array.from(new Set([...completedSteps, 5]));
-    setCompletedSteps(nextCompleted);
-    await persist({ completed_steps: nextCompleted });
-    setAssessments((prev) => prev.map((a) => (a.id === assessment.id ? { ...a, status: GUIDED_DONE_STATUS } : a)));
-    setSaving(false);
+    try {
+      const savedAssessment = await base44.entities.ControlAssessment.update(assessment.id, {
+        status: GUIDED_DONE_STATUS,
+        last_reviewed_by: user?.full_name || user?.email || '',
+        last_reviewed_date: new Date().toISOString().slice(0, 10),
+      });
+      if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.');
+      setAssessments((prev) => prev.map((row) => (
+        row.id === assessment.id ? { ...row, ...savedAssessment } : row
+      )));
+      const nextCompleted = Array.from(new Set([...completedSteps, 5]));
+      setCompletedSteps(nextCompleted);
+      await persist({ completed_steps: nextCompleted });
+    } catch (error) {
+      setActionError(actionErrorMessage(
+        error,
+        'Kipuka could not mark this control done. No completion was recorded; try again or contact Pac-Sec support.',
+      ));
+    } finally {
+      setSaving(false);
+    }
   };
 
-  // "I'm stuck" → create a POA&M pre-linked to the control and set Gap Identified.
+  // "I'm stuck" → reuse an existing open guided POA&M item, then set Gap Identified.
   const submitStuck = async () => {
-    setSavingStuck(true);
-    await base44.entities.ProjectPOAM.create({
-      organization_id: project.organization_id,
-      project_id: projectId,
-      control_id: controlId,
-      poam_title: `${controlId} — needs help`,
-      gap_statement: stuckNote || `User flagged ${controlId} as stuck during guided implementation.`,
-      remediation_plan: libEntry?.poam_gap_starter || '',
-      risk_rating: assessment?.risk_rating || 'Moderate',
-      status: 'Open',
-    }).catch(() => {});
-    if (assessment) {
-      await base44.entities.ControlAssessment.update(assessment.id, { status: GUIDED_STUCK_STATUS }).catch(() => {});
-      setAssessments((prev) => prev.map((a) => (a.id === assessment.id ? { ...a, status: GUIDED_STUCK_STATUS } : a)));
+    if (!assessment?.id) {
+      setActionError('Kipuka cannot flag this control because its assessment record is missing.');
+      return;
     }
-    setSavingStuck(false);
-    setStuckOpen(false);
-    setStuckNote('');
+    setActionError('');
+    setSavingStuck(true);
+    const poamTitle = `${controlId} — needs help`;
+    try {
+      const existingItems = await base44.entities.ProjectPOAM.filter({ project_id: projectId, control_id: controlId });
+      const reusable = existingItems.find((item) => (
+        item.poam_title === poamTitle && !['Closed', 'Deferred', 'Accepted Risk'].includes(item.status)
+      ));
+      if (!reusable) {
+        const created = await base44.entities.ProjectPOAM.create({
+          organization_id: project.organization_id,
+          project_id: projectId,
+          control_id: controlId,
+          poam_title: poamTitle,
+          gap_statement: stuckNote.trim() || `User flagged ${controlId} as stuck during guided implementation.`,
+          remediation_plan: libEntry?.poam_gap_starter || '',
+          risk_rating: assessment.risk_rating || 'Moderate',
+          status: 'Open',
+        });
+        if (!created?.id) throw new Error('Kipuka did not confirm the POA&M item.');
+      }
+      const savedAssessment = await base44.entities.ControlAssessment.update(assessment.id, { status: GUIDED_STUCK_STATUS });
+      if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.');
+      setAssessments((prev) => prev.map((row) => (
+        row.id === assessment.id ? { ...row, ...savedAssessment } : row
+      )));
+      setStuckOpen(false);
+      setStuckNote('');
+    } catch (error) {
+      setActionError(actionErrorMessage(
+        error,
+        'Kipuka could not finish the stuck-control update. Retry is safe and will reuse an existing open to-do.',
+      ));
+    } finally {
+      setSavingStuck(false);
+    }
   };
 
   if (loading) {
@@ -266,20 +320,28 @@ export default function GuidedWalkthrough() {
             saving={saving}
             assessment={assessment}
             currentStatus={assessment?.status || 'Not Started'}
+            error={actionError}
           />
         )}
       </div>
+
+      {progressError && (
+        <div role="alert" className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-sm font-semibold text-amber-900">
+          {progressError}
+        </div>
+      )}
 
       {/* Stuck panel */}
       {stuckOpen && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
           <label className="block text-xs font-semibold text-red-800">Tell us what's blocking you (optional)</label>
           <textarea rows={2} className="form-input" value={stuckNote} onChange={(e) => setStuckNote(e.target.value)} placeholder="e.g. can't find the setting, need admin access…" />
+          {actionError && <p role="alert" className="text-xs font-semibold text-red-800">{actionError}</p>}
           <div className="flex gap-2">
             <button onClick={submitStuck} disabled={savingStuck} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 disabled:opacity-60">
               {savingStuck ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <HelpCircle className="w-3.5 h-3.5" />} Flag & create POA&M
             </button>
-            <button onClick={() => setStuckOpen(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200">Cancel</button>
+            <button onClick={() => { setStuckOpen(false); setActionError(''); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-white border border-slate-200">Cancel</button>
           </div>
           <p className="text-[11px] text-red-700/80">This marks the control as a gap and logs a POA&M item so your consultant can follow up.</p>
         </div>
@@ -300,7 +362,7 @@ export default function GuidedWalkthrough() {
 
         <div className="flex items-center gap-2">
           {!readOnly && (
-            <button onClick={() => setStuckOpen(!stuckOpen)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
+            <button onClick={() => { setStuckOpen(!stuckOpen); setActionError(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
               <HelpCircle className="w-4 h-4" /> I'm stuck
             </button>
           )}
