@@ -70,12 +70,12 @@ export function buildGuidedQueue(library, assessments, project) {
 // The single highest-priority incomplete control (for the "Continue implementation" hero button).
 export function nextIncomplete(library, assessments, project) {
   const queue = buildGuidedQueue(library, assessments, project);
-  return queue.find((it) => !isSimpleDone(it.status)) || null;
+  return queue.find((it) => !isSimpleDone(it.assessment || it.status)) || null;
 }
 
 // Progress counts for the hero strip: "X of Y controls done".
 export function queueCounts(library, assessments, project) {
   const queue = buildGuidedQueue(library, assessments, project);
-  const done = queue.filter((it) => isSimpleDone(it.status)).length;
+  const done = queue.filter((it) => isSimpleDone(it.assessment || it.status)).length;
   return { done, total: queue.length };
 }
