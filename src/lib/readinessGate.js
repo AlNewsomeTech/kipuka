@@ -14,10 +14,12 @@ export function computeReadiness({ assessments = [], objectiveLibrary = [], obje
   const implemented = canonical.implemented;
   const reviewed = canonical.met;
 
-  const evTotal = evidence.length;
-  const evAccepted = evidence.filter((e) => e.review_status === 'Accepted').length;
-  const evValidFinal = evidence.filter((e) => validFinalEvidence(e)).length;
-  const evReviewed = evidence.filter((e) => e.review_status !== 'Draft' && e.review_status !== 'Needs Review').length;
+  const currentEvidence = evidence.filter((e) => (e.lifecycle_status || 'Current') === 'Current'
+    && !['Archived', 'Superseded'].includes(e.review_status));
+  const evTotal = currentEvidence.length;
+  const evAccepted = currentEvidence.filter((e) => e.review_status === 'Accepted').length;
+  const evValidFinal = currentEvidence.filter((e) => validFinalEvidence(e)).length;
+  const evReviewed = currentEvidence.filter((e) => e.review_status !== 'Draft' && e.review_status !== 'Needs Review').length;
 
   const closed = ['Closed', 'Accepted Risk'];
   const openHighRiskPoam = poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length;
