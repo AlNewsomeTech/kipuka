@@ -8,7 +8,7 @@ import PremiumBadge from '@/components/commercial/PremiumBadge';
 import { planHasFeature, PLAN_FEATURES } from '@/lib/planTiers';
 import {
   generateExecutiveReadiness, generateGapAssessment, generateEvidenceIndex,
-  generatePolicyPackage, generateC3PAOHandoff, generateEvidencePackageZip,
+  generatePolicyPackage, generateC3PAOHandoff, generateEvidencePackageZip, previewEvidencePackage,
 } from '@/lib/reportGenerators';
 import { computeReadiness, handoffPrechecks, allPass, FINAL_DOC_WARNING } from '@/lib/readinessGate';
 import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
@@ -95,7 +95,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
     requireSprs: false,
   });
 
-  // gated=true reports require passing pre-checks (advisory) before final generation.
+  // gated=true reports are strict final outputs. Draft/progress reports remain available separately.
   const REPORTS = [
     {
       key: 'exec', icon: Sparkles, title: 'Executive Progress Report', badge: 'Progress',
@@ -127,7 +127,13 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
       key: 'c3pao', icon: Package, title: 'C3PAO Handoff Package', premium: true, gated: true,
       checks: handoffChecks, badge: 'Final',
       desc: 'Full assessor package: exec summary, scope, assets, SSP, POA&M, evidence, control matrix, policies, SPRS, risks, contacts.',
-      run: () => generateC3PAOHandoff({ project, org, ...data, generatedBy: genBy }),
+      run: async () => {
+        const preflight = await previewEvidencePackage({ project });
+        if (preflight.blocked || preflight.hard_blockers?.length) {
+          throw new Error(`C3PAO handoff is blocked: ${(preflight.hard_blockers || []).join(' ')}`);
+        }
+        return generateC3PAOHandoff({ project, org, ...data, generatedBy: genBy });
+      },
     },
     {
       key: 'evidence_zip', icon: FolderArchive, title: 'C3PAO Evidence Package (ZIP)', premium: true, gated: true,
