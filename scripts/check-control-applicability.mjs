@@ -103,6 +103,7 @@ ok(panel.includes('Approve N/A') && panel.includes('Reject request'), 'reviewer 
 ok(!assessmentModule.match(/const STATUSES[^\n]*'Not Applicable'/), 'generic status menu cannot select N/A');
 
 const verifyStep = read('src/components/guided/StepVerify.jsx');
+const guidedProgress = read('src/lib/guidedProgress.js');
 ok(!/ControlAssessment\.update\([\s\S]{0,400}\.catch\(\(\) => \{\}\)/.test(guided), 'guided completion never swallows an assessment write failure');
 ok(!/ProjectPOAM\.create\([\s\S]{0,500}\.catch\(\(\) => \{\}\)/.test(guided), 'guided stuck flow never swallows a POA&M write failure');
 ok(guided.includes("if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.')"), 'guided transitions require a confirmed saved assessment');
@@ -114,6 +115,8 @@ ok(guided.includes("!['Closed', 'Deferred', 'Accepted Risk'].includes(item.statu
 before(guided, 'ControlAssessment.update(assessment.id, { status: GUIDED_STUCK_STATUS })', 'setStuckOpen(false)', 'stuck panel closes only after the canonical status save');
 ok(guided.includes("setProgressError(actionErrorMessage("), 'walkthrough progress failures are visible');
 ok(!guided.includes("saveGuidedProgress(progress, {\n      projectId, organizationId: org, controlId, patch,\n    }).catch(() => null)"), 'walkthrough progress no longer hides save failures');
+ok(guidedProgress.includes('const saveQueues = new Map()') && guidedProgress.includes('previous.catch(() => {}).then'), 'walkthrough saves are serialized per project and control');
+before(guidedProgress, 'await loadGuidedProgress(projectId, controlId)', 'GuidedProgress.create({', 'stale tabs recheck existing progress before creating a row');
 
 const approved = {
   status: 'Not Applicable',
