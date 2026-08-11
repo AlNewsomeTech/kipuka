@@ -66,7 +66,7 @@ ok(fn.includes('scopeEvidence.length < 20'), 'request requires identified scope 
 ok(fn.includes('scope_confirmation !== true'), 'request requires explicit scope confirmation');
 ok(fn.includes("status: 'Pending Review'"), 'request begins pending');
 ok(fn.includes("status: 'Not Applicable'"), 'approved transition sets N/A');
-before(fn, "const finalRequest = await sr.entities.ControlApplicabilityRequest.update", "status: 'Not Applicable'", 'request decision is saved before N/A status');
+before(fn, "const finalRequest = await sr.entities.ControlApplicabilityRequest.update", "const assessmentPatch: any = approved", 'request decision is saved before the normal N/A assessment patch');
 ok(fn.includes('not_applicable_request_status: \'Approved\''), 'approval marker is server-written');
 ok(fn.includes('not_applicable_decision_sha256: decisionSha'), 'decision hash is attached to assessment');
 ok(fn.includes('event_sha256'), 'events are SHA-256 backed');
