@@ -49,7 +49,7 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
   const setAnswer = (key, value) => setProfile((p) => ({ ...p, wizard_answers: { ...(p.wizard_answers || {}), [key]: value } }));
   const scopeApprovalChecks = [
     { label: 'Scope name is complete', pass: Boolean(String(profile?.scope_name || '').trim()) },
-    { label: 'Environment type is selected', pass: profile?.environment_type && profile.environment_type !== 'Unknown' },
+    { label: 'Environment type is selected', pass: ENV_TYPES.includes(profile?.environment_type) && profile.environment_type !== 'Unknown' },
     { label: 'Assessment boundary is documented', pass: Boolean(String(profile?.boundary_summary || '').trim()) },
     { label: 'Included systems are documented', pass: Boolean(String(profile?.included_systems_summary || '').trim()) },
     { label: 'Data flow is documented', pass: Boolean(String(profile?.data_flow_summary || '').trim()) },
