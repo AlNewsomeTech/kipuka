@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -35,7 +35,6 @@ import ScreenshotLibrary from '@/pages/ScreenshotLibrary';
 import DocumentLibrary from '@/pages/DocumentLibrary';
 import Documentation from '@/pages/Documentation';
 import EvidenceIndex from '@/pages/EvidenceIndex';
-import SharePointPackage from '@/pages/SharePointPackage';
 import PIEESelfCert from '@/pages/PIEESelfCert';
 import UserManagement from '@/pages/UserManagement';
 import Settings from '@/pages/Settings';
@@ -153,7 +152,7 @@ const AuthenticatedApp = () => {
           <Route path="/documentation" element={<Documentation />} />
           <Route path="/evidence" element={<EvidenceIndex />} />
           <Route path="/package" element={<DocumentLibrary initialTab="package" />} />
-          <Route path="/sharepoint-package" element={<SharePointPackage />} />
+          <Route path="/sharepoint-package" element={<Navigate to="/projects" replace />} />
           <Route path="/piee" element={<PIEESelfCert />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/assistant" element={<AIAssistant />} />
