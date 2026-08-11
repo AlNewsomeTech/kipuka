@@ -21,6 +21,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [building, setBuilding] = useState(false);
+  const [buildError, setBuildError] = useState('');
   const [savingKey, setSavingKey] = useState(null);
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewError, setReviewError] = useState('');
@@ -99,23 +100,29 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
 
   const buildDraft = async () => {
     setBuilding(true);
-    const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams });
-    const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0' };
-    let saved;
-    if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);
-    else saved = await base44.entities.SystemSecurityPlan.create(payload);
+    setBuildError('');
+    try {
+      const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams });
+      const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0' };
+      let saved;
+      if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);
+      else saved = await base44.entities.SystemSecurityPlan.create(payload);
 
-    // Sync control statements from assessments.
-    const have = new Set(statements.map((s) => s.control_id));
-    const toCreate = assessments.filter((a) => !have.has(a.control_id)).map((a) => ({
-      organization_id: project.organization_id, project_id: project.id, ssp_id: saved.id,
-      control_id: a.control_id, control_title: a.control_title,
-      implementation_statement: a.ssp_statement || '', responsible_owner: a.responsible_owner || '',
-      statement_status: a.ssp_statement ? 'Draft' : 'Not Started',
-    }));
-    if (toCreate.length) await base44.entities.SSPControlStatement.bulkCreate(toCreate);
-    await load();
-    setBuilding(false);
+      // Sync control statements from assessments.
+      const have = new Set(statements.map((statement) => statement.control_id));
+      const toCreate = assessments.filter((assessment) => !have.has(assessment.control_id)).map((assessment) => ({
+        organization_id: project.organization_id, project_id: project.id, ssp_id: saved.id,
+        control_id: assessment.control_id, control_title: assessment.control_title,
+        implementation_statement: assessment.ssp_statement || '', responsible_owner: assessment.responsible_owner || '',
+        statement_status: assessment.ssp_statement ? 'Draft' : 'Not Started',
+      }));
+      if (toCreate.length) await base44.entities.SSPControlStatement.bulkCreate(toCreate);
+      await load();
+    } catch (error) {
+      setBuildError(error?.response?.data?.error || error?.message || 'The SSP draft was not saved.');
+    } finally {
+      setBuilding(false);
+    }
   };
 
   const saveSection = async (key, value) => {
@@ -199,6 +206,11 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           Generate draft SSP content early for planning, but generate the final SSP only after implementation,
           evidence collection, control validation, and final inventory are complete.
         </p>
+        {buildError && (
+          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+            <span className="font-semibold">Draft save failed:</span> {buildError}
+          </div>
+        )}
 
         {ssp && (
           <div className="mt-4">
