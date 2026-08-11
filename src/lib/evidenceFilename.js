@@ -48,7 +48,7 @@ function descriptionFor(variant, libEntry) {
   );
 }
 
-export function buildEvidenceFilename({
+export function buildEvidenceFilePlan({
   organization,
   project,
   libEntry,
@@ -64,8 +64,13 @@ export function buildEvidenceFilename({
   const controlId = filenameSegment(libEntry?.control_id, 'Control');
   const tool = toolNameFor(variant, project);
   const description = descriptionFor(variant, libEntry);
+  const baseName = [company, type, controlId, tool, description, date].join('_');
 
-  return [company, type, controlId, tool, description, date].join('_');
+  return { company, type, controlId, tool, description, date, baseName };
+}
+
+export function buildEvidenceFilename(options) {
+  return buildEvidenceFilePlan(options).baseName;
 }
 
 export const EVIDENCE_FILENAME_FORMAT =
