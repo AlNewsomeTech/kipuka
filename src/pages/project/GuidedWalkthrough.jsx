@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { pointValueFor } from '@/lib/sprsScoring';
 import { buildGuidedQueue, estimatedMinutes, targetLevelsFor } from '@/lib/doNextEngine';
 import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
-import { buildEvidenceFilename } from '@/lib/evidenceFilename';
+import { buildEvidenceFilePlan } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
 import GuidedStepper from '@/components/guided/GuidedStepper';
@@ -252,13 +252,14 @@ export default function GuidedWalkthrough() {
   const points = pointValueFor(controlId);
   const minutes = estimatedMinutes(libEntry, controlId);
   const { variant } = resolveVariant(libEntry, selectedStack || projectStackKey);
-  const suggestedFilename = buildEvidenceFilename({
+  const filenamePlan = buildEvidenceFilePlan({
     organization,
     project,
     libEntry,
     variant,
     controlType: 'Screenshot',
   });
+  const suggestedFilename = filenamePlan.baseName;
 
   const goToControl = (cid) => cid && navigate(`/projects/${projectId}/guided/${cid}`);
 
@@ -308,7 +309,18 @@ export default function GuidedWalkthrough() {
         {step === 1 && <StepUnderstand libEntry={libEntry} />}
         {step === 2 && <StepDo libEntry={libEntry} project={project} organization={organization} projectStackKey={projectStackKey} selectedStack={selectedStack} onSelectStack={onSelectStack} />}
         {step === 3 && <StepCapture libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} suggestedFilename={suggestedFilename} />}
-        {step === 4 && <StepUpload project={project} currentUser={user} controlId={controlId} suggestedFilename={suggestedFilename} onChanged={load} />}
+        {step === 4 && (
+          <StepUpload
+            project={project}
+            libEntry={libEntry}
+            variant={variant}
+            controlId={controlId}
+            suggestedFilename={suggestedFilename}
+            filenamePlan={filenamePlan}
+            readOnly={readOnly}
+            onChanged={load}
+          />
+        )}
         {step === 5 && (
           <StepVerify
             libEntry={libEntry}
