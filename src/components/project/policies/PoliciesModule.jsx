@@ -20,20 +20,27 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
   const [picker, setPicker] = useState(false);
   const [importing, setImporting] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [loadError, setLoadError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [tpl, pol, cp] = await Promise.all([
-      base44.entities.PolicyTemplate.filter({ is_master_template: true }).catch(() => []),
-      base44.entities.PolicyTemplate.filter({ project_id: project.id }).catch(() => []),
-      project.organization_id
-        ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }).catch(() => [])
-        : Promise.resolve([]),
-    ]);
-    setTemplates(tpl);
-    setPolicies(pol.filter((p) => !p.is_master_template));
-    setCompanyProfile(cp[0] || null);
-    setLoading(false);
+    setLoadError('');
+    try {
+      const [tpl, pol, cp] = await Promise.all([
+        base44.entities.PolicyTemplate.filter({ is_master_template: true }),
+        base44.entities.PolicyTemplate.filter({ project_id: project.id }),
+        project.organization_id
+          ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id })
+          : Promise.resolve([]),
+      ]);
+      setTemplates(tpl);
+      setPolicies(pol.filter((policy) => !policy.is_master_template));
+      setCompanyProfile(cp[0] || null);
+    } catch (error) {
+      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete policy set.');
+    } finally {
+      setLoading(false);
+    }
   }, [project.id, project.organization_id]);
 
   useEffect(() => { load(); }, [load]);
@@ -105,8 +112,6 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
     load();
   };
 
-  const remove = async (id) => { await base44.entities.PolicyTemplate.delete(id); load(); };
-
   const exportPolicy = (p) => {
     const r = createReportPdf({ title: p.policy_name, project, org, generatedBy: currentUser?.full_name || currentUser?.email });
     r.label('Status', p.approval_status);
@@ -120,6 +125,14 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
   };
 
   if (loading) return <div className="flex justify-center py-16"><Loader2 className="w-6 h-6 animate-spin text-slate-400" /></div>;
+  if (loadError) return (
+    <div className="bg-red-50 border border-red-200 rounded-xl p-5">
+      <div className="text-sm font-bold text-red-800">Policy data could not be verified</div>
+      <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
+      <p className="text-xs text-red-600 mt-1">Kipuka will not display an empty policy set after a failed read.</p>
+      <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -133,7 +146,7 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
             {policies.length > 0 && (
               <button onClick={() => generatePolicyPackage({ project, org, policies, generatedBy: currentUser?.full_name || currentUser?.email })}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
-                <Package className="w-4 h-4" /> Export Package
+                <Package className="w-4 h-4" /> Export Draft Package
               </button>
             )}
             {!readOnly && (
@@ -213,8 +226,8 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
           onClose={() => setImporting(false)} onImported={() => { setImporting(false); load(); }} />
       )}
       {editing && (
-        <PolicyEditorModal policy={editing} onClose={() => setEditing(null)}
-          onSaved={() => { setEditing(null); load(); }} onDelete={() => { remove(editing.id); setEditing(null); }} />
+        <PolicyEditorModal policy={editing} currentUser={currentUser} onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); load(); }} />
       )}
     </div>
   );
