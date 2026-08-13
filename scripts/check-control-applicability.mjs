@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { validNotApplicable } from '../src/lib/canonicalReadiness.js';
 import { buildEvidenceFilePlan } from '../src/lib/evidenceFilename.js';
+import { buildCaptureItems, CAPTURE_SAFETY_NOTE } from '../src/lib/captureInstructions.js';
+import { buildPolicyNames } from '../src/lib/policyNaming.js';
 
 const ROOT = process.cwd();
 let passed = 0;
@@ -170,10 +172,31 @@ const filenamePlan = buildEvidenceFilePlan({
   date: '2026-08-10',
 });
 ok(
-  filenamePlan.baseName === 'Acme_Defense_Screenshot_AC.L2-3.1.1_EntraID_Capture_the_Conditional_Access_policy_2026-08-10',
+  filenamePlan.baseName === 'Acme_Defense_Screenshot_AC.L2-3.1.1_EntraID_Authorized_Access_Control_Evidence_2026-08-10',
   'canonical guided filename uses CompanyName_ControlType_CONTROLID_ToolName_Description_YYYY-MM-DD',
 );
-ok(filenamePlan.tool === 'EntraID' && filenamePlan.description === 'Capture_the_Conditional_Access_policy', 'filename plan exposes backend naming inputs');
+ok(filenamePlan.tool === 'EntraID' && filenamePlan.description === 'Authorized_Access_Control_Evidence', 'filename plan exposes neutral backend naming inputs');
+ok(!/kipuka/i.test(filenamePlan.baseName), 'customer evidence filename excludes platform branding');
+
+const captureItems = buildCaptureItems({
+  screenshot_instructions: '1. Kipuka mobile device inventory\n2. Conditional Access grant controls\n3. Allowed and blocked tests',
+}, { control_id: 'AC.L2-3.1.18' });
+ok(captureItems.length === 3, 'capture instructions become separate proof items');
+ok(captureItems.every((item) => item.title && item.instructions), 'every capture item explains both the artifact and required visible proof');
+ok(!/kipuka/i.test(JSON.stringify(captureItems)), 'capture instructions exclude platform branding');
+ok(CAPTURE_SAFETY_NOTE.includes('private keys') && CAPTURE_SAFETY_NOTE.includes('full CUI content'), 'capture step warns against collecting secrets and unnecessary CUI');
+
+const neutralPolicyNames = buildPolicyNames({
+  organization: { legal_name: 'Acme Defense' },
+  project: { implementation_stack: 'Hybrid/Other' },
+  libEntry: { control_id: 'AC.L2-3.1.18', control_title: 'Mobile Device Connection' },
+  variant: {
+    where_to_go: { name: 'Kipuka project workspace' },
+    policy_names: [{ label: 'Kipuka Mobile Policy', policy_type: 'KipukaMobilePolicy', location: 'Kipuka' }],
+  },
+  date: '2026-08-10',
+});
+ok(neutralPolicyNames.length === 1 && !/kipuka/i.test(JSON.stringify(neutralPolicyNames)), 'customer policy names exclude platform branding');
 
 const approved = {
   status: 'Not Applicable',
