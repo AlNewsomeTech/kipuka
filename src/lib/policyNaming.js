@@ -1,4 +1,4 @@
-import { filenameSegment } from '@/lib/evidenceFilename';
+import { filenameSegment } from './evidenceFilename.js';
 import { neutralizeCustomerArtifactText } from './captureInstructions.js';
 
 const KNOWN_LOCATIONS = [
