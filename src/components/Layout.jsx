@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, FileText,
+  LayoutDashboard, Building2, KanbanSquare, FileText,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
