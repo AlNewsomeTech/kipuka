@@ -89,8 +89,9 @@ ok(writeGate.includes("key.startsWith('not_applicable_')"), 'generic gate blocks
 ok(writeGate.includes("clean.status === 'Not Applicable'"), 'generic gate blocks direct N/A status');
 ok(writeGate.includes('Not Applicable findings require an independent applicability review'), 'generic gate gives an actionable rejection');
 const client = read('src/api/base44Client.js');
-ok(client.includes("WRITE_METHODS.has(method) && entityName === 'ControlAssessment'"), 'all platform roles service-route assessment writes');
-ok(client.indexOf("entityName === 'ControlAssessment'") < client.indexOf("role !== 'client'"), 'assessment routing happens before staff direct-write bypass');
+const protectedWriteRoute = "WRITE_METHODS.has(method) && ['ControlAssessment', 'PolicyTemplate', 'SystemSecurityPlan'].includes(entityName)";
+ok(client.includes(protectedWriteRoute), 'all platform roles service-route assessment writes');
+ok(client.indexOf(protectedWriteRoute) < client.indexOf("role !== 'client'"), 'assessment routing happens before staff direct-write bypass');
 
 const guided = read('src/pages/project/GuidedWalkthrough.jsx');
 const panel = read('src/components/guided/ApplicabilityPanel.jsx');
