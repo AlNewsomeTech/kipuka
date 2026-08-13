@@ -1,3 +1,5 @@
+import { neutralEvidenceDescription } from '@/lib/captureInstructions';
+
 const KNOWN_TOOL_NAMES = /** @type {Array<[RegExp, string]>} */ ([
   [/entra|azure ad|identity/i, 'EntraID'],
   [/microsoft 365|office 365|m365/i, 'Microsoft365'],
@@ -37,13 +39,8 @@ function toolNameFor(variant, project) {
 }
 
 function descriptionFor(variant, libEntry) {
-  const firstCapture = String(variant?.screenshot_instructions || '')
-    .split(/\r?\n|[;•]/)
-    .map((item) => item.trim())
-    .find(Boolean);
-
   return filenameSegment(
-    variant?.evidence_description || firstCapture || libEntry?.control_title,
+    neutralEvidenceDescription(variant, libEntry),
     'Implementation_Evidence',
   );
 }
