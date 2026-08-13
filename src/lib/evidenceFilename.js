@@ -1,4 +1,4 @@
-import { neutralEvidenceDescription } from '@/lib/captureInstructions';
+import { neutralEvidenceDescription } from './captureInstructions.js';
 
 const KNOWN_TOOL_NAMES = /** @type {Array<[RegExp, string]>} */ ([
   [/entra|azure ad|identity/i, 'EntraID'],
