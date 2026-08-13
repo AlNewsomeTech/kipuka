@@ -10,7 +10,6 @@ import TierBadge from '@/components/org/TierBadge';
 import StatusBadge from '@/components/StatusBadge';
 import OrgFormModal from '@/components/org/OrgFormModal';
 import EmptyState from '@/components/EmptyState';
-import LegacyMigrationCard from '@/components/admin/LegacyMigrationCard';
 
 export default function SaaSAdmin() {
   const { user } = useAuth();
@@ -95,7 +94,6 @@ export default function SaaSAdmin() {
         <StatCard icon={Users} label="Total seats used" value={orgUsers.filter((u) => u.status !== 'Removed').length} />
       </div>
 
-      <LegacyMigrationCard />
 
       {loading ? (
         <div className="py-16 flex justify-center"><div className="w-6 h-6 border-2 border-slate-200 border-t-slate-700 rounded-full animate-spin" /></div>
