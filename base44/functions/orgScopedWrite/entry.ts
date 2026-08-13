@@ -11,6 +11,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 // Payload: { entity, operation: 'create'|'update', id, data }
 //
 // WHITELIST of entities client-role users may write.
+// Phase 7C final-document drafts are service-write-only, so both reviewed
+// source entities must remain explicit members of this backend allowlist.
 const WRITE_WHITELIST = new Set([
   'ControlAssessment', 'Asset', 'ScopingProfile', 'ProjectPOAM',
   'SSPControlStatement', 'ProjectDiagram', 'ServiceProvider', 'IncidentResponsePlan',
