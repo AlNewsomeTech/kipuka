@@ -1,4 +1,5 @@
 import { filenameSegment } from '@/lib/evidenceFilename';
+import { neutralizeCustomerArtifactText } from './captureInstructions.js';
 
 const KNOWN_LOCATIONS = [
   [/intune|endpoint manager/i, 'Intune'],
@@ -24,7 +25,13 @@ function locationFor(variant, project) {
     project?.implementation_stack,
   ].filter(Boolean).join(' ');
   const known = KNOWN_LOCATIONS.find(([pattern]) => pattern.test(source));
-  return known?.[1] || filenameSegment(variant?.where_to_go?.name || project?.implementation_stack, 'ControlLocation');
+  if (known?.[1]) return known[1];
+  const neutralLocation = neutralizeCustomerArtifactText(
+    variant?.where_to_go?.name || project?.implementation_stack,
+    'PolicyLibrary',
+  );
+  if (/project workspace/i.test(neutralLocation)) return 'PolicyLibrary';
+  return filenameSegment(neutralLocation, 'PolicyLibrary');
 }
 
 function policyTypeFor(libEntry) {
@@ -61,10 +68,19 @@ export function buildPolicyNames({
     : [{ policy_type: policyTypeFor(libEntry), location: defaultLocation }];
 
   return specs.map((spec) => {
-    const policyType = filenameSegment(spec?.policy_type, policyTypeFor(libEntry));
-    const location = filenameSegment(spec?.location, defaultLocation);
+    const policyType = filenameSegment(
+      neutralizeCustomerArtifactText(spec?.policy_type, policyTypeFor(libEntry)),
+      policyTypeFor(libEntry),
+    );
+    const location = filenameSegment(
+      neutralizeCustomerArtifactText(spec?.location, defaultLocation),
+      defaultLocation,
+    );
     return {
-      label: spec?.label || String(spec?.policy_type || libEntry?.control_title || 'Policy'),
+      label: neutralizeCustomerArtifactText(
+        spec?.label || spec?.policy_type || libEntry?.control_title,
+        'Policy',
+      ),
       value: [company, policyType, controlId, location, date].join('_'),
     };
   });
