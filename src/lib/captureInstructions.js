@@ -29,7 +29,7 @@ function cleanCaptureTitle(value) {
 export function captureProofRequirements(title) {
   const value = String(title || '').toLowerCase();
 
-  if (/assignment|configuration|setting|profile|rule|conditional access|rbac|permission|restriction|control|compliance policy|app protection|intune|entra|defender|purview|exchange|sharepoint|teams/.test(value)) {
+  if (/assignment|configuration|setting|profile|rule|conditional access|rbac|permission|restriction|grant control|technical control|compliance policy|app protection|intune|entra|defender|purview|exchange|sharepoint|teams/.test(value)) {
     return 'Show the tenant or system name, policy or rule name, configured values, enabled or enforcement state, assignments or scope, exclusions, and last modified or capture date.';
   }
   if (/policy|procedure|plan|standard|guidance/.test(value)) {
