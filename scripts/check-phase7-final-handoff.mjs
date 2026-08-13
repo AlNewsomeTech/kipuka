@@ -130,6 +130,7 @@ const canonicalScopingKeys = [...scopingQuestions.matchAll(/key: '([^']+)'/g)].m
   ['review lifecycle verifies current hash before approval', lifecycle.includes('hash !== record.review_source_sha256')],
   ['review lifecycle appends hash chained event', lifecycle.includes('previous_event_sha256: prior[0]?.event_sha256')],
   ['review lifecycle is idempotent by transition id', lifecycle.includes('record.last_transition_id === transitionId')],
+  ['write gate whitelists service-only SSP and policy drafts', writeGate.includes("'PolicyTemplate', 'SystemSecurityPlan'" )],
   ['write gate protects approval provenance fields', writeGate.includes('REVIEW_PROVENANCE_FIELDS')],
   ['write gate invalidates approval when source content changes', writeGate.includes('REVIEW_INVALIDATION')],
   ['write gate cannot accept client approval status', writeGate.includes("'approval_status', 'approved_by', 'approved_date'")],
