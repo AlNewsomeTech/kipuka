@@ -29,6 +29,9 @@ function cleanCaptureTitle(value) {
 export function captureProofRequirements(title) {
   const value = String(title || '').toLowerCase();
 
+  if (/assignment|configuration|setting|profile|rule|conditional access|rbac|permission|restriction|control|compliance policy|app protection|intune|entra|defender|purview|exchange|sharepoint|teams/.test(value)) {
+    return 'Show the tenant or system name, policy or rule name, configured values, enabled or enforcement state, assignments or scope, exclusions, and last modified or capture date.';
+  }
   if (/policy|procedure|plan|standard|guidance/.test(value)) {
     return 'Show the document title, owner, version, approval status, approver, effective date, next review date, and the section that establishes this requirement.';
   }
@@ -40,9 +43,6 @@ export function captureProofRequirements(title) {
   }
   if (/approval|authorization|decision|exception|risk acceptance/.test(value)) {
     return 'Show the affected scope, decision, business reason, approver, approval date, owner, compensating protection, and expiration or next review date.';
-  }
-  if (/configuration|setting|profile|rule|conditional access|rbac|permission|restriction|control/.test(value)) {
-    return 'Show the tenant or system name, policy or rule name, configured values, enabled or enforcement state, assignments or scope, exclusions, and last modified or capture date.';
   }
   if (/inventory|register|matrix|roster|mapping|list/.test(value)) {
     return 'Show the report or register title, organization or project, all in-scope entries, unique identifiers where applicable, owner, status, exceptions, and export or review date.';
