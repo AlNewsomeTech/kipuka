@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, Settings2, ArrowLeftRight, FolderArchive, Monitor, Image, FileText, ListChecks,
+  LayoutDashboard, Building2, KanbanSquare, ShieldCheck, FileText,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
-  Radar, ClipboardCheck as ReviewIcon, AlertTriangle, Wrench, Siren, FileBarChart, SlidersHorizontal,
-  Menu, X
+  Radar, SlidersHorizontal, Menu, X
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -30,36 +29,17 @@ const navSections = [
     { to: '/org-settings', label: 'Organization Settings', icon: Building, clientVisible: true },
     { to: '/org-assets', label: 'Asset Inventory', icon: HardDrive, clientVisible: true },
     { to: '/audit-log', label: 'Audit Log', icon: ScrollText, clientVisible: true },
+    { to: '/settings', label: 'Workspace Settings', icon: Settings },
   ]},
-  { label: 'Implementation', items: [
-    { to: '/m365', label: 'Microsoft 365 Setup', icon: Settings2 },
-    { to: '/google', label: 'Google Migration', icon: ArrowLeftRight },
-    { to: '/sharepoint', label: 'SharePoint Archive', icon: FolderArchive },
-    { to: '/ninjaone', label: 'NinjaOne Evidence', icon: Monitor },
-  ]},
-  { label: 'Evidence', items: [
-    { to: '/screenshots', label: 'Screenshot Library', icon: Image },
+  { label: 'Compliance', items: [
     { to: '/documentation', label: 'SSP & Documentation', icon: FileStack },
     { to: '/documents', label: 'Document Library', icon: FileText },
-    { to: '/evidence', label: 'Evidence Index', icon: ListChecks },
+    { to: '/piee', label: 'PIEE Self-Certification', icon: BadgeCheck },
+    { to: '/package', label: 'Assessment Package', icon: Package },
   ]},
-  { label: 'Delivery', items: [
-    { to: '/piee', label: 'PIEE Self-Cert', icon: BadgeCheck },
-    { to: '/package', label: 'Document Package', icon: Package },
-    { to: '/settings', label: 'Settings', icon: Settings },
-  ]},
-  { label: 'AI Assistants', items: [
+  { label: 'Assistance', items: [
     { to: '/assistant', label: 'AI Assistants', icon: Bot },
-  ]},
-  { label: 'ACOLYTE Operations', items: [
-    { to: '/acolyte', label: 'Cyber Overview', icon: Radar, clientVisible: true },
-    { to: '/acolyte/posture', label: 'Posture Assessment', icon: ShieldCheck, clientVisible: true },
-    { to: '/acolyte/reviews', label: 'Readiness Reviews', icon: ReviewIcon, clientVisible: true },
-    { to: '/acolyte/findings', label: 'Cyber Findings', icon: AlertTriangle, clientVisible: true },
-    { to: '/acolyte/remediation', label: 'Remediation Queue', icon: Wrench, clientVisible: true },
-    { to: '/acolyte/incident-readiness', label: 'Incident Readiness', icon: Siren, clientVisible: true },
-    { to: '/acolyte/reports', label: 'Executive Reports', icon: FileBarChart, clientVisible: true },
-    { to: '/acolyte/settings', label: 'ACOLYTE Settings', icon: SlidersHorizontal, clientVisible: true },
+    { to: '/acolyte', label: 'ACOLYTE Operations', icon: Radar, clientVisible: true },
   ]},
   { label: 'Support', items: [
     { to: '/help', label: 'Help Center', icon: LifeBuoy, clientVisible: true },
@@ -150,8 +130,8 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-[72px]' : 'w-[268px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
-        <div className="flex h-[72px] flex-shrink-0 items-center gap-3 border-b border-white/10 px-4">
+      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
+        <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
             <BrandLogo variant="white" imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
           ) : (
@@ -177,7 +157,7 @@ export default function Layout() {
           </button>
         </div>
 
-        <nav className={`flex-1 overflow-y-auto px-2.5 py-4 ${collapsed ? 'space-y-4' : 'space-y-1.5'}`}> 
+        <nav className={`flex-1 overflow-y-auto px-2.5 py-3 ${collapsed ? 'space-y-3' : 'space-y-1'}`}> 
           {navSections.map((section) => {
             const visibleItems = section.items.filter(item =>
               (!item.adminOnly || user?.role === 'admin') &&
@@ -267,7 +247,7 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex h-[72px] flex-shrink-0 items-center gap-3 border-b border-slate-200/80 bg-white/90 px-3 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0d1828]/90 sm:px-4 lg:px-6">
+        <header className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-slate-200/80 bg-white/95 px-3 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0d1828]/95 sm:px-4 lg:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -277,8 +257,7 @@ export default function Layout() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden xl:block">
-              <div className="text-[9px] font-extrabold uppercase tracking-[0.14em] text-slate-400">Workspace</div>
+            <div className="hidden min-w-0 lg:block">
               <div className="truncate text-sm font-extrabold text-slate-800">{currentPageTitle}</div>
             </div>
           </div>
@@ -367,8 +346,8 @@ export default function Layout() {
         {/* Page content */}
         <AcceptanceGate>
           <main className="app-content flex flex-1 flex-col overflow-y-auto">
-            <div className="flex-1 p-4 sm:p-5 lg:p-7 2xl:p-8">
-              <div className="mx-auto w-full max-w-[1540px]">
+            <div className="flex-1 p-4 sm:p-5 lg:p-6 2xl:p-7">
+              <div className="mx-auto w-full max-w-[1440px]">
                 <Outlet key={selectedClientId || 'all-clients'} />
               </div>
             </div>
