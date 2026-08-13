@@ -1,4 +1,4 @@
-const PLATFORM_NAME_PATTERN = /\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi;
+const PLATFORM_NAME_PATTERN = /Kipuka(?:\s+by\s+Pac-Sec)?/gi;
 
 export const CAPTURE_SAFETY_NOTE =
   'Do not capture passwords, secrets, private keys, recovery codes, full CUI content, or unrelated personal information. Redact those values before upload.';
