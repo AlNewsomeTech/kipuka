@@ -55,7 +55,7 @@
     },
     "how_to_implement": {
       "type": "object",
-      "description": "Per-environment structured runbooks. Each variant includes outcome, responsible_role, before_you_start, where_to_go {name, url}, ordered click-by-click steps, optional policy_names [{label, policy_type, location}] rendered as CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD, setting_to_change, kipuka_actions, screenshot_instructions, screenshot_naming using CompanyName_ControlType_CONTROLID_ToolName_Description_YYYY-MM-DD, validation_steps, and common_mistakes.",
+      "description": "Per-environment structured runbooks. Each variant includes outcome, responsible_role, before_you_start, where_to_go {name, url}, ordered click-by-click steps, optional policy_names [{label, policy_type, location}] rendered as CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD, setting_to_change, platform workflow actions, evidence_description, capture_items [{title, instructions}], screenshot_instructions for compatibility, screenshot_naming using CompanyName_ControlType_CONTROLID_ToolName_Description_YYYY-MM-DD, validation_steps, and common_mistakes. Customer-owned policy and evidence artifact names must remain platform-neutral.",
       "default": {}
     },
     "estimated_minutes": {
