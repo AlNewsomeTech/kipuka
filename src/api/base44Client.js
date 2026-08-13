@@ -74,8 +74,8 @@ function loadOrgData() {
 
 const scopedEntities = new Proxy(rawClient.entities, {
   get(target, entityName) {
+    if (typeof entityName !== 'string') return Reflect.get(target, entityName);
     const direct = target[entityName];
-    if (typeof entityName !== 'string') return direct;
     return new Proxy(direct, {
       get(entityTarget, method) {
         const orig = entityTarget[method];
