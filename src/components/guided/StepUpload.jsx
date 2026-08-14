@@ -4,8 +4,8 @@ import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
 
-// Step 4 UPLOAD — inline evidence upload with the control pre-linked and the
-// suggested filename shown. Lists evidence already mapped to this control.
+// Embedded upload section for Step 3 Capture & Upload. The control is pre-linked
+// and evidence already mapped to this control remains visible on the same page.
 export default function StepUpload({
   project,
   libEntry,
@@ -36,7 +36,7 @@ export default function StepUpload({
       setEvidenceLoaded(true);
       return true;
     } catch (loadFailure) {
-      setLoadError(loadFailure?.message || 'Kipuka could not load the complete evidence list. No empty evidence state has been assumed.');
+      setLoadError(loadFailure?.message || 'The app could not load the complete evidence list. No empty evidence state has been assumed.');
       setEvidenceLoaded(false);
       return false;
     }
@@ -56,7 +56,7 @@ export default function StepUpload({
       });
       if (action === 'download') {
         const url = response.data?.signed_url;
-        if (!url) throw new Error('Kipuka did not return a verified download link.');
+        if (!url) throw new Error('The app did not return a verified download link.');
         window.open(url, '_blank', 'noopener,noreferrer');
       } else {
         await load();
@@ -86,7 +86,7 @@ export default function StepUpload({
           )}
         </div>
         <p className="text-[13px] text-blue-900/80">
-          Kipuka will standardize the private stored filename as: <code className="font-mono bg-white border border-blue-200 rounded px-1.5 py-0.5">{suggestedFilename}.file-extension</code>
+          The uploaded file will use this standardized private filename: <code className="font-mono bg-white border border-blue-200 rounded px-1.5 py-0.5">{suggestedFilename}.file-extension</code>
         </p>
         <p className="text-[12px] text-blue-900/75">
           Save creates a Draft. Submit the Draft for review below. Only Accepted evidence can support readiness, and evidence never marks an assessment objective MET by itself.
