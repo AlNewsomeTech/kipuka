@@ -1,0 +1,120 @@
+{
+  "name": "WebsiteScanFinding",
+  "type": "object",
+  "description": "A normalized finding produced by an ACOLYTE website scan.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "scan_id": {
+      "type": "string"
+    },
+    "rule_id": {
+      "type": "string"
+    },
+    "fingerprint": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Informational",
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Informational"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Transport Security",
+        "Security Headers",
+        "Cookie Security",
+        "Content Security",
+        "Information Exposure",
+        "Configuration"
+      ],
+      "default": "Configuration"
+    },
+    "affected_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "description": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "recommendation": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Acknowledged",
+        "Remediation Created",
+        "Accepted Risk",
+        "Resolved"
+      ],
+      "default": "Open"
+    },
+    "detected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cyber_finding_id": {
+      "type": "string",
+      "description": "Optional promoted ACOLYTE CyberFinding record."
+    },
+    "response_metadata": {
+      "type": "object",
+      "default": {}
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "target_id",
+    "scan_id",
+    "rule_id",
+    "title",
+    "severity"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

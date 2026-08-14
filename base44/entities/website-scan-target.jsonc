@@ -1,0 +1,142 @@
+{
+  "name": "WebsiteScanTarget",
+  "type": "object",
+  "description": "An explicitly authorized public website assigned to an ACOLYTE client and project for defensive scanning.",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Owning SaaS organization."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Assigned legacy Client record when one exists."
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Assigned ACOLYTE project."
+    },
+    "target_name": {
+      "type": "string",
+      "description": "Friendly website name."
+    },
+    "start_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Authorized public HTTP or HTTPS URL."
+    },
+    "normalized_origin": {
+      "type": "string",
+      "description": "Normalized scheme and host used for scope enforcement."
+    },
+    "hostname": {
+      "type": "string",
+      "format": "hostname",
+      "description": "Exact authorized hostname."
+    },
+    "authorization_attested": {
+      "type": "boolean",
+      "default": false,
+      "description": "Operator attests the client owns the site or authorized testing."
+    },
+    "authorization_statement": {
+      "type": "string",
+      "description": "Recorded authorization attestation."
+    },
+    "authorized_by_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "authorized_by_name": {
+      "type": "string"
+    },
+    "authorized_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Paused",
+        "Archived"
+      ],
+      "default": "Active"
+    },
+    "scan_profile": {
+      "type": "string",
+      "enum": [
+        "Baseline",
+        "Standard"
+      ],
+      "default": "Standard"
+    },
+    "max_pages": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 25,
+      "default": 10
+    },
+    "request_timeout_seconds": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 20,
+      "default": 12
+    },
+    "notes": {
+      "type": "string"
+    },
+    "last_scan_id": {
+      "type": "string"
+    },
+    "last_scan_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_scan_status": {
+      "type": "string"
+    },
+    "last_security_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "target_name",
+    "start_url",
+    "hostname",
+    "authorization_attested"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}

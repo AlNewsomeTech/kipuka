@@ -1,0 +1,90 @@
+{
+  "name": "WebsiteScanLog",
+  "type": "object",
+  "description": "Ordered, hash-chained event log for an ACOLYTE website scan.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "scan_id": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Info",
+        "Warning",
+        "Error"
+      ],
+      "default": "Info"
+    },
+    "event_type": {
+      "type": "string"
+    },
+    "request_url": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "details": {
+      "type": "object",
+      "default": {}
+    },
+    "previous_hash": {
+      "type": "string"
+    },
+    "entry_hash": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "target_id",
+    "scan_id",
+    "sequence",
+    "event_time",
+    "event_type",
+    "message",
+    "entry_hash"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
