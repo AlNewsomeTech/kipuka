@@ -16,13 +16,32 @@ import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
 import StepDo from '@/components/guided/StepDo';
 import StepCapture from '@/components/guided/StepCapture';
-import StepUpload from '@/components/guided/StepUpload';
 import StepVerify from '@/components/guided/StepVerify';
 import ApplicabilityPanel from '@/components/guided/ApplicabilityPanel';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 function actionErrorMessage(error, fallback) {
   return error?.response?.data?.error || error?.message || fallback;
+}
+
+const GUIDED_WORKFLOW_VERSION = 2;
+
+function normalizeCurrentStep(value, version) {
+  const current = Math.max(1, Number(value) || 1);
+  if (Number(version) >= GUIDED_WORKFLOW_VERSION) return Math.min(4, current);
+  if (current <= 3) return current;
+  return current === 4 ? 3 : 4;
+}
+
+function normalizeCompletedSteps(values, version) {
+  const list = Array.isArray(values) ? values : [];
+  const normalized = list.map((value) => {
+    const stepNumber = Number(value);
+    if (Number(version) >= GUIDED_WORKFLOW_VERSION) return stepNumber;
+    if (stepNumber <= 3) return stepNumber;
+    return stepNumber === 4 ? 3 : 4;
+  });
+  return Array.from(new Set(normalized)).filter((value) => value >= 1 && value <= 4).sort();
 }
 
 export default function GuidedWalkthrough() {
@@ -77,8 +96,8 @@ export default function GuidedWalkthrough() {
       setAssessments(asmt);
       setApplicabilityWorkflow(applicabilityResponse?.data || null);
       setProgress(prog);
-      setStep(prog?.current_step || 1);
-      setCompletedSteps(prog?.completed_steps || []);
+      setStep(normalizeCurrentStep(prog?.current_step, prog?.workflow_version));
+      setCompletedSteps(normalizeCompletedSteps(prog?.completed_steps, prog?.workflow_version));
       setSelectedStack(prog?.selected_stack || '');
       setChecks(prog?.verify_checks || {});
     } catch (error) {
@@ -112,7 +131,7 @@ export default function GuidedWalkthrough() {
     try {
       const org = project?.organization_id;
       const saved = await saveGuidedProgress(progress, {
-        projectId, organizationId: org, controlId, patch,
+        projectId, organizationId: org, controlId, patch: { workflow_version: GUIDED_WORKFLOW_VERSION, ...patch },
       });
       if (!saved?.id) throw new Error('Kipuka did not return a saved walkthrough record.');
       setProgress(saved);
@@ -135,7 +154,7 @@ export default function GuidedWalkthrough() {
   const advance = () => {
     const nextCompleted = Array.from(new Set([...completedSteps, step]));
     setCompletedSteps(nextCompleted);
-    const n = Math.min(5, step + 1);
+    const n = Math.min(4, step + 1);
     setStep(n);
     persist({ current_step: n, completed_steps: nextCompleted });
   };
@@ -202,7 +221,7 @@ export default function GuidedWalkthrough() {
       setAssessments((prev) => prev.map((row) => (
         row.id === assessment.id ? { ...row, ...savedAssessment } : row
       )));
-      const nextCompleted = Array.from(new Set([...completedSteps, 5]));
+      const nextCompleted = Array.from(new Set([...completedSteps, 4]));
       setCompletedSteps(nextCompleted);
       await persist({ completed_steps: nextCompleted });
     } catch (error) {
@@ -343,20 +362,21 @@ export default function GuidedWalkthrough() {
       <div>
         {step === 1 && <StepUnderstand libEntry={libEntry} />}
         {step === 2 && <StepDo libEntry={libEntry} project={project} organization={organization} projectStackKey={projectStackKey} selectedStack={selectedStack} onSelectStack={onSelectStack} />}
-        {step === 3 && <StepCapture libEntry={libEntry} projectStackKey={projectStackKey} selectedStack={selectedStack} suggestedFilename={suggestedFilename} />}
-        {step === 4 && (
-          <StepUpload
+        {step === 3 && (
+          <StepCapture
             project={project}
+            organization={organization}
             libEntry={libEntry}
-            variant={variant}
-            controlId={controlId}
+            projectStackKey={projectStackKey}
+            selectedStack={selectedStack}
             suggestedFilename={suggestedFilename}
             filenamePlan={filenamePlan}
+            controlId={controlId}
             readOnly={readOnly}
             onChanged={load}
           />
         )}
-        {step === 5 && (
+        {step === 4 && (
           <StepVerify
             libEntry={libEntry}
             projectStackKey={projectStackKey}
@@ -402,7 +422,7 @@ export default function GuidedWalkthrough() {
           <button onClick={back} disabled={step === 1} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
-          {step < 5 && (
+          {step < 4 && (
             <button onClick={advance} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
               Next <ArrowRight className="w-4 h-4" />
             </button>
