@@ -25,7 +25,7 @@ export const READ_GATED = new Set([
   'ToolControlMapping', 'ToolEvidenceChecklist', 'ProjectSecurityTool',
   'PolicyTemplate', 'GuidedProgress', 'RemediationComment', 'DeploymentTask',
   'SecurityReviewNote', 'AcolyteRemediationItem', 'AcolyteProfile',
-  'WebsiteScanTarget', 'WebsiteScan', 'WebsiteScanFinding', 'WebsiteScanLog',
+  'WebsiteScanTarget', 'WebsiteScan', 'WebsiteScanFinding', 'WebsiteScanLog', 'SecureScoreImport',
   'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
   'CyberReadinessReview', 'Organization', 'OrganizationUser', 'PostureAssessment',
   'DocumentConfiguration', 'ProjectDocument', 'DocumentSourceSnapshot',
