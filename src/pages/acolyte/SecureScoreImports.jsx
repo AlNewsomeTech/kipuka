@@ -24,6 +24,7 @@ function fileSize(value) {
 }
 
 function scoreTone(score) {
+  if (score == null || score === '') return 'text-slate-500';
   const value = Number(score);
   if (!Number.isFinite(value)) return 'text-slate-500';
   if (value >= 80) return 'text-green-600';
@@ -94,7 +95,7 @@ export default function SecureScoreImports() {
     [imports],
   );
   const visible = showArchived ? imports.filter((item) => item.import_status === 'Archived') : active;
-  const scored = active.filter((item) => Number.isFinite(Number(item.score_percent)));
+  const scored = active.filter((item) => item.score_percent != null && Number.isFinite(Number(item.score_percent)));
   const latest = scored[0] || active[0] || null;
   const previous = latest ? scored.find((item) => item.id !== latest.id) : null;
   const delta = latest && previous
