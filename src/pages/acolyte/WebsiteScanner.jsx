@@ -208,6 +208,7 @@ export default function WebsiteScanner() {
         title="Website Vulnerability Scanner"
         subtitle="Authorized, non-destructive public website checks with client assignment, findings, run history, and hash-chained event logs."
         icon={Radar}
+        showPositioning={false}
         right={canOperate && project ? (
           <button onClick={() => setModal(true)} className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-[#0F1E3C] hover:bg-slate-100">
             <Plus className="h-4 w-4" /> Add Website
