@@ -1,7 +1,7 @@
 {
   "name": "GuidedProgress",
   "type": "object",
-  "description": "Per-user, per-control progress through the 5-step guided walkthrough so a user can leave and resume mid-control. One record per (project_id, control_id).",
+  "description": "Per-user, per-control progress through the 4-step guided walkthrough so a user can leave and resume mid-control. One record per (project_id, control_id).",
   "properties": {
     "organization_id": {
       "type": "string"
@@ -15,7 +15,12 @@
     "current_step": {
       "type": "integer",
       "default": 1,
-      "description": "The step the user is currently on (1-5)."
+      "description": "The step the user is currently on (1-4)."
+    },
+    "workflow_version": {
+      "type": "integer",
+      "default": 2,
+      "description": "Guided workflow layout version used to safely resume older saved progress."
     },
     "completed_steps": {
       "type": "array",
@@ -23,7 +28,7 @@
         "type": "integer"
       },
       "default": [],
-      "description": "Which of the 5 guided steps the user has marked complete."
+      "description": "Which of the 4 guided steps the user has marked complete."
     },
     "selected_stack": {
       "type": "string",
