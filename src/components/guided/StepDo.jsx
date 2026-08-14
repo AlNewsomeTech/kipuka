@@ -5,6 +5,13 @@ import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/l
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
 // stack label + selector to view another stack's instructions.
+function cleanWorkspaceCopy(value) {
+  return String(value || '')
+    .replace(/\bKipuka\b/g, 'the project workspace')
+    .replace(/\bStep 4\b/g, 'Step 3')
+    .replace(/\bStep 5\b/g, 'Step 4');
+}
+
 export default function StepDo({ libEntry, project, organization, projectStackKey, selectedStack, onSelectStack }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant, usedKey, fellBack } = resolveVariant(libEntry, activeKey);
@@ -49,7 +56,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         {variant.outcome && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">What you will finish</div>
-            <p className="text-sm text-blue-950 leading-relaxed">{variant.outcome}</p>
+            <p className="text-sm text-blue-950 leading-relaxed">{cleanWorkspaceCopy(variant.outcome)}</p>
           </div>
         )}
 
@@ -58,7 +65,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
               <UserRound className="w-3.5 h-3.5" /> Who should do this
             </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{variant.responsible_role}</p>
+            <p className="text-sm text-slate-700 leading-relaxed">{cleanWorkspaceCopy(variant.responsible_role)}</p>
           </div>
         )}
 
@@ -70,7 +77,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
             <ul className="space-y-1.5">
               {variant.before_you_start.map((item, i) => (
                 <li key={i} className="text-sm text-slate-700 flex gap-2">
-                  <span className="text-slate-400">•</span><span>{item}</span>
+                  <span className="text-slate-400">•</span><span>{cleanWorkspaceCopy(item)}</span>
                 </li>
               ))}
             </ul>
@@ -100,7 +107,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
               {variant.steps.map((s, i) => (
                 <li key={i} className="flex gap-3 text-sm text-slate-700">
                   <span className="w-5 h-5 rounded-full bg-[#0F1E3C] text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                  <span className="leading-relaxed">{s}</span>
+                  <span className="leading-relaxed">{cleanWorkspaceCopy(s)}</span>
                 </li>
               ))}
             </ol>
@@ -110,19 +117,19 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         {variant.setting_to_change && (
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setting or decision to record</div>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{variant.setting_to_change}</p>
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{cleanWorkspaceCopy(variant.setting_to_change)}</p>
           </div>
         )}
 
         {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <ClipboardCheck className="w-3.5 h-3.5" /> Finish this step in Kipuka
+              <ClipboardCheck className="w-3.5 h-3.5" /> Finish this step in the project workspace
             </div>
             <ol className="space-y-1.5">
               {variant.kipuka_actions.map((item, i) => (
                 <li key={i} className="text-[13px] text-emerald-950 flex gap-2">
-                  <span className="font-bold">{i + 1}.</span><span>{item}</span>
+                  <span className="font-bold">{i + 1}.</span><span>{cleanWorkspaceCopy(item)}</span>
                 </li>
               ))}
             </ol>
@@ -134,7 +141,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
             <div className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-1.5">Common mistakes to avoid</div>
             <ul className="space-y-1">
               {variant.common_mistakes.map((m, i) => (
-                <li key={i} className="text-[13px] text-red-800 flex gap-2"><span>•</span>{m}</li>
+                <li key={i} className="text-[13px] text-red-800 flex gap-2"><span>•</span>{cleanWorkspaceCopy(m)}</li>
               ))}
             </ul>
           </div>
