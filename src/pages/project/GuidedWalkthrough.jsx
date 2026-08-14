@@ -18,6 +18,7 @@ import StepDo from '@/components/guided/StepDo';
 import StepCapture from '@/components/guided/StepCapture';
 import StepVerify from '@/components/guided/StepVerify';
 import ApplicabilityPanel from '@/components/guided/ApplicabilityPanel';
+import ScfCrossReferencePanel from '@/components/guided/ScfCrossReferencePanel';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 
 function actionErrorMessage(error, fallback) {
@@ -348,6 +349,10 @@ export default function GuidedWalkthrough() {
           <GuidedStepper current={step} completedSteps={completedSteps} onJump={goToStep} />
         </div>
       </div>
+
+      {project.control_set_mode === 'CMMC + SCF' && (
+        <ScfCrossReferencePanel controlId={controlId} compact />
+      )}
 
       {/* Step content */}
       <div>
