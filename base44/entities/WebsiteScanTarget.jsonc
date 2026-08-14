@@ -125,18 +125,9 @@
       ]
     },
     "write": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "role": "technician"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "__service_only__"
+      }
     }
   }
 }
