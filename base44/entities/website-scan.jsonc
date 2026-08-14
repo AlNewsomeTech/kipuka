@@ -1,0 +1,188 @@
+{
+  "name": "WebsiteScan",
+  "type": "object",
+  "description": "One timestamped ACOLYTE website vulnerability scan run.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "client_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "target_id": {
+      "type": "string"
+    },
+    "target_name": {
+      "type": "string"
+    },
+    "requested_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "final_url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "hostname": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Queued",
+        "Running",
+        "Completed",
+        "Failed",
+        "Cancelled"
+      ],
+      "default": "Queued"
+    },
+    "scan_profile": {
+      "type": "string",
+      "enum": [
+        "Baseline",
+        "Standard"
+      ],
+      "default": "Standard"
+    },
+    "requested_by_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "requested_by_name": {
+      "type": "string"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "duration_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "pages_scanned": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "requests_made": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "checks_run": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "finding_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "critical_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "high_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "moderate_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "low_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "informational_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "security_score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "scanner_version": {
+      "type": "string"
+    },
+    "request_id": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "resolved_addresses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "summary": {
+      "type": "object",
+      "default": {}
+    },
+    "error_message": {
+      "type": "string"
+    },
+    "log_sha256": {
+      "type": "string",
+      "description": "SHA-256 digest of the ordered event log."
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "target_id",
+    "requested_url",
+    "status",
+    "requested_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    }
+  }
+}
