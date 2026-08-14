@@ -7,7 +7,6 @@ export default function WebsiteTargetModal({
   project,
   clients = [],
   organizationName,
-  user,
   onClose,
   onSaved,
 }) {
