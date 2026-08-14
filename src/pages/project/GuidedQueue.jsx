@@ -6,6 +6,7 @@ import { buildGuidedQueue, targetLevelsFor, familyOf } from '@/lib/doNextEngine'
 import { toSimpleStatus, SIMPLE_STATUS, SIMPLE_STATUS_TONE } from '@/lib/simpleStatus';
 import ControlMetaBadges from '@/components/guided/ControlMetaBadges';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
+import { scfReferencesFor } from '@/lib/scfCrossReferences';
 
 function SimpleBadge({ assessment, realStatus }) {
   const simple = toSimpleStatus(assessment || realStatus);
@@ -86,6 +87,9 @@ export default function GuidedQueue() {
         <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">
           {queue.map((it) => {
             const isDone = toSimpleStatus(it.assessment || it.status) === SIMPLE_STATUS.DONE;
+            const scfReferences = project?.control_set_mode === 'CMMC + SCF'
+              ? scfReferencesFor(it.control_id)
+              : [];
             return (
               <button
                 key={it.control_id}
@@ -99,6 +103,11 @@ export default function GuidedQueue() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-mono font-semibold text-slate-500">{it.control_id}</span>
                     <SimpleBadge assessment={it.assessment} realStatus={it.status} />
+                    {scfReferences.length > 0 && (
+                      <span className="inline-flex items-center rounded-full bg-cyan-50 px-2 py-0.5 text-[10px] font-bold text-cyan-800 ring-1 ring-inset ring-cyan-200">
+                        {scfReferences.length} SCF {scfReferences.length === 1 ? 'reference' : 'references'}
+                      </span>
+                    )}
                   </div>
                   <div className="text-sm font-medium text-slate-800 truncate mt-0.5">{it.control_title}</div>
                 </div>
