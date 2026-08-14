@@ -6,6 +6,7 @@ const MAX_REDIRECTS = 5;
 const MAX_PAGES = 15;
 const USER_AGENT = 'ACOLYTE-Website-Security-Scanner/1.0 (+authorized defensive assessment)';
 const READ_ONLY_ORG_ROLES = new Set(['Auditor Viewer', 'Executive Viewer', 'Evidence Contributor']);
+const AUTHORIZATION_STATEMENT = 'I confirm that this organization owns this website or has written authorization from the owner for non-destructive security scanning.';
 const SEVERITY_WEIGHT: Record<string, number> = { Critical: 40, High: 25, Moderate: 10, Low: 3, Informational: 0 };
 
 function jsonError(message: string, status: number) {
@@ -234,11 +235,127 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const action = body.action || 'run_scan';
 
+    const isAssignedClient = (clientId: string) => {
+      const raw = caller?.assigned_client_ids;
+      const tokens = Array.isArray(raw) ? raw : String(raw == null ? '' : raw).split(',');
+      return tokens.map((value: unknown) => String(value || '').trim()).filter(Boolean).includes(clientId);
+    };
+
+    const authorizeScope = async (organizationId: string, clientId = '') => {
+      if (appRole === 'admin') return null;
+      if (clientId && isAssignedClient(clientId)) return null;
+      const memberships = await base44.asServiceRole.entities.OrganizationUser
+        .filter({ user_email: caller.email, organization_id: organizationId })
+        .catch(() => []);
+      const active = memberships.filter((membership: any) => membership.status === 'Active');
+      if (active.length !== 1) return jsonError('Website target not found.', 404);
+      if (READ_ONLY_ORG_ROLES.has(active[0].role)) {
+        return jsonError(`Your organization role (${active[0].role}) cannot change or run website scans.`, 403);
+      }
+      return null;
+    };
+
+    if (action === 'create_target') {
+      if (!body.project_id || !body.target_name || !body.start_url) {
+        return jsonError('project_id, target_name, and start_url are required.', 400);
+      }
+      if (body.authorization_attested !== true || body.authorization_statement !== AUTHORIZATION_STATEMENT) {
+        return jsonError('Recorded client authorization is required before adding a website target.', 400);
+      }
+      const project = await base44.asServiceRole.entities.Project.get(body.project_id).catch(() => null);
+      if (!project?.organization_id) return jsonError('Client project not found.', 404);
+      let client = null;
+      if (body.client_id) {
+        client = await base44.asServiceRole.entities.Client.get(body.client_id).catch(() => null);
+        if (!client || client.organization_id !== project.organization_id) {
+          return jsonError('Client assignment is invalid.', 409);
+        }
+      }
+      const denied = await authorizeScope(project.organization_id, client?.id || '');
+      if (denied) return denied;
+      const normalized = validateUrlShape(cleanText(body.start_url, 2000));
+      const targetName = cleanText(body.target_name, 160);
+      if (targetName.length < 2) return jsonError('Enter a descriptive website name.', 400);
+      const profile = body.scan_profile === 'Baseline' ? 'Baseline' : 'Standard';
+      const authorizedAt = new Date().toISOString();
+      const created = await base44.asServiceRole.entities.WebsiteScanTarget.create({
+        organization_id: project.organization_id,
+        client_id: client?.id || '',
+        project_id: project.id,
+        target_name: targetName,
+        start_url: normalized.toString(),
+        normalized_origin: normalized.origin,
+        hostname: normalized.hostname,
+        authorization_attested: true,
+        authorization_statement: AUTHORIZATION_STATEMENT,
+        authorized_by_email: caller.email || '',
+        authorized_by_name: caller.full_name || caller.email || '',
+        authorized_at: authorizedAt,
+        status: 'Active',
+        scan_profile: profile,
+        max_pages: profile === 'Baseline' ? 1 : Math.min(Math.max(Number(body.max_pages) || 10, 1), MAX_PAGES),
+        request_timeout_seconds: Math.min(Math.max(Number(body.request_timeout_seconds) || 12, 5), 20),
+        notes: cleanText(body.notes, 2000),
+      });
+      await base44.asServiceRole.entities.AuditLog.create({
+        organization_id: project.organization_id,
+        user_email: caller.email || '',
+        user_name: caller.full_name || '',
+        action_type: 'ACOLYTE Website Target Created',
+        target_entity: 'WebsiteScanTarget',
+        target_record_id: created.id,
+        action_summary: `Authorized website scan target "${created.target_name}" for ${normalized.hostname}.`,
+        ip_address: '',
+        user_agent: req.headers.get('user-agent') || '',
+      });
+      return Response.json({ target: created });
+    }
+
+    if (action === 'set_target_status') {
+      if (!body.target_id || !['Active', 'Paused', 'Archived'].includes(body.status)) {
+        return jsonError('A target_id and valid status are required.', 400);
+      }
+      const existingTarget = await base44.asServiceRole.entities.WebsiteScanTarget.get(body.target_id).catch(() => null);
+      if (!existingTarget) return jsonError('Website target not found.', 404);
+      const project = await base44.asServiceRole.entities.Project.get(existingTarget.project_id).catch(() => null);
+      if (!project || project.organization_id !== existingTarget.organization_id) {
+        return jsonError('Website target not found.', 404);
+      }
+      let client = null;
+      if (existingTarget.client_id) {
+        client = await base44.asServiceRole.entities.Client.get(existingTarget.client_id).catch(() => null);
+        if (!client || client.organization_id !== existingTarget.organization_id) {
+          return jsonError('The target client assignment is invalid.', 409);
+        }
+      }
+      const denied = await authorizeScope(existingTarget.organization_id, client?.id || '');
+      if (denied) return denied;
+      const updated = await base44.asServiceRole.entities.WebsiteScanTarget.update(existingTarget.id, { status: body.status });
+      await base44.asServiceRole.entities.AuditLog.create({
+        organization_id: existingTarget.organization_id,
+        user_email: caller.email || '',
+        user_name: caller.full_name || '',
+        action_type: 'ACOLYTE Website Target Status Changed',
+        target_entity: 'WebsiteScanTarget',
+        target_record_id: existingTarget.id,
+        action_summary: `Changed website scan target "${existingTarget.target_name}" to ${body.status}.`,
+        ip_address: '',
+        user_agent: req.headers.get('user-agent') || '',
+      });
+      return Response.json({ target: updated });
+    }
+
     if (action === 'promote_finding') {
       const finding = await base44.asServiceRole.entities.WebsiteScanFinding.get(body.finding_id).catch(() => null);
       if (!finding) return jsonError('Finding not found.', 404);
       const project = await base44.asServiceRole.entities.Project.get(finding.project_id).catch(() => null);
       if (!project || project.organization_id !== finding.organization_id) return jsonError('Finding scope is invalid.', 409);
+      if (finding.client_id) {
+        const client = await base44.asServiceRole.entities.Client.get(finding.client_id).catch(() => null);
+        if (!client || client.organization_id !== finding.organization_id) return jsonError('Finding scope is invalid.', 409);
+      }
+      const denied = await authorizeScope(finding.organization_id, finding.client_id || '');
+      if (denied) return denied;
       if (finding.cyber_finding_id) {
         const existing = await base44.asServiceRole.entities.CyberFinding.get(finding.cyber_finding_id).catch(() => null);
         if (existing) return Response.json({ finding: existing, already_promoted: true });
@@ -299,15 +416,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (appRole !== 'admin') {
-      const memberships = await base44.asServiceRole.entities.OrganizationUser
-        .filter({ user_email: caller.email, organization_id: target.organization_id })
-        .catch(() => []);
-      const active = memberships.filter((membership: any) => membership.status === 'Active');
-      if (active.length === 1 && READ_ONLY_ORG_ROLES.has(active[0].role)) {
-        return jsonError(`Your organization role (${active[0].role}) cannot start scans.`, 403);
-      }
-    }
+    const denied = await authorizeScope(target.organization_id, target.client_id || '');
+    if (denied) return denied;
 
     const requestedUrl = validateUrlShape(target.start_url);
     if (requestedUrl.hostname !== String(target.hostname || '').toLowerCase()) {
