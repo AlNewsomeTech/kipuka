@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Globe2, Loader2, ShieldCheck, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { normalizeWebsiteUrl, WEBSITE_AUTHORIZATION_STATEMENT } from '@/lib/websiteScanner';
 
 export default function WebsiteTargetModal({
@@ -52,34 +51,21 @@ export default function WebsiteTargetModal({
 
     setSaving(true);
     try {
-      const authorizedAt = new Date().toISOString();
-      const record = await base44.entities.WebsiteScanTarget.create({
-        organization_id: project.organization_id || '',
-        client_id: form.client_id || '',
+      const response = await base44.functions.invoke('runWebsiteScan', {
+        action: 'create_target',
         project_id: project.id,
+        client_id: form.client_id || '',
         target_name: form.target_name.trim(),
         start_url: normalized.toString(),
-        normalized_origin: normalized.origin,
-        hostname: normalized.hostname,
         authorization_attested: true,
         authorization_statement: WEBSITE_AUTHORIZATION_STATEMENT,
-        authorized_by_email: user?.email || '',
-        authorized_by_name: user?.full_name || user?.email || '',
-        authorized_at: authorizedAt,
-        status: 'Active',
         scan_profile: form.scan_profile,
         max_pages: form.scan_profile === 'Baseline' ? 1 : Math.min(Math.max(Number(form.max_pages) || 10, 1), 15),
         request_timeout_seconds: Math.min(Math.max(Number(form.request_timeout_seconds) || 12, 5), 20),
         notes: form.notes.trim(),
       });
-      await logAudit({
-        organizationId: project.organization_id,
-        user,
-        actionType: AUDIT_ACTIONS.ACOLYTE_WEBSITE_TARGET_CREATE,
-        targetEntity: 'WebsiteScanTarget',
-        targetRecordId: record.id,
-        summary: `Authorized website scan target "${record.target_name}" for ${normalized.hostname}.`,
-      });
+      const record = response?.data?.target;
+      if (!record?.id) throw new Error('The server did not confirm the website target.');
       onSaved(record);
     } catch (saveError) {
       setError(saveError?.response?.data?.error || saveError?.message || 'The website target could not be saved.');
