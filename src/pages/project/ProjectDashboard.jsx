@@ -18,7 +18,7 @@ import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
 import CuiHostingBanner from '@/components/cui/CuiHostingBanner';
 import { cuiHostingRequired } from '@/lib/cuiHosting';
 
-function Metric({ icon: Icon, label, value, tone = 'slate' }) {
+function Metric({ icon: Icon, label, value, hint = '', tone = 'slate' }) {
   const tones = {
     slate: 'text-slate-500', green: 'text-green-600', amber: 'text-amber-600',
     red: 'text-red-600', blue: 'text-blue-600',
@@ -29,6 +29,7 @@ function Metric({ icon: Icon, label, value, tone = 'slate' }) {
         <Icon className={`h-4 w-4 ${tones[tone]}`} /> {label}
       </div>
       <div className="metric-value mt-3 truncate text-2xl font-extrabold text-slate-900">{value}</div>
+      {hint && <div className="mt-1 text-[11px] font-medium text-slate-500">{hint}</div>}
     </div>
   );
 }
@@ -108,6 +109,8 @@ export default function ProjectDashboard() {
         controlsNeedEvidence: canonical.integrity_ok ? canonical.controls_needing_final_evidence : '—',
         mockVerdict: mockSessions[0]?.overall_verdict || null,
         readiness,
+        implementationPct: canonical.integrity_ok ? canonical.implementation_pct : null,
+        assessmentReady: canonical.integrity_ok ? `${canonical.met}/${canonical.expected_requirements}` : '—',
         readinessIntegrityIssues: canonical.integrity_issues,
         sprsStatus,
         autoChecklist: deriveAutoChecklist({
@@ -183,7 +186,7 @@ export default function ProjectDashboard() {
         <div className="mt-5 grid gap-2 sm:grid-cols-3">
           <ProjectMeta label="Target level" value={project.target_cmmc_level} />
           <ProjectMeta label="Assessment path" value={project.assessment_path} />
-          <ProjectMeta label="Assessment readiness" value={counts?.readiness == null ? '—' : `${counts.readiness}%`} accent />
+          <ProjectMeta label="Implementation progress" value={counts?.implementationPct == null ? '—' : `${counts.implementationPct}%`} accent />
         </div>
       </div>
 
@@ -203,7 +206,13 @@ export default function ProjectDashboard() {
 
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={TrendingUp} label="Assessment Readiness" value={counts?.readiness == null ? '—' : `${counts.readiness}%`} tone="blue" />
+        <Metric
+          icon={TrendingUp}
+          label="Assessment Readiness"
+          value={counts?.readiness == null ? '—' : `${counts.readiness}%`}
+          hint={counts?.readiness == null ? '' : `${counts.assessmentReady} controls fully assessed with final evidence`}
+          tone="blue"
+        />
         <Metric icon={AlertTriangle} label="Open POA&M" value={counts?.openPoam ?? '—'} tone="amber" />
         <Metric icon={AlertTriangle} label="High-Risk Gaps" value={counts?.highRisk ?? '—'} tone="red" />
         <Metric icon={FileStack} label="SSP Status" value={counts?.sspStatus ?? '—'} />
