@@ -1,0 +1,171 @@
+{
+  "name": "SecureScoreImport",
+  "type": "object",
+  "description": "A privately stored Microsoft Secure Score CSV or Graph JSON export assigned to an ACOLYTE client project.",
+  "properties": {
+    "organization_id": {
+      "type": "string",
+      "description": "Owning SaaS organization."
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Assigned legacy Client record when one exists."
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Assigned ACOLYTE project."
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "Microsoft Defender CSV",
+        "Microsoft Graph JSON",
+        "Unrecognized Export"
+      ],
+      "default": "Unrecognized Export"
+    },
+    "import_status": {
+      "type": "string",
+      "enum": [
+        "Parsed",
+        "Stored - Review Required",
+        "Archived"
+      ],
+      "default": "Stored - Review Required"
+    },
+    "report_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "tenant_id": {
+      "type": "string"
+    },
+    "current_score": {
+      "type": "number",
+      "minimum": 0
+    },
+    "max_score": {
+      "type": "number",
+      "minimum": 0
+    },
+    "score_percent": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "record_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "recommendation_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "completed_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "category_summary": {
+      "type": "object",
+      "default": {}
+    },
+    "parsed_summary": {
+      "type": "object",
+      "default": {}
+    },
+    "parser_warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Canonical Base44 private-storage URI."
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "original_file_name": {
+      "type": "string"
+    },
+    "mime_type": {
+      "type": "string"
+    },
+    "file_size_bytes": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "hash_algorithm": {
+      "type": "string",
+      "default": "SHA-256"
+    },
+    "hash_value": {
+      "type": "string",
+      "description": "SHA-256 digest of the original uploaded bytes."
+    },
+    "uploaded_by_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "uploaded_by_name": {
+      "type": "string"
+    },
+    "uploaded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "parser_version": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "archived_by_email": {
+      "type": "string",
+      "format": "email"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "source_type",
+    "import_status",
+    "file_uri",
+    "file_name",
+    "original_file_name",
+    "file_size_bytes",
+    "hash_value",
+    "uploaded_by_email",
+    "uploaded_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
