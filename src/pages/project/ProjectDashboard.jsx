@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { FEATURES } from '@/lib/subscriptionTiers';
 import { generateProjectStatusReport } from '@/lib/projectStatusReport';
-import { nextIncomplete, queueCounts, targetLevelsFor } from '@/lib/doNextEngine';
+import { nextIncomplete, targetLevelsFor } from '@/lib/doNextEngine';
 import { canonicalSprsView, computeCanonicalReadiness } from '@/lib/canonicalReadiness';
 import { stepLink } from '@/lib/guidanceLinks';
 import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
@@ -120,7 +120,8 @@ export default function ProjectDashboard() {
       // Do-Next hero data.
       const inScopeLib = library.filter((c) => levels.includes(c.cmmc_level));
       const next = nextIncomplete(inScopeLib, assessments, project);
-      const { done, total } = queueCounts(inScopeLib, assessments, project);
+      const done = canonical.integrity_ok ? canonical.implemented : 0;
+      const total = canonical.integrity_ok ? canonical.expected_requirements : inScopeLib.length;
       const sprsScore = canonicalSprsView(canonical);
       setDoNext({
         hasAssessments: assessments.length > 0,
@@ -209,7 +210,7 @@ export default function ProjectDashboard() {
         <Metric icon={FileStack} label="SSP Status" value={counts?.sspStatus ?? '—'} />
       </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric icon={ClipboardCheck} label="Requirements MET" value={counts?.controlsComplete ?? '—'} tone="green" />
+        <Metric icon={ClipboardCheck} label="Controls Implemented" value={counts?.controlsImplemented ?? '—'} tone="green" />
         <Metric icon={ListChecks} label="Controls Needing Evidence" value={counts?.controlsNeedEvidence ?? '—'} tone="amber" />
         <Link to={`/projects/${project.id}/mock`} className="block">
           <Metric icon={Gavel} label="Mock Assessment"
@@ -310,7 +311,7 @@ function DoNextHero({ project, doNext }) {
         </div>
         {doNext.total > 0 && (
           <div className="text-right text-white/80">
-            <div className="text-sm font-semibold text-white">{doNext.done} of {doNext.total} controls done</div>
+            <div className="text-sm font-semibold text-white">{doNext.done} of {doNext.total} implementations complete</div>
             <div className="text-xs text-white/60">SPRS {doNext.sprsCurrent} → {doNext.sprsProjected}</div>
           </div>
         )}
