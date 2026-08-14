@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import {
   ShieldCheck, ClipboardCheck, ListChecks, AlertTriangle, FileStack,
-  BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle,
+  BadgeCheck, TrendingUp, ArrowRight, FileDown, Loader2, Gavel, Rocket, Sparkles, PlayCircle, GitBranch,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
@@ -42,6 +42,8 @@ export default function ProjectDashboard() {
   const [doNext, setDoNext] = useState(null); // { hasAssessments, allDone, nextControlId, done, total, sprsCurrent, sprsProjected }
   const [cuiBanner, setCuiBanner] = useState(null); // { scoping } when a CUI hosting decision is needed
   const [reloadKey, setReloadKey] = useState(0);
+  const [savingControlSet, setSavingControlSet] = useState(false);
+  const [controlSetError, setControlSetError] = useState('');
 
   const handleReport = async () => {
     setReporting(true);
@@ -137,6 +139,22 @@ export default function ProjectDashboard() {
     return () => { alive = false; };
   }, [project.id, reloadKey]);
 
+  const updateControlSetMode = async (event) => {
+    if (readOnly) return;
+    const controlSetMode = event.target.value;
+    setSavingControlSet(true);
+    setControlSetError('');
+    try {
+      const saved = await base44.entities.Project.update(project.id, { control_set_mode: controlSetMode });
+      if (!saved?.id) throw new Error('Kipuka did not confirm the project update.');
+      await refreshProject();
+    } catch (error) {
+      setControlSetError(error?.message || 'Kipuka could not update the control-set view.');
+    } finally {
+      setSavingControlSet(false);
+    }
+  };
+
   const toggleStep = async (key, value) => {
     const next = { ...(project.onboarding_checklist || {}), [key]: value };
     await base44.entities.Project.update(project.id, { onboarding_checklist: next });
@@ -183,11 +201,35 @@ export default function ProjectDashboard() {
             <StatusBadge status={project.project_status} size="md" />
           </div>
         </div>
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           <ProjectMeta label="Target level" value={project.target_cmmc_level} />
           <ProjectMeta label="Assessment path" value={project.assessment_path} />
           <ProjectMeta label="Implementation progress" value={counts?.implementationPct == null ? '—' : `${counts.implementationPct}%`} accent />
+          <div className="rounded-xl border border-cyan-200 bg-cyan-50 px-3.5 py-3">
+            <label htmlFor="control-set-mode" className="flex items-center gap-1.5 text-[9px] font-extrabold uppercase tracking-[0.1em] text-cyan-800">
+              <GitBranch className="h-3.5 w-3.5" /> Control-set view
+            </label>
+            <div className="mt-1 flex items-center gap-2">
+              <select
+                id="control-set-mode"
+                value={project.control_set_mode || 'CMMC'}
+                onChange={updateControlSetMode}
+                disabled={readOnly || savingControlSet}
+                className="min-w-0 flex-1 rounded-md border border-cyan-200 bg-white px-2 py-1.5 text-xs font-extrabold text-slate-800 disabled:opacity-70"
+              >
+                <option value="CMMC">CMMC</option>
+                <option value="CMMC + SCF">CMMC + SCF</option>
+              </select>
+              {savingControlSet && <Loader2 className="h-4 w-4 animate-spin text-cyan-700" />}
+            </div>
+          </div>
         </div>
+        {controlSetError && <p role="alert" className="mt-2 text-xs font-semibold text-red-700">{controlSetError}</p>}
+        {project.control_set_mode === 'CMMC + SCF' && (
+          <p className="mt-2 text-[11px] font-medium text-slate-500">
+            SCF 2026.2 references are shown alongside the authoritative CMMC workflow. Completion and assessment results remain CMMC-specific.
+          </p>
+        )}
       </div>
 
       {/* CUI hosting decision gate */}
