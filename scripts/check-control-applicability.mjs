@@ -104,6 +104,10 @@ ok(panel.includes('Submit for independent review'), 'plain-language request acti
 ok(panel.includes('you cannot review it'), 'UI explains reviewer separation');
 ok(panel.includes('Legacy N/A record requires independent review'), 'legacy records are clearly identified');
 ok(panel.includes('Approve N/A') && panel.includes('Reject request'), 'reviewer decisions are exposed');
+before(guided, 'in your guided queue', '<ApplicabilityPanel', 'N/A review is placed after the primary walkthrough navigation');
+before(guided, '<ApplicabilityPanel', '<ConfidentialityFooter', 'N/A review remains above the legal footer');
+ok(panel.includes('app-surface') && panel.includes('text-slate-900') && panel.includes('text-slate-600'), 'N/A panel uses readable design-system surfaces and text');
+ok(!panel.includes('text-amber-950') && !panel.includes('text-blue-950'), 'N/A panel avoids unreadable fixed dark text');
 ok(!assessmentModule.match(/const STATUSES[^\n]*'Not Applicable'/), 'generic status menu cannot select N/A');
 
 const verifyStep = read('src/components/guided/StepVerify.jsx');
