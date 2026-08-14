@@ -349,15 +349,6 @@ export default function GuidedWalkthrough() {
         </div>
       </div>
 
-      <ApplicabilityPanel
-        assessment={assessment}
-        libEntry={libEntry}
-        readOnly={readOnly}
-        saving={savingApplicability}
-        workflow={applicabilityWorkflow}
-        onAction={manageApplicability}
-      />
-
       {/* Step content */}
       <div>
         {step === 1 && <StepUnderstand libEntry={libEntry} />}
@@ -449,6 +440,15 @@ export default function GuidedWalkthrough() {
           <Layers className="w-3.5 h-3.5" /> Control {queueIndex + 1} of {queue.length} in your guided queue
         </div>
       )}
+
+      <ApplicabilityPanel
+        assessment={assessment}
+        libEntry={libEntry}
+        readOnly={readOnly}
+        saving={savingApplicability}
+        workflow={applicabilityWorkflow}
+        onAction={manageApplicability}
+      />
 
       <ConfidentialityFooter text="" />
     </div>
