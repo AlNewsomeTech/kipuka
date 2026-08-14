@@ -1,4 +1,4 @@
-import { SCF_DATASET, scfReferencesFor } from '@/lib/scfCrossReferences';
+import { SCF_DATASET, scfReferencesFor } from './scfCrossReferences.js';
 
 function csvCell(value) {
   const text = String(value ?? '');
