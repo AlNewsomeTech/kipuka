@@ -3,9 +3,8 @@ import { Check } from 'lucide-react';
 const STEPS = [
   { n: 1, label: 'Understand' },
   { n: 2, label: 'Do' },
-  { n: 3, label: 'Capture' },
-  { n: 4, label: 'Upload' },
-  { n: 5, label: 'Verify' },
+  { n: 3, label: 'Capture & Upload' },
+  { n: 4, label: 'Verify' },
 ];
 
 export default function GuidedStepper({ current, completedSteps = [], onJump }) {
