@@ -50,10 +50,12 @@ export async function generateProjectStatusReport({ project, org, generatedBy })
   pdf.label('Target CMMC Level', project.target_cmmc_level);
   pdf.label('Assessment Path', project.assessment_path);
   pdf.label('Project Status', project.project_status);
-  pdf.label('Assessment Readiness', readiness == null ? 'Unavailable — canonical data integrity issue' : `${readiness}%`);
+  pdf.label('Implementation Progress', canonical.integrity_ok ? `${canonical.implementation_pct}% (${implemented} of ${total})` : 'Unavailable due to a data integrity issue');
+  pdf.label('Assessment Readiness', readiness == null ? 'Unavailable due to a data integrity issue' : `${readiness}% (${met} of ${total} requirements MET)`);
+  pdf.text('Implementation progress counts controls configured in the guided workflow. Assessment readiness is stricter: every applicable objective must be MET and supported by accepted, current, hash-verified evidence.');
   pdf.space(6);
-  pdf.label('Requirements MET', canonical.integrity_ok ? `${met} of ${total}` : '—');
-  pdf.label('Implementation Complete', canonical.integrity_ok ? `${implemented} of ${total}` : '—');
+  pdf.label('Requirements MET', canonical.integrity_ok ? `${met} of ${total}` : 'Unavailable');
+  pdf.label('Implementation Complete', canonical.integrity_ok ? `${implemented} of ${total}` : 'Unavailable');
   pdf.label('Partially Implemented', partial);
   pdf.label('Not MET / Not Assessed', notImplemented);
   pdf.label('Controls Needing Evidence', needEvidence);
