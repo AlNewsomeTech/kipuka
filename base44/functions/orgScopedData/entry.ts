@@ -20,6 +20,7 @@ const READ_WHITELIST = new Set([
   'ToolControlMapping', 'ToolEvidenceChecklist', 'ProjectSecurityTool',
   'PolicyTemplate', 'GuidedProgress', 'RemediationComment', 'DeploymentTask',
   'SecurityReviewNote', 'AcolyteRemediationItem', 'AcolyteProfile',
+  'WebsiteScanTarget', 'WebsiteScan', 'WebsiteScanFinding', 'WebsiteScanLog',
   'CyberFinding', 'IncidentReadinessRecord', 'AcolyteExecutiveReport',
   'CyberReadinessReview', 'PostureAssessment',
   'DocumentConfiguration', 'ProjectDocument', 'DocumentSourceSnapshot',
