@@ -102,12 +102,12 @@ export default function ApplicabilityPanel({
 
   if (pending) {
     return (
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-4">
+      <div className="app-surface border border-blue-300 rounded-xl p-4 space-y-4">
         <div className="flex items-start gap-2.5">
           <ShieldCheck className="w-5 h-5 text-blue-700 mt-0.5 flex-shrink-0" />
           <div>
-            <h2 className="text-sm font-bold text-blue-950">Not Applicable request awaiting independent review</h2>
-            <p className="text-xs text-blue-900/80 mt-0.5">
+            <h2 className="text-sm font-bold text-slate-900">Not Applicable request awaiting independent review</h2>
+            <p className="text-xs text-slate-600 mt-0.5">
               The control does not receive N/A credit until a different authorized reviewer approves this request.
             </p>
           </div>
@@ -122,7 +122,7 @@ export default function ApplicabilityPanel({
             <p className="text-slate-800 whitespace-pre-line">{pending.scope_evidence}</p>
           </div>
         </div>
-        <p className="text-[11px] text-blue-800">
+        <p className="text-[11px] text-slate-600">
           Submitted by {pending.submitted_by_name || pending.submitted_by_email} on {formatDate(pending.submitted_date)}.
         </p>
         {!readOnly && permissions.can_review && (
@@ -146,7 +146,7 @@ export default function ApplicabilityPanel({
           </div>
         )}
         {!readOnly && permissions.is_own_request && (
-          <div className="flex items-center justify-between gap-3 flex-wrap text-xs text-blue-900">
+          <div className="flex items-center justify-between gap-3 flex-wrap text-xs text-slate-700">
             <span>You submitted this request, so you cannot review it.</span>
             <button onClick={() => run('withdraw', { request_id: pending.id, review_note: 'Withdrawn by requester.' })} disabled={saving} className="px-3 py-1.5 rounded-lg font-semibold bg-white border border-blue-300 hover:bg-blue-100 disabled:opacity-60">
               Withdraw request
@@ -194,17 +194,17 @@ export default function ApplicabilityPanel({
   }
 
   return (
-    <div className={`${legacyReviewRequired ? 'bg-red-50 border-red-300' : 'bg-amber-50 border-amber-200'} border rounded-xl p-4`}>
+    <div className={`app-surface border rounded-xl border-l-4 p-4 ${legacyReviewRequired ? 'border-red-300 border-l-red-500' : 'border-slate-300 border-l-amber-500'}`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-2.5">
           {legacyReviewRequired
             ? <AlertTriangle className="w-5 h-5 text-red-700 mt-0.5 flex-shrink-0" />
-            : <CircleSlash2 className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" />}
+            : <CircleSlash2 className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />}
           <div>
-            <h2 className={`text-sm font-bold ${legacyReviewRequired ? 'text-red-950' : 'text-amber-950'}`}>
+            <h2 className="text-sm font-bold text-slate-900">
               {legacyReviewRequired ? 'Legacy N/A record requires independent review' : 'Does this control truly not apply?'}
             </h2>
-            <p className={`text-xs mt-0.5 ${legacyReviewRequired ? 'text-red-900/80' : 'text-amber-900/80'}`}>
+            <p className="text-xs text-slate-600 mt-0.5">
               {legacyReviewRequired
                 ? 'This older record is preserved but does not count as complete. Submit its scope basis for independent approval or restore the control as applicable.'
                 : 'Use N/A only when the requirement is outside the documented assessment scope. An unfinished applicable control is a gap, not N/A.'}
@@ -212,7 +212,7 @@ export default function ApplicabilityPanel({
           </div>
         </div>
         {!readOnly && permissions.can_request && !open && (
-          <button onClick={() => setOpen(true)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-800 bg-white border border-slate-300 hover:bg-slate-100">
+          <button onClick={() => setOpen(true)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] border border-[#27476f] hover:bg-[#152a52]">
             {legacyReviewRequired ? 'Submit for independent review' : 'Request N/A review'}
           </button>
         )}
