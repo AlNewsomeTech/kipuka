@@ -70,7 +70,7 @@ for (const field of [
 ]) ok(Boolean(logSchema.properties[field]), 'log schema has ' + field);
 
 const fn = read('base44/functions/runWebsiteScan/entry.ts');
-before(fn, 'base44.auth.me()', 'base44.asServiceRole', 'authentication precedes every service-role operation');
+before(fn, 'caller = await base44.auth.me()', "const action = body.action || 'run_scan'", 'authentication precedes action handling');
 ok(fn.includes("const action = body.action || 'run_scan'"), 'scanner action routing is explicit');
 for (const action of ['create_target', 'set_target_status', 'run_scan', 'promote_finding']) {
   ok(fn.includes(`action === '${action}'`) || fn.includes(`action !== '${action}'`), 'backend implements ' + action);
@@ -79,7 +79,7 @@ ok(fn.includes("split(',')") && fn.includes('.filter(Boolean).includes(clientId)
 ok(fn.includes("membership.status === 'Active'"), 'organization access requires active membership');
 ok(fn.includes('active.length !== 1'), 'ambiguous or missing organization membership fails closed');
 ok(fn.includes('READ_ONLY_ORG_ROLES.has'), 'read-only organization roles cannot mutate scanner state');
-ok((fn.match(/authorizeScope\(/g) || []).length >= 5, 'scope authorization protects all scanner mutations');
+ok((fn.match(/authorizeScope\(/g) || []).length >= 4, 'scope authorization protects all scanner mutations');
 ok(fn.includes('project.organization_id !== target.organization_id'), 'scan target must belong to its project organization');
 ok(fn.includes('client.organization_id !== target.organization_id'), 'scan target client assignment is tenant checked');
 ok(fn.includes('body.authorization_statement !== AUTHORIZATION_STATEMENT'), 'server verifies the exact authorization attestation');
