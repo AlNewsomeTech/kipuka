@@ -59,6 +59,7 @@ import RemediationQueue from '@/pages/acolyte/RemediationQueue';
 import IncidentReadiness from '@/pages/acolyte/IncidentReadiness';
 import ExecutiveReports from '@/pages/acolyte/ExecutiveReports';
 import AcolyteSettings from '@/pages/acolyte/AcolyteSettings';
+import WebsiteScanner from '@/pages/acolyte/WebsiteScanner';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -107,6 +108,7 @@ const AuthenticatedApp = () => {
         <Route path="/acolyte/incident-readiness" element={<IncidentReadiness />} />
         <Route path="/acolyte/reports" element={<ExecutiveReports />} />
         <Route path="/acolyte/settings" element={<AcolyteSettings />} />
+        <Route path="/acolyte/scanner" element={<WebsiteScanner />} />
 
         {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
         <Route path="/projects" element={<Projects />} />
