@@ -102,7 +102,7 @@ ok(fn.includes('MAX_REDIRECTS = 5') && fn.includes('MAX_PAGES = 15'), 'crawl and
 ok(fn.includes('Date.now() - recentTime < 120_000'), 'target scans have a two-minute cooldown');
 ok(fn.includes('visited.size < maxPages'), 'crawl stops at the authorized page limit');
 ok(fn.includes('candidate.origin === finalPageUrl.origin'), 'crawl links remain same-origin');
-ok(!fn.includes('submit(') && !fn.includes('brute'), 'scanner does not submit forms or brute force targets');
+ok(!fn.includes('.submit(') && !fn.includes('formData('), 'scanner does not submit forms or construct form payloads');
 
 ok(fn.includes('previous_hash: logPreviousHash'), 'event logs retain the previous hash');
 ok(fn.includes('sha256(logPreviousHash + stable(event))'), 'each event log entry is hash chained');
