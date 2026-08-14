@@ -262,6 +262,7 @@ if (pkgRaw !== null) {
       'test:canonical-documents': 'node scripts/check-canonical-documents.mjs',
       'test:canonical-evidence': 'node scripts/check-canonical-evidence.mjs',
       'test:control-applicability': 'node scripts/check-control-applicability.mjs',
+      'test:website-scanner': 'node scripts/check-website-scanner.mjs',
       'test:phase7-final-handoff': 'node scripts/check-phase7-final-handoff.mjs',
       preview: 'vite preview',
     };
