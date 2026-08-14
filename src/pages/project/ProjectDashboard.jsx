@@ -104,7 +104,6 @@ export default function ProjectDashboard() {
         openPoam: poams.filter((p) => !closed.includes(p.status)).length,
         highRisk: poams.filter((p) => ['High', 'Critical'].includes(p.risk_rating) && !closed.includes(p.status)).length,
         sspStatus: ssps[0]?.approval_status || 'Not Started',
-        controlsComplete: canonical.integrity_ok ? `${canonical.met}/${canonical.expected_requirements}` : '—',
         controlsImplemented: canonical.integrity_ok ? `${canonical.implemented}/${canonical.expected_requirements}` : '—',
         controlsNeedEvidence: canonical.integrity_ok ? canonical.controls_needing_final_evidence : '—',
         mockVerdict: mockSessions[0]?.overall_verdict || null,
