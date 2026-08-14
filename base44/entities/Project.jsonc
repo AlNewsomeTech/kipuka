@@ -40,6 +40,15 @@
       ],
       "default": "Unknown"
     },
+    "control_set_mode": {
+      "type": "string",
+      "enum": [
+        "CMMC",
+        "CMMC + SCF"
+      ],
+      "default": "CMMC",
+      "description": "Presentation mode for the project. CMMC remains authoritative; CMMC + SCF adds official cross-references without transferring completion or assessment status."
+    },
     "implementation_stack": {
       "type": "string",
       "enum": [
