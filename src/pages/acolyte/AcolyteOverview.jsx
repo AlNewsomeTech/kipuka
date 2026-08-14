@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield, Settings, TrendingUp, AlertTriangle, ListChecks, Loader2,
-  Calendar, ArrowRight, Sparkles,
+  Calendar, ArrowRight, Sparkles, Globe2,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
@@ -47,9 +47,11 @@ export default function AcolyteOverview() {
     let alive = true;
     if (!projectId) { setStats(null); return; }
     (async () => {
-      const [findings, remediations] = await Promise.all([
+      const [findings, remediations, websiteFindings, websiteScans] = await Promise.all([
         base44.entities.CyberFinding.filter({ project_id: projectId }).catch(() => []),
         base44.entities.AcolyteRemediationItem.filter({ project_id: projectId }).catch(() => []),
+        base44.entities.WebsiteScanFinding.filter({ project_id: projectId }).catch(() => []),
+        base44.entities.WebsiteScan.filter({ project_id: projectId }, '-requested_at', 50).catch(() => []),
       ]);
       if (!alive) return;
       const openF = findings.filter((f) => OPEN_FINDING_STATUSES.includes(f.finding_status));
@@ -61,6 +63,8 @@ export default function AcolyteOverview() {
         openRemediation: remediations.filter((r) => OPEN_REMEDIATION_STATUSES.includes(r.status)).length,
         overdueRemediation: remediations.filter(isRemediationOverdue).length,
         pendingValidation: remediations.filter((r) => r.status === 'Pending Validation').length,
+        websiteOpen: websiteFindings.filter((f) => ['Open', 'Acknowledged', 'Remediation Created'].includes(f.status)).length,
+        websiteScore: websiteScans.find((scan) => scan.status === 'Completed')?.security_score ?? null,
       });
     })();
     return () => { alive = false; };
@@ -165,7 +169,7 @@ export default function AcolyteOverview() {
               <AlertTriangle className="w-4 h-4 text-amber-500" />
               <h2 className="text-sm font-bold text-slate-800">Open Issue Summary</h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
               <SummaryTile label="Critical Findings" value={stats?.critical} tone="red" />
               <SummaryTile label="High Findings" value={stats?.high} tone="orange" />
               <SummaryTile label="Moderate Findings" value={stats?.moderate} tone="amber" />
@@ -173,6 +177,7 @@ export default function AcolyteOverview() {
               <SummaryTile label="Overdue Remediation" value={stats?.overdueRemediation} tone="red" />
               <SummaryTile label="Pending Validation" value={stats?.pendingValidation} tone="amber" />
               <SummaryTile label="Accepted Risk" value={stats?.acceptedRisk} tone="slate" />
+              <SummaryTile label="Website Findings" value={stats?.websiteOpen} tone={stats?.websiteOpen ? 'amber' : 'blue'} />
             </div>
           </div>
 
@@ -211,11 +216,12 @@ export default function AcolyteOverview() {
           )}
 
           {/* Quick links */}
-          <div className="grid sm:grid-cols-3 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { to: '/acolyte/reviews', label: 'Readiness Reviews', icon: Calendar },
               { to: '/acolyte/findings', label: 'Cyber Findings', icon: AlertTriangle },
               { to: '/acolyte/reports', label: 'Executive Cyber Reports', icon: TrendingUp },
+              { to: '/acolyte/scanner', label: 'Website Vulnerability Scanner', icon: Globe2 },
             ].map((l) => {
               const Icon = l.icon;
               return (
