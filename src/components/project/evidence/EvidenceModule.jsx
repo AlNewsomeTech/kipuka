@@ -23,8 +23,8 @@ export default function EvidenceModule({ project, readOnly }) {
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async ({ showSpinner = false } = {}) => {
+    if (showSpinner) setLoading(true);
     const [evidenceRecords, assessments, objectiveRecords] = await Promise.all([
       base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
@@ -36,7 +36,7 @@ export default function EvidenceModule({ project, readOnly }) {
     setLoading(false);
   }, [project.id]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load({ showSpinner: true }); }, [load]);
 
   const currentEvidence = useMemo(
     () => evidence.filter((item) => !['Archived', 'Superseded'].includes(item.review_status)),
