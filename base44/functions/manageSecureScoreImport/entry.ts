@@ -214,7 +214,8 @@ function parseExport(bytes: Uint8Array, extension: string) {
 }
 
 async function sha256Hex(bytes: Uint8Array) {
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const stableBytes = new Uint8Array(bytes);
+  const digest = await crypto.subtle.digest('SHA-256', stableBytes.buffer);
   return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
 }
 
