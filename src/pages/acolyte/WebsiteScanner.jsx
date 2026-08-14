@@ -5,7 +5,6 @@ import {
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
-import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import {
   WEBSITE_SCAN_SEVERITIES,
   formatScanDate,
@@ -163,14 +162,10 @@ export default function WebsiteScanner() {
   const setTargetStatus = async (target, status) => {
     setError('');
     try {
-      await base44.entities.WebsiteScanTarget.update(target.id, { status });
-      await logAudit({
-        organizationId: target.organization_id,
-        user,
-        actionType: AUDIT_ACTIONS.ACOLYTE_WEBSITE_TARGET_UPDATE,
-        targetEntity: 'WebsiteScanTarget',
-        targetRecordId: target.id,
-        summary: `Changed website scan target "${target.target_name}" to ${status}.`,
+      await base44.functions.invoke('runWebsiteScan', {
+        action: 'set_target_status',
+        target_id: target.id,
+        status,
       });
       await load();
     } catch (statusError) {
@@ -482,7 +477,6 @@ export default function WebsiteScanner() {
           project={project}
           clients={clients}
           organizationName={orgNameForProject}
-          user={user}
           onClose={() => setModal(false)}
           onSaved={() => { setModal(false); load(); }}
         />
