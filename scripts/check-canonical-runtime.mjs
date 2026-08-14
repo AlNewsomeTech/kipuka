@@ -202,6 +202,7 @@ if (pkgRaw !== null) {
       'test:canonical-evidence': 'node scripts/check-canonical-evidence.mjs',
       'test:control-applicability': 'node scripts/check-control-applicability.mjs',
       'test:website-scanner': 'node scripts/check-website-scanner.mjs',
+      'test:secure-score-import': 'node scripts/check-secure-score-import.mjs',
       'test:phase7-final-handoff': 'node scripts/check-phase7-final-handoff.mjs',
       preview: 'vite preview',
     };
