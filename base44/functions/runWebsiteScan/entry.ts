@@ -6,7 +6,7 @@ const MAX_REDIRECTS = 5;
 const MAX_PAGES = 15;
 const USER_AGENT = 'ACOLYTE-Website-Security-Scanner/1.0 (+authorized defensive assessment)';
 const READ_ONLY_ORG_ROLES = new Set(['Auditor Viewer', 'Executive Viewer', 'Evidence Contributor']);
-const SEVERITY_WEIGHT = { Critical: 40, High: 25, Moderate: 10, Low: 3, Informational: 0 };
+const SEVERITY_WEIGHT: Record<string, number> = { Critical: 40, High: 25, Moderate: 10, Low: 3, Informational: 0 };
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -14,6 +14,10 @@ function jsonError(message: string, status: number) {
 
 function cleanText(value: unknown, max = 2000) {
   return String(value || '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, max);
+}
+
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error || 'Unknown scanner error');
 }
 
 function stable(value: any): string {
@@ -451,10 +455,10 @@ Deno.serve(async (req) => {
       try {
         result = await fetchPage(nextUrl);
       } catch (error) {
-        await addLog('Error', 'page_failed', cleanText(error?.message || error), nextUrl);
+        await addLog('Error', 'page_failed', cleanText(errorMessage(error)), nextUrl);
         await addFinding('page-unreachable', 'Page could not be scanned', 'Low', 'Configuration', nextUrl,
           'The scanner could not retrieve this in-scope page within the configured timeout.',
-          cleanText(error?.message || error),
+          cleanText(errorMessage(error)),
           'Confirm the URL is publicly reachable and permits the ACOLYTE scanner user agent.');
         continue;
       }
@@ -621,7 +625,7 @@ Deno.serve(async (req) => {
         }
         await response.body?.cancel().catch(() => {});
       } catch (error) {
-        await addLog('Warning', 'http_redirect_check_failed', cleanText(error?.message || error), httpUrl.toString());
+        await addLog('Warning', 'http_redirect_check_failed', cleanText(errorMessage(error)), httpUrl.toString());
       }
     } else {
       checksRun += 1;
@@ -646,12 +650,12 @@ Deno.serve(async (req) => {
               'Publish a security.txt file with a monitored security contact and expiration date.');
           }
         } catch (error) {
-          await addLog('Warning', 'metadata_check_failed', cleanText(error?.message || error), specialUrl);
+          await addLog('Warning', 'metadata_check_failed', cleanText(errorMessage(error)), specialUrl);
         }
       }
     }
 
-    const counts = { Critical: 0, High: 0, Moderate: 0, Low: 0, Informational: 0 };
+    const counts: Record<string, number> = { Critical: 0, High: 0, Moderate: 0, Low: 0, Informational: 0 };
     findings.forEach((finding) => { counts[finding.severity] = (counts[finding.severity] || 0) + 1; });
     const deduction = findings.reduce((sum, finding) => sum + (SEVERITY_WEIGHT[finding.severity] || 0), 0);
     const score = Math.max(0, 100 - deduction);
@@ -714,7 +718,7 @@ Deno.serve(async (req) => {
 
     return Response.json({ scan: completedScan, finding_count: findings.length, security_score: score });
   } catch (error) {
-    const message = cleanText(error?.message || error || 'Website scan failed.', 2000);
+    const message = cleanText(errorMessage(error), 2000);
     if (scan?.id && target?.id) {
       await addLog('Error', 'scan_failed', message, target.start_url || '').catch(() => {});
       await persistLogs().catch(() => {});
