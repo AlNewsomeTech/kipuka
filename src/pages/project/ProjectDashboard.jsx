@@ -17,6 +17,7 @@ import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
 import CuiHostingBanner from '@/components/cui/CuiHostingBanner';
 import { cuiHostingRequired } from '@/lib/cuiHosting';
+import { downloadScfCrossReferenceCsv } from '@/lib/scfCrossReferenceExport';
 
 function Metric({ icon: Icon, label, value, hint = '', tone = 'slate' }) {
   const tones = {
@@ -44,6 +45,7 @@ export default function ProjectDashboard() {
   const [reloadKey, setReloadKey] = useState(0);
   const [savingControlSet, setSavingControlSet] = useState(false);
   const [controlSetError, setControlSetError] = useState('');
+  const [exportingScf, setExportingScf] = useState(false);
 
   const handleReport = async () => {
     setReporting(true);
@@ -139,6 +141,27 @@ export default function ProjectDashboard() {
     return () => { alive = false; };
   }, [project.id, reloadKey]);
 
+  const handleScfExport = async () => {
+    setExportingScf(true);
+    setControlSetError('');
+    try {
+      const levels = targetLevelsFor(project);
+      const [library, assessments] = await Promise.all([
+        base44.entities.ControlLibrary.filter({ active: true }),
+        base44.entities.ControlAssessment.filter({ project_id: project.id }),
+      ]);
+      downloadScfCrossReferenceCsv({
+        project,
+        library: library.filter((control) => levels.includes(control.cmmc_level)),
+        assessments,
+      });
+    } catch (error) {
+      setControlSetError(error?.message || 'Kipuka could not create the SCF cross-reference export.');
+    } finally {
+      setExportingScf(false);
+    }
+  };
+
   const updateControlSetMode = async (event) => {
     if (readOnly) return;
     const controlSetMode = event.target.value;
@@ -189,7 +212,17 @@ export default function ProjectDashboard() {
               <p className="mt-0.5 text-xs font-medium text-slate-400">{orgName}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5 flex-wrap justify-end">
+            {project.control_set_mode === 'CMMC + SCF' && (
+              <button
+                onClick={handleScfExport}
+                disabled={exportingScf}
+                className="btn-secondary disabled:opacity-60"
+              >
+                {exportingScf ? <Loader2 className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
+                Export SCF Crosswalk
+              </button>
+            )}
             <button
               onClick={handleReport}
               disabled={reporting}
