@@ -12,6 +12,7 @@ import { ThemeProvider } from '@/lib/themeContext';
 import { BrandProvider } from '@/lib/brandContext';
 import RoleRoute from '@/components/RoleRoute';
 import PublicApp from '@/components/public/PublicApp';
+import LandingPage from '@/pages/public/LandingPage';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -96,6 +97,8 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      {/* Logged-in preview of the public landing page (visitors see it at "/"). */}
+      <Route path="/landing-preview" element={<LandingPage />} />
       <Route element={<OrgProvider><OnboardingGate><ClientProvider><Layout /></ClientProvider></OnboardingGate></OrgProvider>}>
         {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
