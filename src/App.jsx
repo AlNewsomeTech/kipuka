@@ -11,6 +11,7 @@ import { OrgProvider } from '@/lib/orgContext';
 import { ThemeProvider } from '@/lib/themeContext';
 import { BrandProvider } from '@/lib/brandContext';
 import RoleRoute from '@/components/RoleRoute';
+import PublicApp from '@/components/public/PublicApp';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -63,7 +64,7 @@ import WebsiteScanner from '@/pages/acolyte/WebsiteScanner';
 import SecureScoreImports from '@/pages/acolyte/SecureScoreImports';
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -79,10 +80,17 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      // Unauthenticated visitors see the public landing page; any protected
+      // deep link still redirects to the existing platform login flow inside
+      // PublicApp's catch-all route.
+      return <PublicApp />;
     }
+  }
+
+  // No token / not signed in: show the public landing experience. Protected
+  // application data is never requested from these routes.
+  if (!isAuthenticated) {
+    return <PublicApp />;
   }
 
   // Render the main app

@@ -265,6 +265,7 @@ if (pkgRaw !== null) {
       'test:website-scanner': 'node scripts/check-website-scanner.mjs',
       'test:secure-score-import': 'node scripts/check-secure-score-import.mjs',
       'test:phase7-final-handoff': 'node scripts/check-phase7-final-handoff.mjs',
+      'test:landing-page': 'node scripts/check-landing-page.mjs',
       preview: 'vite preview',
     };
     const scripts = pkg.scripts || {};

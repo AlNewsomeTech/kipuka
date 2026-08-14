@@ -1,0 +1,52 @@
+{
+  "name": "DemoRequest",
+  "type": "object",
+  "description": "A demo/contact request submitted from the public Kipuka landing page via the submitDemoRequest backend function. Created server-side only; readable and manageable by platform admins.",
+  "properties": {
+    "full_name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role_title": {
+      "type": "string"
+    },
+    "message": {
+      "type": "string"
+    },
+    "source_page": {
+      "type": "string",
+      "default": "landing"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "New",
+        "Contacted",
+        "Closed"
+      ],
+      "default": "New"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
