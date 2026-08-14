@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Shield, Settings, TrendingUp, AlertTriangle, ListChecks, Loader2,
-  Calendar, ArrowRight, Sparkles, Globe2,
+  Calendar, ArrowRight, Sparkles, Globe2, FileSpreadsheet,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAcolyteScope } from '@/lib/useAcolyteScope';
@@ -216,12 +216,13 @@ export default function AcolyteOverview() {
           )}
 
           {/* Quick links */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {[
               { to: '/acolyte/reviews', label: 'Readiness Reviews', icon: Calendar },
               { to: '/acolyte/findings', label: 'Cyber Findings', icon: AlertTriangle },
               { to: '/acolyte/reports', label: 'Executive Cyber Reports', icon: TrendingUp },
               { to: '/acolyte/scanner', label: 'Website Vulnerability Scanner', icon: Globe2 },
+              { to: '/acolyte/secure-score', label: 'Microsoft Secure Score', icon: FileSpreadsheet },
             ].map((l) => {
               const Icon = l.icon;
               return (
