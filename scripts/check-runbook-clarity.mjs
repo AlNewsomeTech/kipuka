@@ -7,11 +7,16 @@ const requiredChecks = [
   'BLOCKED_BOILERPLATE',
   'create or approve the exact matrix',
   'configure or perform the control',
+  'where applicable',
+  'as appropriate',
   'no navigation action',
-  'no success or failure check',
-  'fewer than two explicit capture items',
+  'no visible success or failure check',
+  'no explicit failure handling',
+  'capture item does not require a full-page image',
+  'capture guidance is not version 3',
   "caller.role !== 'admin'",
-  'ControlLibrary.filter({ active: true }',
+  "framework: 'CMMC'",
+  "cmmc_level: 'Level 2'",
 ];
 
 const missing = requiredChecks.filter((check) => !source.includes(check));
