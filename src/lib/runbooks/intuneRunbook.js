@@ -28,7 +28,7 @@ export const INTUNE_RUNBOOK = {
       'Use short descriptive names with underscores instead of spaces.',
       'Use YYYY-MM-DD date format.',
       'Do not use vague names like screenshot1.png or intune.png.',
-      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control's Evidence page.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control Evidence page.',
       'Sanitize user or device names your project rules mark as sensitive before upload.',
     ],
   },
