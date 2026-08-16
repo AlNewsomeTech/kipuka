@@ -23,7 +23,7 @@ function variants(record) {
 }
 
 function auditVariant(controlId, variantName, variant) {
-  const text = JSON.stringify(variant).toLowerCase();
+  const text = JSON.stringify(Object.values(variant)).toLowerCase();
   const blocking = BLOCKED_BOILERPLATE.filter((phrase) => text.includes(phrase));
   const forbiddenNavigation = FORBIDDEN_NAVIGATION.filter((phrase) => text.includes(phrase));
   const steps = Array.isArray(variant.steps) ? variant.steps : [];
@@ -35,7 +35,8 @@ function auditVariant(controlId, variantName, variant) {
   }
   if (steps.some((step) =>
     /(security\.microsoft\.com|admin\.microsoft\.com|entra\.microsoft\.com|microsoft defender portal|microsoft entra admin center)/i.test(String(step)) &&
-    /(cmmc project|preliminary scope|final inventory|shared responsibility|poa&m|capture & upload)/i.test(String(step))
+    /(cmmc project|preliminary scope|final inventory|shared responsibility|poa&m|capture & upload)/i.test(String(step)) &&
+    !/not a cmmc project/i.test(String(step))
   )) {
     structural.push('external Microsoft portal and internal CMMC project destination mixed in one step');
   }
