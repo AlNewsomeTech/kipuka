@@ -4,9 +4,9 @@ import { CheckCircle2 } from 'lucide-react';
 export default function StepGenerate({ data, selectedPath }) {
   return (
     <div>
-      <h2 className="text-lg font-bold text-slate-900">Step 5 — Generate project workspace</h2>
+      <h2 className="text-lg font-bold text-slate-900">Step 5 — Generate CMMC project</h2>
       <p className="text-sm text-slate-500 mt-1 mb-5">
-        This creates a new project workspace with the modules below. No data is overwritten and nothing runs automatically.
+        This creates a new CMMC project with the modules below. No data is overwritten and nothing runs automatically.
       </p>
 
       <div className="rounded-xl border border-slate-200 p-4 mb-4">
