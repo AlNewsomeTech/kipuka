@@ -27,7 +27,7 @@ export const DEFENDER_RUNBOOK = {
       'Use short descriptive names with underscores instead of spaces.',
       'Use YYYY-MM-DD date format.',
       'Do not use vague names like screenshot1.png or defender.png.',
-      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls inside Kipuka.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control's Evidence page.',
       'Sanitize any user names or device names your project rules mark as sensitive before upload.',
     ],
   },
@@ -55,7 +55,7 @@ export const DEFENDER_RUNBOOK = {
         'Alert notifications configured with a named responder',
         'Alert review cadence documented and evidenced',
         'Evidence screenshots captured with correct names',
-        'Evidence mapped to controls in Kipuka',
+        'Evidence mapped to the required controls',
       ],
     },
     {
@@ -80,7 +80,7 @@ export const DEFENDER_RUNBOOK = {
       purpose: 'Every device in the assessment scope must report to Defender — coverage gaps are the top assessor finding.',
       steps: [
         'Open Assets > Devices in the Defender portal and export or screenshot the current device list.',
-        'Compare device-by-device against the Kipuka Asset Inventory: every in-scope Windows/macOS endpoint and server must appear.',
+        'Compare device-by-device against Final Inventory & Scope: every in-scope Windows/macOS endpoint and server must appear.',
         'Onboard missing devices: via Intune (preferred — Endpoint security > EDR onboarding policy) or the local onboarding package from Settings > Endpoints > Onboarding.',
         'Verify each onboarded device shows sensor health Active and no configuration errors.',
         'Document any in-scope device that cannot be onboarded (legacy OS, OT equipment) and create a POA&M item for its compensating protection.',
@@ -135,7 +135,7 @@ export const DEFENDER_RUNBOOK = {
       purpose: 'Defender VM provides the periodic vulnerability scanning and remediation trail RA-family controls expect.',
       steps: [
         'Open Vulnerability management > Dashboard; record the exposure score and screenshot it (this is your dated periodic scan evidence).',
-        'Review Recommendations sorted by impact; for each Critical/High affecting in-scope devices, either remediate or create a remediation/POA&M item in Kipuka with an owner and date.',
+        'Review Recommendations sorted by impact; for each Critical/High affecting in-scope devices, either remediate or create a POA&M item in the project's POA&M module with an owner and due date.',
         'Establish and document the review cadence (monthly minimum) — recurring dated screenshots demonstrate PERIODIC scanning, which one screenshot cannot.',
         'Export or screenshot the top remediation activities and their completion status to show findings are tracked to closure.',
         'Capture evidence: dashboard with date visible, recommendations list, a remediated item before/after.',
@@ -153,7 +153,7 @@ export const DEFENDER_RUNBOOK = {
       steps: [
         'Configure email notification rules (Settings > Endpoints > Email notifications) for High and Medium alerts to the named security contact(s).',
         'Assign a named alert responder and a backup; record them in the Incident Response Plan contacts.',
-        'Document the alert triage procedure: acknowledge, investigate, contain (isolate device from the device page if needed), record in the Kipuka Incident Log if it qualifies as an incident.',
+        'Document the alert triage procedure: acknowledge, investigate, contain (isolate device from the device page if needed), record it in the project's Incident Response module if it qualifies as an incident.',
         'Establish and evidence a recurring alert-review cadence (e.g., daily glance, weekly documented review note).',
         'Run a test: trigger the EICAR test file on one device, verify detection, alert, and notification flow end to end; keep the alert screenshot as evidence.',
         'Capture evidence: notification rules, a resolved alert with assignment, the review note.',
