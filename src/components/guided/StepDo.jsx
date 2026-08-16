@@ -9,6 +9,7 @@ function cleanWorkspaceCopy(value) {
   return String(value || '')
     .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
     .replace(/\b(?:the\s+)?project workspace\b/gi, 'this CMMC project')
+    .replace(/\.\s+shown at the top/gi, ' shown at the top')
     .replace(/\bStep 4\b/g, 'Step 3')
     .replace(/\bStep 5\b/g, 'Step 4');
 }
