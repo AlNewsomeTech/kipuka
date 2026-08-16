@@ -43,4 +43,35 @@ if (defenderIndex < 0 || sentinelIndex < 0 || defenderIndex > sentinelIndex) {
   process.exit(1);
 }
 
+const { buildPolicyNames, namingSteps } = await import('../src/lib/policyNaming.js');
+
+const sampleVariant = {
+  where_to_go: { name: 'Microsoft Defender XDR portal' },
+  steps: [
+    'Create and save an Advanced Hunting query, then create a custom detection for the approved use case.',
+  ],
+};
+const sampleArtifacts = namingSteps(sampleVariant);
+const sampleNames = buildPolicyNames({
+  organization: { legal_name: 'Fulcrum Defense' },
+  project: {},
+  libEntry: { control_id: 'AU.L2-3.3.5', control_title: 'Audit Correlation' },
+  variant: sampleVariant,
+  date: '2026-08-15',
+});
+
+for (const artifactType of ['HuntingQuery', 'CustomDetectionRule']) {
+  if (!sampleArtifacts.some((artifact) => artifact.artifact_type === artifactType)) {
+    console.error(`Runbook naming did not detect ${artifactType}.`);
+    process.exit(1);
+  }
+}
+if (!sampleNames.every((name) =>
+  /^Fulcrum_Defense_AuditCorrelation.+_AU\.L2-3\.3\.5_DefenderXDR_2026-08-15$/.test(name.value)
+  && name.stepIndexes.includes(0)
+)) {
+  console.error('Generated names do not follow the required format or are not attached to the creation step.');
+  process.exit(1);
+}
+
 console.log('Runbook naming regression checks passed.');
