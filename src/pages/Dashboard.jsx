@@ -86,7 +86,7 @@ export default function Dashboard() {
   return (
     <EmptyState
       icon={FolderKanban}
-      title="No project workspace for this client"
+      title="No CMMC project for this client"
       description={
         resolveFailed
           ? `A canonical project could not be resolved for ${selectedClient.legal_name}. Open the Projects list to create or link one.`
