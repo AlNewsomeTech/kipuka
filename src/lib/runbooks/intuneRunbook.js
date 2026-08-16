@@ -28,7 +28,7 @@ export const INTUNE_RUNBOOK = {
       'Use short descriptive names with underscores instead of spaces.',
       'Use YYYY-MM-DD date format.',
       'Do not use vague names like screenshot1.png or intune.png.',
-      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls inside Kipuka.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control's Evidence page.',
       'Sanitize user or device names your project rules mark as sensitive before upload.',
     ],
   },
@@ -60,7 +60,7 @@ export const INTUNE_RUNBOOK = {
         'App control approach documented and applied',
         'Lost-device wipe procedure documented and tested',
         'Evidence screenshots captured with correct names',
-        'Evidence mapped to controls in Kipuka',
+        'Evidence mapped to the required controls',
       ],
     },
     {
@@ -84,7 +84,7 @@ export const INTUNE_RUNBOOK = {
       purpose: 'Unmanaged in-scope devices are unprotected in-scope devices — enrollment coverage is the foundation.',
       steps: [
         'Open Devices > All devices; export or screenshot the enrolled list.',
-        'Compare against the Kipuka Asset Inventory: every in-scope Windows/macOS/iOS/Android device that touches company data must be enrolled (or documented out of scope with justification).',
+        'Compare against Final Inventory & Scope: every in-scope Windows/macOS/iOS/Android device that touches company data must be enrolled (or documented out of scope with justification).',
         'Enroll missing devices (Windows: Entra join or Autopilot; mobile: Company Portal).',
         'Set enrollment restrictions: decide and document the BYOD stance — either block personal devices, or manage them with app protection policies; write the decision into the scoping notes.',
         'Document any device that cannot be enrolled and create a POA&M item for compensating protection.',
