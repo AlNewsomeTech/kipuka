@@ -74,7 +74,7 @@ export default function Projects() {
           <EmptyState
             icon={FolderKanban}
             title="No projects yet"
-            description="Start a new CMMC project to run the guided level-determination wizard and generate a project workspace."
+            description="Start a new CMMC project to run the guided level-determination wizard and generate a CMMC project."
             action={canCreate ? (
               <Link to="/projects/new" className="btn-primary">
                 <Plus className="w-4 h-4" /> New CMMC Project
