@@ -56,7 +56,7 @@ export default function AdminClientSummary() {
       <div>
         <div className="page-kicker">Portfolio</div>
         <h1 className="page-title mt-2">Client overview</h1>
-        <p className="page-subtitle mt-2 max-w-3xl">Canonical project progress across every managed CMMC engagement. Select a client to open its project workspace.</p>
+        <p className="page-subtitle mt-2 max-w-3xl">Canonical project progress across every managed CMMC engagement. Select a client to open its CMMC project.</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
