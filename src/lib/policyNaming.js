@@ -2,8 +2,10 @@ import { filenameSegment } from './evidenceFilename.js';
 import { neutralizeCustomerArtifactText } from './captureInstructions.js';
 
 const KNOWN_LOCATIONS = [
+  [/defender xdr|microsoft defender xdr/i, 'DefenderXDR'],
   [/intune|endpoint manager/i, 'Intune'],
   [/entra|azure ad|conditional access/i, 'Entra'],
+  [/microsoft sentinel|sentinel/i, 'MicrosoftSentinel'],
   [/microsoft 365|office 365|m365/i, 'Microsoft365'],
   [/defender/i, 'MicrosoftDefender'],
   [/purview/i, 'MicrosoftPurview'],
@@ -17,15 +19,53 @@ const KNOWN_LOCATIONS = [
   [/google workspace/i, 'GoogleWorkspace'],
 ];
 
-function locationFor(variant, project) {
+const CREATION_ACTION = /\b(create|add|build|define|save|publish|deploy|establish|set up|configure)\b/i;
+const REMEDIATION_ONLY = /\b(POA&M|Needs Work|corrective action|failed setting|failure handling)\b/i;
+const ARTIFACT_TYPES = [
+  [/custom detection rule/i, 'CustomDetectionRule', 'Custom detection rule'],
+  [/analytics rule/i, 'AnalyticsRule', 'Analytics rule'],
+  [/detection rule/i, 'DetectionRule', 'Detection rule'],
+  [/conditional access policy/i, 'ConditionalAccessPolicy', 'Conditional Access policy'],
+  [/data loss prevention|\bDLP\b/i, 'DataLossPreventionPolicy', 'Data Loss Prevention policy'],
+  [/compliance policy/i, 'CompliancePolicy', 'Compliance policy'],
+  [/app protection policy/i, 'AppProtectionPolicy', 'App protection policy'],
+  [/configuration profile/i, 'ConfigurationProfile', 'Configuration profile'],
+  [/security baseline/i, 'SecurityBaseline', 'Security baseline'],
+  [/terms of use/i, 'TermsOfUse', 'Terms of use'],
+  [/access package/i, 'AccessPackage', 'Access package'],
+  [/retention policy/i, 'RetentionPolicy', 'Retention policy'],
+  [/alert rule/i, 'AlertRule', 'Alert rule'],
+  [/correlation rule/i, 'CorrelationRule', 'Correlation rule'],
+  [/saved query|save the query/i, 'HuntingQuery', 'Saved hunting query'],
+  [/\bpolicy\b/i, 'Policy', 'Policy'],
+  [/\brule\b/i, 'Rule', 'Rule'],
+  [/\bprofile\b/i, 'Profile', 'Profile'],
+  [/\bplan\b/i, 'Plan', 'Plan'],
+  [/\bprocedure\b/i, 'Procedure', 'Procedure'],
+  [/\bstandard\b/i, 'Standard', 'Standard'],
+  [/\bbaseline\b/i, 'Baseline', 'Baseline'],
+  [/\bmatrix\b/i, 'Matrix', 'Matrix'],
+  [/\bworkflow\b/i, 'Workflow', 'Workflow'],
+  [/\btemplate\b/i, 'Template', 'Template'],
+  [/\bconnector\b/i, 'Connector', 'Connector'],
+  [/\bgroup\b/i, 'SecurityGroup', 'Security group'],
+  [/\baccount\b/i, 'Account', 'Account'],
+];
+
+function knownLocation(source) {
+  return KNOWN_LOCATIONS.find(([pattern]) => pattern.test(source || ''))?.[1] || '';
+}
+
+function locationFor(variant, project, stepText = '') {
   const source = [
+    stepText,
     variant?.where_to_go?.name,
     variant?.tool_name,
     variant?.source_tool,
     project?.implementation_stack,
   ].filter(Boolean).join(' ');
-  const known = KNOWN_LOCATIONS.find(([pattern]) => pattern.test(source));
-  if (known?.[1]) return known[1];
+  const known = knownLocation(source);
+  if (known) return known;
   const neutralLocation = neutralizeCustomerArtifactText(
     variant?.where_to_go?.name || project?.implementation_stack,
     'PolicyLibrary',
@@ -38,15 +78,50 @@ function policyTypeFor(libEntry) {
   return filenameSegment(libEntry?.control_title, 'PolicyType').replace(/_/g, '');
 }
 
+export function namingSteps(variant) {
+  return (Array.isArray(variant?.steps) ? variant.steps : [])
+    .map((step, index) => ({ step: String(step || ''), index }))
+    .filter(({ step }) => CREATION_ACTION.test(step) && !REMEDIATION_ONLY.test(step))
+    .map(({ step, index }) => {
+      const artifact = ARTIFACT_TYPES.find(([pattern]) => pattern.test(step));
+      return artifact ? {
+        index,
+        text: step,
+        artifact_type: artifact[1],
+        label: artifact[2],
+      } : null;
+    })
+    .filter(Boolean);
+}
+
+function derivedSpecs({ libEntry, variant, project }) {
+  const controlType = policyTypeFor(libEntry);
+  const byKey = new Map();
+  for (const item of namingSteps(variant)) {
+    const location = locationFor(variant, project, item.text);
+    const combinedType = controlType.toLowerCase().includes(item.artifact_type.toLowerCase())
+      ? controlType
+      : `${controlType}${item.artifact_type}`;
+    const key = `${combinedType}|${location}|${item.label}`;
+    const existing = byKey.get(key);
+    if (existing) {
+      existing.step_indexes.push(item.index);
+    } else {
+      byKey.set(key, {
+        label: item.label,
+        policy_type: combinedType,
+        location,
+        step_indexes: [item.index],
+      });
+    }
+  }
+  return [...byKey.values()];
+}
+
 export function shouldShowPolicyNames(libEntry, variant) {
   if (Array.isArray(variant?.policy_names) && variant.policy_names.length > 0) return true;
-  if (Array.isArray(libEntry?.related_policy_templates) && libEntry.related_policy_templates.length > 0) return true;
-  const instructionText = [
-    ...(Array.isArray(variant?.steps) ? variant.steps : []),
-    variant?.setting_to_change,
-    variant?.outcome,
-  ].filter(Boolean).join(' ');
-  return /\b(policy|policies|procedure|plan|standard|rule|profile)\b/i.test(instructionText);
+  if (namingSteps(variant).length > 0) return true;
+  return Array.isArray(libEntry?.related_policy_templates) && libEntry.related_policy_templates.length > 0;
 }
 
 export function buildPolicyNames({
@@ -63,11 +138,21 @@ export function buildPolicyNames({
   const controlId = filenameSegment(libEntry?.control_id, 'CONTROLID');
   const defaultLocation = locationFor(variant, project);
   const configured = Array.isArray(variant?.policy_names) ? variant.policy_names : [];
+  const creationIndexes = namingSteps(variant).map((item) => item.index);
   const specs = configured.length > 0
-    ? configured
-    : [{ policy_type: policyTypeFor(libEntry), location: defaultLocation }];
+    ? configured.map((spec) => ({
+        ...spec,
+        step_indexes: Array.isArray(spec?.step_indexes) && spec.step_indexes.length > 0
+          ? spec.step_indexes
+          : creationIndexes,
+      }))
+    : derivedSpecs({ libEntry, variant, project });
 
-  return specs.map((spec) => {
+  const fallbackSpecs = specs.length > 0
+    ? specs
+    : [{ policy_type: policyTypeFor(libEntry), location: defaultLocation, step_indexes: [] }];
+
+  return fallbackSpecs.map((spec) => {
     const policyType = filenameSegment(
       neutralizeCustomerArtifactText(spec?.policy_type, policyTypeFor(libEntry)),
       policyTypeFor(libEntry),
@@ -82,6 +167,7 @@ export function buildPolicyNames({
         'Policy',
       ),
       value: [company, policyType, controlId, location, date].join('_'),
+      stepIndexes: Array.isArray(spec?.step_indexes) ? spec.step_indexes : [],
     };
   });
 }
