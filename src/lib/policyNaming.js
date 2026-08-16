@@ -22,7 +22,7 @@ const KNOWN_LOCATIONS = [
 const CREATION_ACTION = /\b(create|add|build|define|save|publish|deploy|establish|set up|configure)\b/i;
 const REMEDIATION_ONLY = /\b(POA&M|Needs Work|corrective action|failed setting|failure handling)\b/i;
 const ARTIFACT_TYPES = [
-  [/custom detection rule/i, 'CustomDetectionRule', 'Custom detection rule'],
+  [/custom detection(?: rule)?/i, 'CustomDetectionRule', 'Custom detection rule'],
   [/analytics rule/i, 'AnalyticsRule', 'Analytics rule'],
   [/detection rule/i, 'DetectionRule', 'Detection rule'],
   [/conditional access policy/i, 'ConditionalAccessPolicy', 'Conditional Access policy'],
@@ -36,7 +36,14 @@ const ARTIFACT_TYPES = [
   [/retention policy/i, 'RetentionPolicy', 'Retention policy'],
   [/alert rule/i, 'AlertRule', 'Alert rule'],
   [/correlation rule/i, 'CorrelationRule', 'Correlation rule'],
-  [/saved query|save the query/i, 'HuntingQuery', 'Saved hunting query'],
+  [/(?:saved?\s+(?:an?\s+)?(?:advanced hunting\s+)?quer(?:y|ies)|save\s+the\s+query|advanced hunting query)/i, 'HuntingQuery', 'Saved hunting query'],
+  [/sensitivity label/i, 'SensitivityLabel', 'Sensitivity label'],
+  [/authentication strength/i, 'AuthenticationStrength', 'Authentication strength'],
+  [/named location/i, 'NamedLocation', 'Named location'],
+  [/app registration/i, 'AppRegistration', 'App registration'],
+  [/workbook/i, 'Workbook', 'Workbook'],
+  [/alert queue/i, 'AlertQueue', 'Alert queue'],
+  [/native report/i, 'Report', 'Report'],
   [/\bpolicy\b/i, 'Policy', 'Policy'],
   [/\brule\b/i, 'Rule', 'Rule'],
   [/\bprofile\b/i, 'Profile', 'Profile'],
@@ -78,20 +85,26 @@ function policyTypeFor(libEntry) {
   return filenameSegment(libEntry?.control_title, 'PolicyType').replace(/_/g, '');
 }
 
+const GENERIC_ARTIFACT_TYPES = new Set([
+  'Policy', 'Rule', 'Profile', 'Plan', 'Procedure', 'Standard', 'Baseline',
+  'Matrix', 'Workflow', 'Template', 'Connector', 'SecurityGroup', 'Account',
+]);
+
 export function namingSteps(variant) {
   return (Array.isArray(variant?.steps) ? variant.steps : [])
     .map((step, index) => ({ step: String(step || ''), index }))
     .filter(({ step }) => CREATION_ACTION.test(step) && !REMEDIATION_ONLY.test(step))
-    .map(({ step, index }) => {
-      const artifact = ARTIFACT_TYPES.find(([pattern]) => pattern.test(step));
-      return artifact ? {
+    .flatMap(({ step, index }) => {
+      const matches = ARTIFACT_TYPES.filter(([pattern]) => pattern.test(step));
+      const specific = matches.filter((artifact) => !GENERIC_ARTIFACT_TYPES.has(artifact[1]));
+      const selected = specific.length > 0 ? specific : matches;
+      return selected.map((artifact) => ({
         index,
         text: step,
         artifact_type: artifact[1],
         label: artifact[2],
-      } : null;
-    })
-    .filter(Boolean);
+      }));
+    });
 }
 
 function derivedSpecs({ libEntry, variant, project }) {
