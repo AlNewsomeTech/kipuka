@@ -24,7 +24,8 @@ const requiredNamingChecks = [
   [stepDo, 'Do not rename an existing approved item solely for this runbook.'],
   [stepDo, 'requiredNames'],
   [stepCapture, 'buildPolicyNames'],
-  [stepCapture, 'Policy or configuration to open'],
+  [stepCapture, 'New item name or existing item to open'],
+  [stepCapture, 'Use the generated name only for a new item created today.'],
 ];
 
 const missing = requiredNamingChecks
