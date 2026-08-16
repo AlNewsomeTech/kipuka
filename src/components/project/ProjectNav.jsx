@@ -45,7 +45,7 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
   return (
     <aside className="app-surface h-fit w-full flex-shrink-0 overflow-hidden lg:sticky lg:top-4 lg:w-60">
       <div className="border-b border-slate-200 px-4 py-3.5">
-        <div className="page-kicker">Project workspace</div>
+        <div className="page-kicker">CMMC project</div>
         <div className="mt-1.5 text-sm font-extrabold text-slate-800">{showGrouped ? 'Guided navigation' : 'CMMC modules'}</div>
       </div>
 
