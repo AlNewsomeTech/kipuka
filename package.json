@@ -23,6 +23,7 @@
     "test:phase7-final-handoff": "node scripts/check-phase7-final-handoff.mjs",
     "test:landing-page": "node scripts/check-landing-page.mjs",
     "test:runbook-clarity": "node scripts/check-runbook-clarity.mjs",
+    "test:runbook-naming": "node scripts/check-runbook-naming.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
