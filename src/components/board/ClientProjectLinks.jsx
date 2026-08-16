@@ -39,7 +39,7 @@ export default function ClientProjectLinks({ client }) {
     <div className="bg-white rounded-xl border border-slate-200 p-4">
       <div className="flex items-center gap-2 mb-3">
         <FolderKanban className="w-4 h-4 text-[#0F1E3C]" />
-        <h3 className="text-sm font-bold text-slate-800">{client.legal_name} — Project Workspace</h3>
+        <h3 className="text-sm font-bold text-slate-800">{client.legal_name} — CMMC Project</h3>
       </div>
       <div className="space-y-2">
         {projects.map((p) => (
