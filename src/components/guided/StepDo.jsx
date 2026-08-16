@@ -7,7 +7,8 @@ import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/l
 // stack label + selector to view another stack's instructions.
 function cleanWorkspaceCopy(value) {
   return String(value || '')
-    .replace(/\bKipuka\b/g, 'the project workspace')
+    .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
+    .replace(/\b(?:the\s+)?project workspace\b/gi, 'this CMMC project')
     .replace(/\bStep 4\b/g, 'Step 3')
     .replace(/\bStep 5\b/g, 'Step 4');
 }
@@ -88,7 +89,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Where to go</div>
             <div className="flex items-center gap-2 text-sm text-slate-800">
-              {variant.where_to_go.name}
+              {cleanWorkspaceCopy(variant.where_to_go.name)}
               {variant.where_to_go.url && (
                 <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs">
                   Open <ExternalLink className="w-3 h-3" />
@@ -130,7 +131,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
           <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
             <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <ClipboardCheck className="w-3.5 h-3.5" /> Finish this step in the project workspace
+              <ClipboardCheck className="w-3.5 h-3.5" /> Finish on Capture & Upload
             </div>
             <ol className="space-y-1.5">
               {variant.kipuka_actions.map((item, i) => (
