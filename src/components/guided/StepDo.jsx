@@ -189,7 +189,7 @@ function InlineRequiredNames({ names }) {
           </div>
         ))}
       </div>
-      <p className="mt-1.5 text-[11px] text-violet-800">Copy this exact value. Do not shorten it or invent a different name.</p>
+      <p className="mt-1.5 text-[11px] text-violet-800">For a new item, copy this exact value. If this step tells you to edit an existing approved item, keep its current name and record that name in the evidence.</p>
     </div>
   );
 }
@@ -210,7 +210,7 @@ function PolicyNamingBlock({ names }) {
         <Tags className="w-3.5 h-3.5" /> Policy and configuration names
       </div>
       <p className="text-[13px] text-violet-950 mb-2">
-        When a step tells you to create a policy, rule, profile, or written procedure, use the exact suggested name below. Use a different PolicyType for each separate policy.
+        When a step tells you to create a new policy, rule, profile, query, group, account, or written procedure, use the exact suggested name below. Do not rename an existing approved item solely for this runbook. Record its current name in the evidence instead.
       </p>
       <div className="space-y-2">
         {names.map((name) => (
