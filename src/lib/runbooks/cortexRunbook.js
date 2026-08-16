@@ -23,7 +23,7 @@ export const CORTEX_RUNBOOK = {
       'Use underscores instead of spaces.',
       'Use YYYY-MM-DD date format.',
       'Do not use vague names like screenshot1.png, evidence.png, or cortex.png.',
-      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control's Evidence page.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control Evidence page.',
       'Sanitize sensitive alert or incident data before upload when necessary.',
     ],
   },
