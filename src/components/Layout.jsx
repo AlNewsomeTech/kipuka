@@ -94,8 +94,8 @@ export default function Layout() {
     .flatMap((section) => section.items)
     .filter((item) => item.end ? location.pathname === item.to : (location.pathname === item.to || location.pathname.startsWith(item.to + '/')))
     .sort((a, b) => b.to.length - a.to.length)[0];
-  const currentPageTitle = activePage?.label || 'Kipuka Workspace';
-  const userLabel = user?.full_name || user?.email || 'Kipuka User';
+  const currentPageTitle = activePage?.label || 'CMMC Project';
+  const userLabel = user?.full_name || user?.email || 'User';
   const userInitials = userLabel
     .split(/[\s@._-]+/)
     .filter(Boolean)
