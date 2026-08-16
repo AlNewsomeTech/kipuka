@@ -59,7 +59,7 @@ export default function StepCapture({
         {variant?.where_to_go?.name && (
           <div>
             <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Where to go
+              <MapPin className="w-3.5 h-3.5" /> Evidence source to reopen
             </div>
             <div className="flex items-center gap-2 text-sm text-slate-800">
               {variant.where_to_go.name}
