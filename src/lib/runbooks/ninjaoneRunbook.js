@@ -24,7 +24,7 @@ export const NINJAONE_RUNBOOK = {
       'Use underscores instead of spaces.',
       'Use YYYY-MM-DD date format.',
       'Do not use vague names like screenshot1.png, evidence.png, or ninja.png.',
-      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control's Evidence page.',
+      'If one screenshot supports multiple controls, name it after the primary control and map it to additional controls on the current control Evidence page.',
       'If the screenshot includes sensitive information, sanitize it before upload or mark it sensitive according to project rules.',
     ],
   },
@@ -134,7 +134,7 @@ export const NINJAONE_RUNBOOK = {
         'Confirm each device has hostname, operating system, device type, last check-in date, assigned user or owner if available, site/location, and device group or tag.',
         'Create groups or tags for: CMMC In Scope, CMMC Out of Scope, CUI Users, Servers, Workstations, macOS Devices, Windows Devices, High Priority Systems.',
         'Export or screenshot endpoint inventory.',
-        'Upload the evidence on the current control's Evidence page.',
+        'Upload the evidence on the current control Evidence page.',
       ],
       evidenceFiles: [
         'CM.L2-3.4.1_NinjaOne_Endpoint_Inventory_YYYY-MM-DD.png',
