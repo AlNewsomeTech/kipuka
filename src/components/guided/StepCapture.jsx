@@ -75,7 +75,7 @@ export default function StepCapture({
         {policyNames.length > 0 && (
           <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
             <div className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <Tags className="w-3.5 h-3.5" /> Policy or configuration to open
+              <Tags className="w-3.5 h-3.5" /> New item name or existing item to open
             </div>
             <div className="space-y-2">
               {policyNames.map((name) => (
@@ -91,6 +91,9 @@ export default function StepCapture({
                 </div>
               ))}
             </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-violet-800">
+              Use the generated name only for a new item created today. If an approved item already existed, open it under its current name and record that exact existing name in the evidence.
+            </p>
           </div>
         )}
 
