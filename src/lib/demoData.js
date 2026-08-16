@@ -49,7 +49,7 @@ export const DEMO_ONBOARDING = {
     { label: 'Selected path: Level 2 Self-Assessment', done: true },
   ],
   explanation:
-    'The onboarding wizard helps determine the likely CMMC path and creates a project workspace with the correct modules.',
+    'The onboarding wizard helps determine the likely CMMC path and creates a CMMC project with the correct modules.',
 };
 
 export const DEMO_SCOPING = {
