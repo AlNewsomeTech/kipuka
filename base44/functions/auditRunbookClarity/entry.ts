@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
 
+const FORBIDDEN_NAVIGATION = [
+  'kipuka',
+  'project workspace',
+  'kipuka training records',
+];
+
 const BLOCKED_BOILERPLATE = [
   'create or approve the exact matrix',
   'configure or perform the control',
@@ -19,10 +25,20 @@ function variants(record) {
 function auditVariant(controlId, variantName, variant) {
   const text = JSON.stringify(variant).toLowerCase();
   const blocking = BLOCKED_BOILERPLATE.filter((phrase) => text.includes(phrase));
+  const forbiddenNavigation = FORBIDDEN_NAVIGATION.filter((phrase) => text.includes(phrase));
   const steps = Array.isArray(variant.steps) ? variant.steps : [];
   const captureItems = Array.isArray(variant.capture_items) ? variant.capture_items : [];
   const structural = [];
 
+  if (forbiddenNavigation.length) {
+    structural.push(`ambiguous product or workspace navigation: ${forbiddenNavigation.join(', ')}`);
+  }
+  if (steps.some((step) =>
+    /(security\.microsoft\.com|admin\.microsoft\.com|entra\.microsoft\.com|microsoft defender portal|microsoft entra admin center)/i.test(String(step)) &&
+    /(cmmc project|preliminary scope|final inventory|shared responsibility|poa&m|capture & upload)/i.test(String(step))
+  )) {
+    structural.push('external Microsoft portal and internal CMMC project destination mixed in one step');
+  }
   if (steps.length < 5) structural.push('fewer than five implementation steps');
   if (!steps.some((step) => /(sign in|open |select |click |go to |under |left menu|navigation)/i.test(String(step)))) {
     structural.push('no navigation action');
@@ -45,6 +61,7 @@ function auditVariant(controlId, variantName, variant) {
     control_id: controlId,
     variant: variantName,
     blocking_phrases: blocking,
+    forbidden_navigation: forbiddenNavigation,
     structural_issues: structural,
     passes: blocking.length === 0 && structural.length === 0,
   };
