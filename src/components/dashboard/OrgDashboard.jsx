@@ -66,7 +66,7 @@ export default function OrgDashboard({ organizationId, orgName }) {
           </p>
         </div>
         <Link to={`/projects/${project.id}`} className="btn-primary flex-shrink-0">
-          Open project workspace <ArrowRight className="w-4 h-4" />
+          Open CMMC project <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
 
