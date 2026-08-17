@@ -18,7 +18,7 @@ export default function PublicHeader({ onRequestDemo }) {
     <header className="sticky top-0 z-50 border-b border-[#1c2c44] bg-[#060c18]/90 backdrop-blur supports-[backdrop-filter]:bg-[#060c18]/75">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <a href="#top" className="flex items-center gap-2.5 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]" aria-label="Kipuka home">
-          <img src="/kipuka-icon.svg" alt="" aria-hidden="true" className="h-8 w-8" />
+          <img src="/kipuka-fishhook.svg" alt="" aria-hidden="true" className="h-10 w-auto flex-shrink-0 object-contain" />
           <span className="font-display text-xl font-bold tracking-tight text-white">Kipuka</span>
         </a>
 
