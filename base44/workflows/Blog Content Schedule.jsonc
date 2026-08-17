@@ -33,7 +33,7 @@
       "schedule_mode": "recurring",
       "cron_expression": "0 7 * * 0,2,4",
       "one_time_date": null,
-      "timezone": "UTC",
+      "timezone": "America/Chicago",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
