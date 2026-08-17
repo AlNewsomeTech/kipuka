@@ -5,7 +5,7 @@ import {
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
-  Radar, SlidersHorizontal, Menu, X
+  Radar, SlidersHorizontal, Menu, X, Newspaper
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -50,6 +50,7 @@ const navSections = [
     { to: '/control-library', label: 'Control Library', icon: Library, adminOnly: true },
     { to: '/policy-library', label: 'Policy Library', icon: ScrollText, adminOnly: true },
     { to: '/branding', label: 'Branding', icon: SlidersHorizontal, adminOnly: true },
+    { to: '/blog-admin', label: 'Blog Manager', icon: Newspaper, adminOnly: true },
     { to: '/saas-admin', label: 'Pac-Sec SaaS Admin', icon: Server, adminOnly: true },
   ]},
 ];

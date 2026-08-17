@@ -18,7 +18,8 @@ export default function PublicFooter({ onRequestDemo }) {
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2.5 sm:grid-cols-3">
             <a href="#platform" className={linkClass}>Platform</a>
             <a href="#capabilities" className={linkClass}>Capabilities</a>
-            <a href="#security" className={linkClass}>Security</a>
+            <a href="/#security" className={linkClass}>Security</a>
+            <Link to="/blog" className={linkClass}>Blog</Link>
             <button type="button" onClick={onRequestDemo} className={`${linkClass} text-left`}>Contact</button>
             <button type="button" onClick={() => navigateToLogin()} className={`${linkClass} text-left`}>Log In</button>
             <Link to="/privacy" className={linkClass}>Privacy Policy</Link>

@@ -3,11 +3,12 @@ import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
 const NAV_LINKS = [
-  { label: 'Platform', href: '#platform' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Capabilities', href: '#capabilities' },
-  { label: 'Who It Is For', href: '#who-its-for' },
-  { label: 'Security', href: '#security' },
+  { label: 'Platform', href: '/#platform' },
+  { label: 'How It Works', href: '/#how-it-works' },
+  { label: 'Capabilities', href: '/#capabilities' },
+  { label: 'Who It Is For', href: '/#who-its-for' },
+  { label: 'Security', href: '/#security' },
+  { label: 'Blog', href: '/blog' },
 ];
 
 export default function PublicHeader({ onRequestDemo }) {

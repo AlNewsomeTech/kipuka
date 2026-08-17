@@ -1,0 +1,82 @@
+{
+  "name": "BlogPost",
+  "type": "object",
+  "description": "A marketing/SEO blog article shown on the public Kipuka landing site. Draft posts are only visible in the admin Blog Manager; only Published posts are served to visitors via the getPublicBlogPosts backend function. Designed so a scheduled content agent can create drafts or published posts later.",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "slug": {
+      "type": "string",
+      "description": "URL-safe unique slug, e.g. what-is-cmmc-level-2. Used at /blog/<slug>."
+    },
+    "excerpt": {
+      "type": "string",
+      "description": "Short summary shown on the blog index and used as the default meta description."
+    },
+    "content": {
+      "type": "string",
+      "description": "Full article body in Markdown."
+    },
+    "cover_image_url": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "author_name": {
+      "type": "string",
+      "default": "Kipuka Team"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Archived"
+      ],
+      "default": "Draft"
+    },
+    "published_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "meta_title": {
+      "type": "string",
+      "description": "Optional SEO title override; falls back to title."
+    },
+    "meta_description": {
+      "type": "string",
+      "description": "Optional SEO description override; falls back to excerpt."
+    }
+  },
+  "required": [
+    "title",
+    "slug"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

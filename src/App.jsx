@@ -13,6 +13,9 @@ import { BrandProvider } from '@/lib/brandContext';
 import RoleRoute from '@/components/RoleRoute';
 import PublicApp from '@/components/public/PublicApp';
 import LandingPage from '@/pages/public/LandingPage';
+import BlogIndex from '@/pages/public/BlogIndex';
+import BlogPostPage from '@/pages/public/BlogPostPage';
+import BlogAdmin from '@/pages/BlogAdmin';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -99,6 +102,9 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Logged-in preview of the public landing page (visitors see it at "/"). */}
       <Route path="/landing-preview" element={<LandingPage />} />
+      {/* Public blog stays reachable while logged in (same pages visitors see). */}
+      <Route path="/blog" element={<BlogIndex />} />
+      <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route element={<OrgProvider><OnboardingGate><ClientProvider><Layout /></ClientProvider></OnboardingGate></OrgProvider>}>
         {/* Read-only pages — all roles, including client */}
         <Route path="/" element={<Dashboard />} />
@@ -182,6 +188,7 @@ const AuthenticatedApp = () => {
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
           <Route path="/branding" element={<BrandingSettings />} />
           <Route path="/policy-library" element={<PolicyLibraryAdmin />} />
+          <Route path="/blog-admin" element={<BlogAdmin />} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
