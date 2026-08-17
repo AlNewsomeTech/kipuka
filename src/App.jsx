@@ -16,6 +16,7 @@ import LandingPage from '@/pages/public/LandingPage';
 import BlogIndex from '@/pages/public/BlogIndex';
 import BlogPostPage from '@/pages/public/BlogPostPage';
 import BlogAdmin from '@/pages/BlogAdmin';
+import BlogAdminErrorBoundary from '@/components/blog/BlogAdminErrorBoundary';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
 import Dashboard from '@/pages/Dashboard';
@@ -188,7 +189,7 @@ const AuthenticatedApp = () => {
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
           <Route path="/branding" element={<BrandingSettings />} />
           <Route path="/policy-library" element={<PolicyLibraryAdmin />} />
-          <Route path="/blog-admin" element={<BlogAdmin />} />
+          <Route path="/blog-admin" element={<BlogAdminErrorBoundary><BlogAdmin /></BlogAdminErrorBoundary>} />
         </Route>
       </Route>
       <Route path="*" element={<PageNotFound />} />
