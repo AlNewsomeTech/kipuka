@@ -387,7 +387,7 @@
 .dark .ql-editor,
 .dark-green .ql-editor { color: hsl(var(--card-foreground)); background-color: hsl(var(--card)); }
 .dark .ql-editor.ql-blank::before,
-.dark-green .ql-editor.ql-blank::before { color: #64748b; font-style: italic; }
+.dark-green .ql-editor.ql-blank::before { color: hsl(var(--muted-foreground)); font-style: italic; }
 /* Quill content children (paragraphs, lists) must not carry a white background */
 .dark .ql-editor p, .dark .ql-editor li, .dark .ql-editor span,
 .dark-green .ql-editor p, .dark-green .ql-editor li, .dark-green .ql-editor span { background-color: transparent !important; }
