@@ -209,10 +209,10 @@
 /* ===== Dark Mode Overrides ===== */
 .dark body { background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
 
-.dark .bg-white { background-color: #161f33; }
-.dark .bg-slate-50 { background-color: #1a2332; }
-.dark .bg-slate-100 { background-color: #243044; }
-.dark .bg-slate-200 { background-color: #334155; }
+.dark .bg-white { background-color: hsl(var(--card)); }
+.dark .bg-slate-50 { background-color: hsl(var(--card)); }
+.dark .bg-slate-100 { background-color: hsl(var(--muted)); }
+.dark .bg-slate-200 { background-color: hsl(var(--accent)); }
 .dark .bg-amber-50 { background-color: #2a2412; }
 .dark .bg-blue-50 { background-color: #16203a; }
 .dark .bg-green-50 { background-color: #142a1a; }
@@ -253,8 +253,8 @@
 .dark .text-purple-900 { color: #d8b4fe; }
 .dark .text-orange-900 { color: #fdba74; }
 
-.dark .border-slate-200 { border-color: #1e293b; }
-.dark .border-slate-100 { border-color: #1a2332; }
+.dark .border-slate-200 { border-color: hsl(var(--border)); }
+.dark .border-slate-100 { border-color: hsl(var(--border)); }
 .dark .border-amber-200 { border-color: #422006; }
 .dark .border-blue-200 { border-color: #1e3a5f; }
 .dark .border-green-200 { border-color: #1a3a1f; }
@@ -265,8 +265,9 @@
 .dark .border-amber-200\/60 { border-color: #422006; }
 .dark .bg-slate-100\/70 { background-color: #1a2332; }
 .dark .text-amber-800 { color: #fbbf24; }
-.dark .divide-slate-100 > * + * { border-color: #1e293b; }
-.dark .border-slate-300 { border-color: #334155; }
+.dark .divide-slate-100 > * + * { border-color: hsl(var(--border)); }
+.dark .divide-slate-200 > * + * { border-color: hsl(var(--border)); }
+.dark .border-slate-300 { border-color: hsl(var(--input)); }
 .dark .hover\:bg-slate-200:hover { background-color: #334155; }
 .dark .hover\:border-slate-300:hover { border-color: #475569; }
 .dark .text-slate-200 { color: #cbd5e1; }
@@ -284,8 +285,8 @@
 .dark .form-input::placeholder { color: hsl(var(--muted-foreground)); }
 
 .dark select option {
-  background-color: #161f33;
-  color: #e2e8f0;
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
 }
 
 .dark input[type="date"]::-webkit-calendar-picker-indicator {
@@ -374,18 +375,17 @@
 /* ===== ReactQuill rich-text editor in dark & dark-green modes ===== */
 .dark .ql-toolbar,
 .dark-green .ql-toolbar {
-  background-color: #1a2332;
-  border-color: #1e293b;
+  background-color: hsl(var(--muted));
+  border-color: hsl(var(--border));
 }
 .dark .ql-container,
 .dark-green .ql-container {
-  background-color: #161f33;
-  border-color: #1e293b;
-  color: #e2e8f0;
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--card-foreground));
 }
 .dark .ql-editor,
-.dark-green .ql-editor { color: #e2e8f0; background-color: #161f33; }
-.dark-green .ql-editor { color: #86efac; }
+.dark-green .ql-editor { color: hsl(var(--card-foreground)); background-color: hsl(var(--card)); }
 .dark .ql-editor.ql-blank::before,
 .dark-green .ql-editor.ql-blank::before { color: #64748b; font-style: italic; }
 /* Quill content children (paragraphs, lists) must not carry a white background */
@@ -413,7 +413,7 @@
 
 /* RichTextField wrapper uses bg-white — keep it dark so the white strip disappears */
 .dark .rounded-lg.border.border-slate-200.bg-white,
-.dark-green .rounded-lg.border.border-slate-200.bg-white { background-color: #161f33; }
+.dark-green .rounded-lg.border.border-slate-200.bg-white { background-color: hsl(var(--card)); }
 
 /* ===== Cancel / secondary buttons with faint text in dark & dark-green ===== */
 .dark .text-slate-700.bg-white,
@@ -554,7 +554,31 @@
   background: var(--app-surface-muted);
   border-color: var(--app-border);
 }
-.dark .app-pill { background: #1b2b42; color: #afbed0; }
+.dark .app-pill { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+
+.dark-green .app-shell {
+  background:
+    radial-gradient(circle at 88% -8%, rgb(74 222 128 / 0.1), transparent 30rem),
+    var(--app-bg);
+}
+.dark-green .app-surface {
+  background: linear-gradient(180deg, #102718, #0c1d12);
+  border-color: var(--app-border);
+}
+.dark-green .page-kicker { color: #86efac; }
+.dark-green .app-pill { background: hsl(var(--muted)); color: hsl(var(--muted-foreground)); }
+
+/* Disabled controls stay visibly disabled without making their labels unreadable. */
+:root button:disabled,
+:root input:disabled,
+:root select:disabled,
+:root textarea:disabled,
+:root [data-disabled] { opacity: 0.62; }
+.dark button:disabled,
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled,
+.dark [data-disabled] { opacity: 0.72; }
 
 * { scrollbar-width: thin; scrollbar-color: #b8c5d3 transparent; }
 *::-webkit-scrollbar { width: 9px; height: 9px; }
