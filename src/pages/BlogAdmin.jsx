@@ -4,6 +4,8 @@ import { Newspaper, Plus, Pencil, Trash2, Eye, Globe, FileText } from 'lucide-re
 import { format } from 'date-fns';
 import { base44 } from '@/api/base44Client';
 import BlogPostEditorModal from '@/components/blog/BlogPostEditorModal';
+import GenerateArticleButton from '@/components/blog/GenerateArticleButton';
+import BlogTopicQueue from '@/components/blog/BlogTopicQueue';
 import EmptyState from '@/components/EmptyState';
 
 const statusPill = {
@@ -70,10 +72,15 @@ export default function BlogAdmin() {
             Published posts appear on the public site at <Link to="/blog" className="font-semibold text-brand hover:underline">/blog</Link>. Drafts stay private.
           </p>
         </div>
-        <button type="button" className="btn-primary" onClick={() => { setEditingPost(null); setEditorOpen(true); }}>
-          <Plus className="h-4 w-4" /> New Post
-        </button>
+        <div className="flex flex-wrap items-start gap-2">
+          <GenerateArticleButton onGenerated={load} />
+          <button type="button" className="btn-primary" onClick={() => { setEditingPost(null); setEditorOpen(true); }}>
+            <Plus className="h-4 w-4" /> New Post
+          </button>
+        </div>
       </div>
+
+      <BlogTopicQueue />
 
       {posts === null ? (
         <div className="app-surface flex items-center justify-center p-16">

@@ -1,0 +1,51 @@
+{
+  "name": "BlogTopic",
+  "type": "object",
+  "description": "Queued article topic for the scheduled Kipuka blog writer. The generateBlogArticle function takes the oldest Queued topic, writes the article from it, and marks the topic Used. When the queue is empty the writer falls back to the built-in keyword rotation. Admin-managed.",
+  "properties": {
+    "working_title": {
+      "type": "string",
+      "description": "Working title / angle for the article. The writer may refine the wording."
+    },
+    "target_keyword": {
+      "type": "string",
+      "description": "Primary SEO keyword the article should target."
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional angle, audience, or points the article must cover."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Queued",
+        "Used",
+        "Skipped"
+      ],
+      "default": "Queued"
+    },
+    "used_post_slug": {
+      "type": "string",
+      "description": "Slug of the article generated from this topic."
+    },
+    "used_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "working_title"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "write": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "description": "Writes one SEO article for the public Kipuka blog every Sunday, Tuesday, and Thursday at 7:00 AM. Takes the next topic from the Blog Topic queue, or the built-in keyword rotation when the queue is empty. A clean article publishes automatically. An article that fails the ASD-STE100 house style check is saved as a Draft for review instead.",
+  "name": "Blog Content Schedule",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "blog_content_schedule",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "write_article": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "generateBlogArticle",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Write blog article",
+            "description": "Sun, Tue, Thu at 7 AM"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * 0,2,4",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}
