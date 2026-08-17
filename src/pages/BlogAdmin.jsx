@@ -89,7 +89,7 @@ export default function BlogAdmin() {
       ) : posts.length === 0 ? (
         <div className="app-surface p-10">
           <EmptyState
-            icon={<Newspaper className="h-8 w-8 text-slate-400" />}
+            icon={Newspaper}
             title="No blog posts yet"
             description="Create your first post, or set up a content agent to publish articles on a schedule."
             action={<button type="button" className="btn-primary" onClick={() => setEditorOpen(true)}><Plus className="h-4 w-4" /> New Post</button>}
