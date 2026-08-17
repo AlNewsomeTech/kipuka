@@ -11,7 +11,7 @@ export default function PublicFooter({ onRequestDemo }) {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="flex items-center gap-2.5">
-            <img src="/kipuka-icon.svg" alt="" aria-hidden="true" className="h-8 w-8" />
+            <img src="/kipuka-fishhook.svg" alt="" aria-hidden="true" className="h-9 w-auto flex-shrink-0 object-contain" />
             <span className="font-display text-lg font-bold text-white">Kipuka</span>
           </div>
 
