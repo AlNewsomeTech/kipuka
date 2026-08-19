@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Radar, ArrowUpRight, SlidersHorizontal, LayoutGrid } from 'lucide-react';
+import { Radar, ArrowUpRight, SlidersHorizontal, LayoutGrid, Home, ArrowLeft } from 'lucide-react';
 import { PROJECT_MODULES, CLIENT_NAV_GROUPS } from '@/lib/projectModules';
 import { canAccessModule } from '@/lib/projectAccess';
 
@@ -71,6 +71,22 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
       </nav>
 
       <div className="border-t border-slate-200 p-2.5">
+        <div className="mb-2 grid grid-cols-2 gap-1.5">
+          <Link
+            to="/"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+          >
+            <Home className="h-3.5 w-3.5" />
+            Home
+          </Link>
+          <Link
+            to="/projects"
+            className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            All Projects
+          </Link>
+        </div>
         {isClient && (
           <button
             type="button"
