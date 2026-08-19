@@ -46,7 +46,7 @@
     --font-heading: 'Avenir', 'Nunito Sans', 'Segoe UI', sans-serif;
     --font-body: 'Avenir', 'Nunito Sans', 'Segoe UI', sans-serif;
     --font-display: 'Questa', 'Lora', Georgia, serif;
-    --background: 214 37% 97%;
+    --background: 214 33% 94%;
     --foreground: 217 52% 15%;
     --card: 0 0% 100%;
     --card-foreground: 217 52% 15%;
@@ -835,32 +835,46 @@ html[data-theme='dark'] [class~='bg-white'][class~='rounded-2xl'][class~='border
 /* One border color so panels, tables, and dividers agree. */
 html[data-theme='light'] [class~='border-slate-100'],
 html[data-theme='light'] [class~='border-slate-200'],
-html[data-theme='light'] [class~='border-slate-200/60'],
-html[data-theme='light'] [class~='border-slate-300'] { border-color: #dde5ee; }
+html[data-theme='light'] [class~='border-slate-200/60'] { border-color: #d3dfec; }
+html[data-theme='light'] [class~='border-slate-300'] { border-color: #c3d2e3; }
 html[data-theme='light'] [class~='divide-slate-100'] > * + *,
-html[data-theme='light'] [class~='divide-slate-200'] > * + * { border-color: #e4ebf2; }
+html[data-theme='light'] [class~='divide-slate-200'] > * + * { border-color: #dde6f0; }
 
 /* Neutral fills: two clear steps instead of four near-identical greys. */
 html[data-theme='light'] [class~='bg-slate-50'],
-html[data-theme='light'] [class~='bg-slate-50/60'] { background-color: #f7fafc; }
+html[data-theme='light'] [class~='bg-slate-50/60'] { background-color: #f2f6fb; }
 html[data-theme='light'] [class~='bg-slate-100'],
-html[data-theme='light'] [class~='bg-slate-100/70'] { background-color: #eff4f9; }
+html[data-theme='light'] [class~='bg-slate-100/70'] { background-color: #e8eff7; }
 html[data-theme='light'] [class~='bg-slate-200'],
-html[data-theme='light'] [class~='bg-slate-200/60'] { background-color: #e4ebf3; }
+html[data-theme='light'] [class~='bg-slate-200/60'] { background-color: #dae4f0; }
 
 /* Tinted status surfaces share one softness so callouts and badges
    stop competing with each other from page to page. */
 html[data-theme='light'] [class~='bg-blue-50'],
-html[data-theme='light'] [class~='bg-blue-50/60'] { background-color: #eff6fd; }
+html[data-theme='light'] [class~='bg-blue-50/60'] { background-color: #e6f0fc; }
 html[data-theme='light'] [class~='bg-green-50'],
-html[data-theme='light'] [class~='bg-emerald-50'] { background-color: #edfaf2; }
+html[data-theme='light'] [class~='bg-emerald-50'] { background-color: #e2f6ea; }
 html[data-theme='light'] [class~='bg-amber-50'],
-html[data-theme='light'] [class~='bg-amber-50/60'] { background-color: #fdf6e9; }
-html[data-theme='light'] [class~='bg-orange-50'] { background-color: #fdf3ea; }
-html[data-theme='light'] [class~='bg-red-50'] { background-color: #fdf0f1; }
+html[data-theme='light'] [class~='bg-amber-50/60'] { background-color: #fcf1dc; }
+html[data-theme='light'] [class~='bg-orange-50'] { background-color: #fcecdd; }
+html[data-theme='light'] [class~='bg-red-50'] { background-color: #fce8ea; }
 html[data-theme='light'] [class~='bg-purple-50'],
-html[data-theme='light'] [class~='bg-violet-50'] { background-color: #f6f2fd; }
-html[data-theme='light'] [class~='bg-cyan-50'] { background-color: #ecf8fb; }
+html[data-theme='light'] [class~='bg-violet-50'] { background-color: #f0e9fb; }
+html[data-theme='light'] [class~='bg-cyan-50'] { background-color: #e2f2f8; }
+
+/* Tinted callouts need a visible edge, or they melt into the white card
+   they sit on — this is what made light mode read as one flat sheet. */
+html[data-theme='light'] [class~='border-blue-100'],
+html[data-theme='light'] [class~='border-blue-200'] { border-color: #b8d4f2; }
+html[data-theme='light'] [class~='border-green-200'],
+html[data-theme='light'] [class~='border-emerald-200'] { border-color: #a8ddbe; }
+html[data-theme='light'] [class~='border-amber-200'],
+html[data-theme='light'] [class~='border-amber-200/60'] { border-color: #e8c98a; }
+html[data-theme='light'] [class~='border-orange-200'] { border-color: #eec49b; }
+html[data-theme='light'] [class~='border-red-200'] { border-color: #f0b8bd; }
+html[data-theme='light'] [class~='border-purple-200'],
+html[data-theme='light'] [class~='border-violet-200'] { border-color: #cdb8ef; }
+html[data-theme='light'] [class~='border-cyan-200'] { border-color: #a6d6e6; }
 
 /* ================= DARK MODE ================= */
 /* Neutral surfaces resolve to the token scale, opacity variants
