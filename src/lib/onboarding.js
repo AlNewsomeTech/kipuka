@@ -18,6 +18,13 @@ export async function resolveOnboardingState({ user, memberships, isPlatformAdmi
   // Platform super-admins and active Pac-Sec staff are exempt from the
   // wizard. Invited, Disabled, and Removed memberships grant no privilege.
   if (isPlatformAdmin) return { needsWizard: false };
+
+  // Technicians are invited staff, never self-service customer signups. Their
+  // organization access is controlled by active OrganizationUser memberships.
+  // If an assignment is still synchronizing, keep them out of the company and
+  // scoping wizard while the access record catches up.
+  if (user.role === 'technician') return { needsWizard: false };
+
   const activeMemberships = (memberships || []).filter((m) => m.status === 'Active');
   const isPacSecMember = activeMemberships.some(
     (m) => m.role === 'Pac-Sec Admin' || m.role === 'Pac-Sec Support'
