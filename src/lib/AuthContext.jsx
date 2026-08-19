@@ -134,8 +134,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   const navigateToLogin = () => {
-    // Use the SDK's redirectToLogin method
-    base44.auth.redirectToLogin(window.location.href);
+    // Use the app's explicit signed-out login route. Sending /login through the
+    // public catch-all and then back to redirectToLogin creates a redirect loop.
+    const currentPath = window.location.pathname + window.location.search + window.location.hash;
+    const returnTo = currentPath === '/' || currentPath.startsWith('/login') ? '/' : currentPath;
+    window.location.assign(`/login?returnTo=${encodeURIComponent(returnTo)}`);
   };
 
   return (
