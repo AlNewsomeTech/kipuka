@@ -131,7 +131,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} app-sidebar fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
+      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'sidebar-open' : ''} app-sidebar z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
             <BrandLogo variant={theme === 'light' ? 'color' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
@@ -152,7 +152,7 @@ export default function Layout() {
             type="button"
             onClick={() => setMobileOpen(false)}
             aria-label="Close navigation"
-            className="ml-auto rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-white lg:hidden"
+            className="sidebar-mobile-only ml-auto rounded-lg p-2 text-white/60 hover:bg-white/10 hover:text-white"
           >
             <X className="h-5 w-5" />
           </button>
@@ -254,13 +254,13 @@ export default function Layout() {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation"
-              className="rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100 lg:hidden"
+              className="sidebar-mobile-only rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100"
             >
               <Menu className="h-5 w-5" />
             </button>
             <Link
-              to="/"
-              aria-label="Go to main dashboard"
+              to="/projects"
+              aria-label="Go to projects home"
               className="flex h-10 items-center gap-2 rounded-xl px-2.5 text-xs font-extrabold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               <Home className="h-4 w-4" />
