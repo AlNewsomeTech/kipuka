@@ -724,6 +724,22 @@ html[data-theme='dark-green'] [class*='border-emerald-'],
 html[data-theme='dark-green'] [class*='border-white'] {
   border-color: #116b2b !important;
 }
+html[data-theme='dark-green'] .bg-primary,
+html[data-theme='dark-green'] .bg-brand,
+html[data-theme='dark-green'] .btn-primary,
+html[data-theme='dark-green'] [class*='bg-[#'],
+html[data-theme='dark-green'] [class*='from-[#'] {
+  color: #66ff88 !important;
+  background: #001a08 !important;
+  background-image: none !important;
+  border-color: #168638 !important;
+}
+html[data-theme='dark-green'] table,
+html[data-theme='dark-green'] th,
+html[data-theme='dark-green'] td {
+  background: transparent !important;
+  border-color: #116b2b !important;
+}
 html[data-theme='dark-green'] button,
 html[data-theme='dark-green'] input,
 html[data-theme='dark-green'] select,
