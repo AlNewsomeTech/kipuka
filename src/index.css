@@ -586,3 +586,183 @@
 *::-webkit-scrollbar-thumb { background: #b8c5d3; border: 2px solid transparent; border-radius: 999px; background-clip: padding-box; }
 .dark * { scrollbar-color: #3a4a60 transparent; }
 .dark *::-webkit-scrollbar-thumb { background: #3a4a60; border: 2px solid transparent; background-clip: padding-box; }
+
+/* ============================================================
+   THEME INTEGRITY LAYER
+   Keeps the three user-selectable modes visually distinct and
+   normalizes legacy hard-coded utility colors.
+   ============================================================ */
+html[data-theme='light'] .app-header {
+  background: rgb(255 255 255 / 0.96);
+  border-color: #d8e2ed;
+  box-shadow: 0 1px 0 rgb(15 30 60 / 0.03);
+}
+html[data-theme='dark'] .app-header {
+  background: rgb(13 24 40 / 0.96);
+  border-color: #263a54;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+}
+html[data-theme='light'] .app-sidebar {
+  color: #17304f;
+  background: linear-gradient(180deg, #ffffff 0%, #f3f7fb 55%, #e9f0f7 100%) !important;
+  border-color: #d8e2ed !important;
+  box-shadow: 8px 0 28px rgb(15 30 60 / 0.08) !important;
+}
+html[data-theme='light'] .app-sidebar button,
+html[data-theme='light'] .app-sidebar a {
+  color: #536b84 !important;
+}
+html[data-theme='light'] .app-sidebar a[aria-current='page'] {
+  color: #12395f !important;
+  background: #dceef9 !important;
+  box-shadow: inset 3px 0 0 #479dcf;
+}
+html[data-theme='light'] .app-sidebar button:hover,
+html[data-theme='light'] .app-sidebar a:hover {
+  color: #0b1930 !important;
+  background: #e7f0f7 !important;
+}
+html[data-theme='light'] .app-sidebar [class*='border-white'] {
+  border-color: #d8e2ed !important;
+}
+html[data-theme='light'] .app-sidebar [class*='text-white'] {
+  color: #536b84 !important;
+}
+
+/* Green Terminal is intentionally monochrome: black surfaces, phosphor
+   green type, green outlines, and a restrained CRT-style glow. */
+html[data-theme='dark-green'] {
+  --brand-primary: #39ff72;
+  --brand-primary-dark: #22d95b;
+  --brand-secondary: #163d22;
+  --brand-navy: #001a08;
+  --brand-navy-soft: #002b0e;
+  --background: 0 0% 0%;
+  --foreground: 130 100% 70%;
+  --card: 140 60% 2%;
+  --card-foreground: 130 100% 70%;
+  --popover: 140 60% 2%;
+  --popover-foreground: 130 100% 70%;
+  --primary: 132 100% 55%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 137 70% 7%;
+  --secondary-foreground: 130 100% 70%;
+  --muted: 137 55% 6%;
+  --muted-foreground: 136 62% 58%;
+  --accent: 136 70% 10%;
+  --accent-foreground: 130 100% 76%;
+  --border: 134 70% 24%;
+  --input: 134 75% 30%;
+  --ring: 132 100% 55%;
+  --sidebar-background: 0 0% 0%;
+  --sidebar-foreground: 130 100% 70%;
+  --sidebar-primary: 132 100% 55%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 137 70% 8%;
+  --sidebar-accent-foreground: 130 100% 76%;
+  --sidebar-border: 134 70% 22%;
+  --sidebar-ring: 132 100% 55%;
+  --font-heading: var(--font-mono);
+  --font-body: var(--font-mono);
+}
+html[data-theme='dark-green'] body {
+  background: #000;
+  color: #66ff88;
+  font-family: var(--font-mono);
+  text-shadow: 0 0 0.35rem rgb(57 255 114 / 0.12);
+}
+html[data-theme='dark-green'] .app-shell {
+  background:
+    linear-gradient(rgb(57 255 114 / 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(57 255 114 / 0.018) 1px, transparent 1px),
+    #000;
+  background-size: 24px 24px;
+}
+html[data-theme='dark-green'] .app-header,
+html[data-theme='dark-green'] .app-sidebar {
+  background: rgb(0 5 2 / 0.97) !important;
+  border-color: #116b2b !important;
+  box-shadow: 0 0 22px rgb(57 255 114 / 0.08) !important;
+}
+html[data-theme='dark-green'] .app-surface,
+html[data-theme='dark-green'] [role='dialog'],
+html[data-theme='dark-green'] [role='menu'],
+html[data-theme='dark-green'] [role='listbox'] {
+  background: #010603 !important;
+  border-color: #116b2b !important;
+  box-shadow: 0 0 18px rgb(57 255 114 / 0.07) !important;
+}
+html[data-theme='dark-green'] [class*='text-'] {
+  color: #66ff88 !important;
+}
+html[data-theme='dark-green'] [class*='bg-white'],
+html[data-theme='dark-green'] [class*='bg-slate-'],
+html[data-theme='dark-green'] [class*='bg-blue-'],
+html[data-theme='dark-green'] [class*='bg-cyan-'],
+html[data-theme='dark-green'] [class*='bg-indigo-'],
+html[data-theme='dark-green'] [class*='bg-violet-'],
+html[data-theme='dark-green'] [class*='bg-purple-'],
+html[data-theme='dark-green'] [class*='bg-amber-'],
+html[data-theme='dark-green'] [class*='bg-orange-'],
+html[data-theme='dark-green'] [class*='bg-red-'],
+html[data-theme='dark-green'] [class*='bg-green-'],
+html[data-theme='dark-green'] [class*='bg-emerald-'] {
+  background-color: #020a04 !important;
+  background-image: none !important;
+}
+html[data-theme='dark-green'] [class*='border-slate-'],
+html[data-theme='dark-green'] [class*='border-blue-'],
+html[data-theme='dark-green'] [class*='border-cyan-'],
+html[data-theme='dark-green'] [class*='border-indigo-'],
+html[data-theme='dark-green'] [class*='border-violet-'],
+html[data-theme='dark-green'] [class*='border-purple-'],
+html[data-theme='dark-green'] [class*='border-amber-'],
+html[data-theme='dark-green'] [class*='border-orange-'],
+html[data-theme='dark-green'] [class*='border-red-'],
+html[data-theme='dark-green'] [class*='border-green-'],
+html[data-theme='dark-green'] [class*='border-emerald-'],
+html[data-theme='dark-green'] [class*='border-white'] {
+  border-color: #116b2b !important;
+}
+html[data-theme='dark-green'] button,
+html[data-theme='dark-green'] input,
+html[data-theme='dark-green'] select,
+html[data-theme='dark-green'] textarea {
+  font-family: var(--font-mono);
+}
+html[data-theme='dark-green'] input,
+html[data-theme='dark-green'] select,
+html[data-theme='dark-green'] textarea {
+  color: #66ff88 !important;
+  background: #010603 !important;
+  border-color: #168638 !important;
+  caret-color: #39ff72;
+}
+html[data-theme='dark-green'] input::placeholder,
+html[data-theme='dark-green'] textarea::placeholder {
+  color: #379d55 !important;
+  opacity: 1;
+}
+html[data-theme='dark-green'] button:disabled,
+html[data-theme='dark-green'] input:disabled,
+html[data-theme='dark-green'] select:disabled,
+html[data-theme='dark-green'] textarea:disabled,
+html[data-theme='dark-green'] [data-disabled] {
+  color: #388c50 !important;
+  opacity: 0.72;
+}
+html[data-theme='dark-green'] a:hover,
+html[data-theme='dark-green'] button:hover:not(:disabled) {
+  text-shadow: 0 0 0.55rem rgb(57 255 114 / 0.45);
+}
+html[data-theme='dark-green'] ::selection {
+  color: #000;
+  background: #39ff72;
+}
+html[data-theme='dark-green'] * {
+  scrollbar-color: #168638 #000;
+}
+html[data-theme='dark-green'] *::-webkit-scrollbar-thumb {
+  background: #168638;
+  border-color: #000;
+}
