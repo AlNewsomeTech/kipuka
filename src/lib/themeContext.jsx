@@ -10,6 +10,8 @@ export function ThemeProvider({ children }) {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('dark', 'dark-green');
+    root.dataset.theme = theme;
+    root.style.colorScheme = theme === 'light' ? 'light' : 'dark';
     if (theme === 'dark' || theme === 'dark-green') root.classList.add('dark');
     if (theme === 'dark-green') root.classList.add('dark-green');
     localStorage.setItem('cmmc-theme', theme);
