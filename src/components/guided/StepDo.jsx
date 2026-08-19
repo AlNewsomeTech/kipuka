@@ -2,17 +2,12 @@ import { useState } from 'react';
 import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks, Copy, Check, Tags } from 'lucide-react';
 import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementationStacks';
 import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/lib/policyNaming';
+import { cleanRunbookText as cleanWorkspaceCopy, splitInstructions } from '@/lib/steInstructions';
+import StepInstruction from '@/components/guided/StepInstruction';
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
 // stack label + selector to view another stack's instructions.
-function cleanWorkspaceCopy(value) {
-  return String(value || '')
-    .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
-    .replace(/\b(?:the\s+)?project workspace\b/gi, 'this CMMC project')
-    .replace(/\.\s+shown at the top/gi, ' shown at the top')
-    .replace(/\bStep 4\b/g, 'Step 3')
-    .replace(/\bStep 5\b/g, 'Step 4');
-}
+// Wording is normalized to ASD-STE100 at display time by @/lib/steInstructions.
 
 export default function StepDo({ libEntry, project, organization, projectStackKey, selectedStack, onSelectStack }) {
   const activeKey = selectedStack || projectStackKey;
@@ -109,13 +104,9 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
               {variant.steps.map((s, i) => {
                 const requiredNames = policyNames.filter((name) => name.stepIndexes?.includes(i));
                 return (
-                  <li key={i} className="flex gap-3 text-sm text-slate-700">
-                    <span className="w-5 h-5 rounded-full bg-[#0F1E3C] text-white text-[11px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="leading-relaxed">{cleanWorkspaceCopy(s)}</div>
-                      {requiredNames.length > 0 && <InlineRequiredNames names={requiredNames} />}
-                    </div>
-                  </li>
+                  <StepInstruction key={i} number={i + 1} instructions={splitInstructions(s)}>
+                    {requiredNames.length > 0 && <InlineRequiredNames names={requiredNames} />}
+                  </StepInstruction>
                 );
               })}
             </ol>
