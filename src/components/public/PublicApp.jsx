@@ -4,6 +4,10 @@ import PublicTerms from '@/pages/public/PublicTerms';
 import PublicPrivacy from '@/pages/public/PublicPrivacy';
 import BlogIndex from '@/pages/public/BlogIndex';
 import BlogPostPage from '@/pages/public/BlogPostPage';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import LoginRedirect from '@/components/public/LoginRedirect';
 
 // Routes shown to unauthenticated visitors. Only the marketing landing page
@@ -17,6 +21,10 @@ export default function PublicApp() {
       <Route path="/legal-terms" element={<PublicTerms />} />
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<LoginRedirect />} />
     </Routes>
   );
