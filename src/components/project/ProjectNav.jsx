@@ -73,11 +73,11 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
       <div className="border-t border-slate-200 p-2.5">
         <div className="mb-2 grid grid-cols-2 gap-1.5">
           <Link
-            to="/"
+            to={`/projects/${projectId}`}
             className="flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-2 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
           >
             <Home className="h-3.5 w-3.5" />
-            Home
+            Project Home
           </Link>
           <Link
             to="/projects"
