@@ -134,7 +134,7 @@ export default function Layout() {
       <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} app-sidebar fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
-            <BrandLogo variant={theme === 'light' ? 'dark' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
+            <BrandLogo variant={theme === 'light' ? 'color' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
           ) : (
             <>
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#479dcf]/15 ring-1 ring-[#77c2e9]/25">
