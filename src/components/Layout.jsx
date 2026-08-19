@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useLocation } from 'react-router-dom';
+import { Link, Outlet, NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, KanbanSquare, FileText,
   Package, Settings, ChevronLeft, ChevronRight, ChevronDown, ShieldAlert, BadgeCheck, UserCog,
   Moon, Sun, Terminal, Check, Bot, ClipboardCheck, FileStack,
   Building, ScrollText, Server, FolderKanban, Library, BarChart3, LifeBuoy, Inbox, HardDrive,
-  Radar, SlidersHorizontal, Menu, X, Newspaper
+  Radar, SlidersHorizontal, Menu, X, Newspaper, Home
 } from 'lucide-react';
 import { useClient } from '@/lib/clientContext';
 import { useAuth } from '@/lib/AuthContext';
@@ -134,7 +134,7 @@ export default function Layout() {
       <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} app-sidebar fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
-            <BrandLogo variant="white" imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
+            <BrandLogo variant={theme === 'light' ? 'dark' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
           ) : (
             <>
               <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-[#479dcf]/15 ring-1 ring-[#77c2e9]/25">
@@ -258,7 +258,15 @@ export default function Layout() {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <div className="hidden min-w-0 lg:block">
+            <Link
+              to="/"
+              aria-label="Go to main dashboard"
+              className="flex h-10 items-center gap-2 rounded-xl px-2.5 text-xs font-extrabold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            >
+              <Home className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Link>
+            <div className="hidden min-w-0 border-l border-slate-200 pl-3 dark:border-slate-700 lg:block">
               <div className="truncate text-sm font-extrabold text-slate-800">{currentPageTitle}</div>
             </div>
           </div>
