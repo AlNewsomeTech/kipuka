@@ -131,7 +131,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
+      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} app-sidebar fixed lg:relative z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
             <BrandLogo variant="white" imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
@@ -248,7 +248,7 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-slate-200/80 bg-white/95 px-3 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0d1828]/95 sm:px-4 lg:px-6">
+        <header className="app-header flex h-16 flex-shrink-0 items-center gap-3 border-b px-3 backdrop-blur-xl sm:px-4 lg:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -310,7 +310,7 @@ export default function Layout() {
                   <div className="app-surface absolute right-0 z-50 mt-2 w-48 overflow-hidden p-1.5">
                     {[
                       { value: 'dark', label: 'Dark', icon: Moon },
-                      { value: 'dark-green', label: 'Dark (Green)', icon: Terminal },
+                      { value: 'dark-green', label: 'Green Terminal', icon: Terminal },
                       { value: 'light', label: 'Light', icon: Sun },
                     ].map(opt => {
                       const Icon = opt.icon;
