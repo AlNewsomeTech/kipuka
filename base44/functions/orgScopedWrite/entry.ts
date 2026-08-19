@@ -77,9 +77,14 @@ Deno.serve(async (req) => {
     // function runtimes while preserving `role` in others. Both values come
     // from auth.me(), never from the request payload.
     const isPlatformAdmin = caller.role === 'admin' || caller._app_role === 'admin';
+    // Platform technicians are Pac-Sec staff with cross-tenant access (mirrors
+    // entity RLS, which grants the technician role read/write across orgs).
+    // They write with the Pac-Sec Support org role and skip tenant membership.
+    const isPlatformTechnician = !isPlatformAdmin && (caller.role === 'technician' || caller._app_role === 'technician');
+    const isPlatformStaff = isPlatformAdmin || isPlatformTechnician;
     let org = caller.organization_id || '';
-    let orgRole = isPlatformAdmin ? 'Platform Admin' : '';
-    if (!isPlatformAdmin) {
+    let orgRole = isPlatformAdmin ? 'Platform Admin' : (isPlatformTechnician ? 'Pac-Sec Support' : '');
+    if (!isPlatformStaff) {
       if (!org) {
         return Response.json({ error: 'No organization is linked to your account. Contact your administrator.' }, { status: 403 });
       }
@@ -132,7 +137,7 @@ Deno.serve(async (req) => {
     const projectBelongsToOrg = async (projectId: string) => {
       const p = await base44.asServiceRole.entities.Project.get(projectId).catch(() => null);
       if (!p?.organization_id) return false;
-      if (isPlatformAdmin) {
+      if (isPlatformStaff) {
         org = p.organization_id;
         return true;
       }
@@ -184,10 +189,10 @@ Deno.serve(async (req) => {
     // update — verify the target belongs to the caller's org.
     if (!id) return Response.json({ error: 'id required' }, { status: 400 });
     const existing = await svc.get(id).catch(() => null);
-    if (!existing || (!isPlatformAdmin && existing.organization_id !== org)) {
+    if (!existing || (!isPlatformStaff && existing.organization_id !== org)) {
       return Response.json({ error: 'Not found' }, { status: 404 });
     }
-    if (isPlatformAdmin) org = existing.organization_id || '';
+    if (isPlatformStaff) org = existing.organization_id || '';
     // PolicyTemplate: master templates are read-only except to platform admins.
     if (entity === 'PolicyTemplate' && existing.is_master_template === true && !isPlatformAdmin) {
       return Response.json({ error: 'Master templates are read-only.' }, { status: 403 });

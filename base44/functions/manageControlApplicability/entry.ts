@@ -75,12 +75,18 @@ Deno.serve(async (req) => {
     if (!projectId || !controlId) return Response.json({ error: 'project_id and control_id are required.' }, { status: 400 });
 
     const sr = base44.asServiceRole;
-    const isPlatformAdmin = caller.role === 'admin';
+    const isPlatformAdmin = caller.role === 'admin' || caller._app_role === 'admin';
+    // Platform technicians are Pac-Sec staff: they carry no tenant org on their
+    // user record and access projects cross-tenant (mirroring entity RLS).
+    // They act with the Pac-Sec Support org role: may request/withdraw/restore,
+    // never review — reviewer separation is preserved.
+    const isPlatformTechnician = !isPlatformAdmin && (caller.role === 'technician' || caller._app_role === 'technician');
+    const isPlatformStaff = isPlatformAdmin || isPlatformTechnician;
     let callerOrg = text(caller.organization_id);
-    let orgRole = isPlatformAdmin ? 'Platform Admin' : '';
+    let orgRole = isPlatformAdmin ? 'Platform Admin' : (isPlatformTechnician ? 'Pac-Sec Support' : '');
 
     // Active membership is resolved before any tenant data is read.
-    if (!isPlatformAdmin) {
+    if (!isPlatformStaff) {
       if (!callerOrg) return Response.json({ error: 'No organization is linked to your account.' }, { status: 403 });
       const memberships = await sr.entities.OrganizationUser.filter({
         user_email: caller.email,
@@ -94,7 +100,7 @@ Deno.serve(async (req) => {
     }
 
     const project = await sr.entities.Project.get(projectId).catch(() => null);
-    if (!project || (!isPlatformAdmin && project.organization_id !== callerOrg)) {
+    if (!project || (!isPlatformStaff && project.organization_id !== callerOrg)) {
       return Response.json({ error: 'Project not found' }, { status: 404 });
     }
     if (!project.organization_id) return Response.json({ error: 'Project is not linked to an organization.' }, { status: 409 });

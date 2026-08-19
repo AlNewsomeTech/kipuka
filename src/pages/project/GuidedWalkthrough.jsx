@@ -86,11 +86,13 @@ export default function GuidedWalkthrough() {
         base44.entities.ControlLibrary.filter({ active: true }),
         base44.entities.ControlAssessment.filter({ project_id: projectId }),
         loadGuidedProgress(projectId, controlId),
+        // A permissions problem with the applicability panel must never block
+        // the whole guided workflow — degrade to a panel without actions.
         base44.functions.invoke('manageControlApplicability', {
           action: 'get',
           project_id: projectId,
           control_id: controlId,
-        }),
+        }).catch(() => null),
       ]);
       setProject(p);
       setLibrary(lib.filter((c) => levels.includes(c.cmmc_level)));

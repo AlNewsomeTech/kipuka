@@ -161,31 +161,37 @@ Deno.serve(async (req) => {
     }
 
     const sr = base44.asServiceRole;
-    const isPlatformAdmin = caller.role === 'admin';
+    const isPlatformAdmin = caller.role === 'admin' || caller._app_role === 'admin';
+    // Platform technicians are Pac-Sec staff with cross-tenant access (mirrors
+    // entity RLS). They contribute evidence as Pac-Sec Support but never review.
+    const isPlatformTechnician = !isPlatformAdmin && (caller.role === 'technician' || caller._app_role === 'technician');
+    const isPlatformStaff = isPlatformAdmin || isPlatformTechnician;
     let callerOrg: string | null = null;
     let orgRole = '';
-    if (!isPlatformAdmin) {
+    if (isPlatformAdmin) {
+      orgRole = 'Platform Admin';
+    } else if (isPlatformTechnician) {
+      orgRole = 'Pac-Sec Support';
+    } else {
       callerOrg = caller.organization_id || null;
       if (!callerOrg) return Response.json({ error: 'No organization is linked to your account.' }, { status: 403 });
       const memberships = await sr.entities.OrganizationUser.filter({ user_email: caller.email, organization_id: callerOrg }).catch(() => []);
       const active = memberships.filter((m: any) => m.status === 'Active');
       if (active.length !== 1) return Response.json({ error: 'Your organization membership is missing, inactive, or ambiguous.' }, { status: 403 });
       orgRole = active[0].role;
-    } else {
-      orgRole = 'Platform Admin';
     }
 
     const claimed = await sr.entities.ProjectEvidenceEvent.filter({ transition_id: transitionId }).catch(() => []);
     if (claimed.length) {
       const prior = claimed[0];
-      if (!isPlatformAdmin && prior.organization_id !== callerOrg) {
+      if (!isPlatformStaff && prior.organization_id !== callerOrg) {
         return Response.json({ error: 'transition_id is unavailable.' }, { status: 409 });
       }
       if (prior.action !== ACTION_LABELS[action]) {
         return Response.json({ error: 'transition_id was already used for another action.' }, { status: 409 });
       }
       const existing = await sr.entities.ProjectEvidence.get(prior.project_evidence_id).catch(() => null);
-      if (!existing || (!isPlatformAdmin && existing.organization_id !== callerOrg)) {
+      if (!existing || (!isPlatformStaff && existing.organization_id !== callerOrg)) {
         return Response.json({ error: 'Evidence not found' }, { status: 404 });
       }
       return Response.json({ evidence: existing, idempotent: true });
@@ -194,7 +200,7 @@ Deno.serve(async (req) => {
     const stranded = await sr.entities.ProjectEvidence.filter({ last_transition_id: transitionId }).catch(() => []);
     if (stranded.length) {
       const existing = stranded[0];
-      if ((!isPlatformAdmin && existing.organization_id !== callerOrg) || existing.last_transition_action !== action) {
+      if ((!isPlatformStaff && existing.organization_id !== callerOrg) || existing.last_transition_action !== action) {
         return Response.json({ error: 'transition_id is unavailable.' }, { status: 409 });
       }
       await createEvent(
@@ -211,7 +217,7 @@ Deno.serve(async (req) => {
       const projectId = cleanText(body.project_id, 100);
       if (!projectId) return Response.json({ error: 'project_id is required.' }, { status: 400 });
       project = await sr.entities.Project.get(projectId).catch(() => null);
-      if (!project || (!isPlatformAdmin && project.organization_id !== callerOrg)) return Response.json({ error: 'Project not found' }, { status: 404 });
+      if (!project || (!isPlatformStaff && project.organization_id !== callerOrg)) return Response.json({ error: 'Project not found' }, { status: 404 });
       const priorId = cleanText(body.prior_evidence_id, 100);
       const prior = priorId ? await sr.entities.ProjectEvidence.get(priorId).catch(() => null) : null;
       if (priorId && (!prior || prior.project_id !== project.id || prior.organization_id !== project.organization_id)) return Response.json({ error: 'Prior evidence not found' }, { status: 404 });
@@ -298,7 +304,7 @@ Deno.serve(async (req) => {
     const evidenceId = cleanText(body.evidence_id, 100);
     if (!evidenceId) return Response.json({ error: 'evidence_id is required.' }, { status: 400 });
     evidence = await sr.entities.ProjectEvidence.get(evidenceId).catch(() => null);
-    if (!evidence || (!isPlatformAdmin && evidence.organization_id !== callerOrg)) return Response.json({ error: 'Evidence not found' }, { status: 404 });
+    if (!evidence || (!isPlatformStaff && evidence.organization_id !== callerOrg)) return Response.json({ error: 'Evidence not found' }, { status: 404 });
     project = await sr.entities.Project.get(evidence.project_id).catch(() => null);
     if (!project || project.organization_id !== evidence.organization_id) return Response.json({ error: 'Evidence project linkage is inconsistent.' }, { status: 409 });
     if (evidence.last_transition_id === transitionId) {
