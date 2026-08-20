@@ -14,7 +14,9 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "generateBlogArticle",
-            "args": {}
+            "args": {
+              "workflow_secret": "9f4c1e7a2d5b8036c4e9a1f7d3b60c85e2a749f0b1d6c38e5a07f4923cd8b16e"
+            }
           },
           "then": "end",
           "x-base44": {
@@ -38,8 +40,8 @@
       "interval_unit": null,
       "interval_anchor": null,
       "ends_type": "never",
-      "ends_on_date": null,
-      "ends_after_count": null
+      "ends_after_count": null,
+      "ends_on_date": null
     }
   }
 }

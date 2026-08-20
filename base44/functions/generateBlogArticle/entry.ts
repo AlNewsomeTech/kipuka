@@ -9,6 +9,7 @@ import {
   sanitizeText,
   slugify,
 } from '../../shared/blogStyleGuide.ts';
+import { BLOG_WORKFLOW_SECRET } from '../../shared/blogWorkflowAuth.ts';
 
 // Writes one SEO article for the public Kipuka blog in ASD-STE100 style.
 //
@@ -82,14 +83,19 @@ export default async function (req: Request): Promise<Response> {
     const payload = await req.json().catch(() => ({}));
 
     // ---- Authorization -----------------------------------------------------
-    // A signed-in caller must be an admin. An unauthenticated caller is the
-    // scheduled workflow, which is throttled below so the endpoint cannot be
-    // used to flood the blog.
+    // Two allowed callers, both verified explicitly:
+    //   1. A signed-in platform admin (Blog Manager). Always saves a Draft.
+    //   2. The "Blog Content Schedule" workflow, which proves itself with the
+    //      shared workflow secret. Only this path may auto-publish, and it is
+    //      throttled below. The absence of a user session is NEVER treated as
+    //      proof of a scheduled run — anonymous callers are rejected.
     const user = await base44.auth.me().catch(() => null);
-    if (user && user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    const isAdmin = Boolean(user && user.role === 'admin');
+    const isWorkflow = payload?.workflow_secret === BLOG_WORKFLOW_SECRET;
+    if (!isAdmin && !isWorkflow) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    const scheduled = !user;
+    const scheduled = !isAdmin;
     const publish = scheduled ? payload?.publish !== false : false;
 
     const svc = base44.asServiceRole;

@@ -477,6 +477,28 @@ Deno.serve(async (req) => {
     const maxPages = target.scan_profile === 'Baseline' ? 1 : Math.min(Math.max(Number(target.max_pages) || 10, 1), MAX_PAGES);
     const timeoutMs = Math.min(Math.max(Number(target.request_timeout_seconds) || 12, 5), 20) * 1000;
 
+    // DNS pinning against rebinding: each hostname is resolved and validated
+    // once per scan, and every later resolution of that hostname must return
+    // only addresses from the pinned, validated set. It is also checked again
+    // immediately AFTER each fetch, and the response is discarded when the
+    // records changed — so a rebind to a private or metadata address between
+    // validation and connect fails closed instead of being read.
+    const pinnedHosts = new Map<string, Set<string>>();
+    pinnedHosts.set(requestedUrl.hostname, new Set(initialAddresses));
+    const assertPinnedResolution = async (url: URL) => {
+      const addresses = await resolvePublicHost(url);
+      const pinned = pinnedHosts.get(url.hostname);
+      if (!pinned) {
+        pinnedHosts.set(url.hostname, new Set(addresses));
+        return;
+      }
+      for (const address of addresses) {
+        if (!pinned.has(address)) {
+          throw new Error('The target DNS records changed during the scan. The request was blocked to prevent server-side request forgery.');
+        }
+      }
+    };
+
     const addFinding = async (ruleId: string, title: string, severity: string, category: string, affectedUrl: string, description: string, evidence: string, recommendation: string, metadata: any = {}) => {
       const fingerprint = await sha256(`${target.id}|${ruleId}|${affectedUrl}`);
       if (findingKeys.has(fingerprint)) return;
@@ -507,7 +529,7 @@ Deno.serve(async (req) => {
       let current = validateUrlShape(input);
       if (!equivalentHost(current.hostname, requestedUrl.hostname)) throw new Error('Cross-domain requests are outside the authorized target scope.');
       for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
-        await resolvePublicHost(current);
+        await assertPinnedResolution(current);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         const requestStarted = Date.now();
@@ -523,6 +545,14 @@ Deno.serve(async (req) => {
           clearTimeout(timer);
         }
         requestsMade += 1;
+        // Post-connect check: if the hostname now resolves outside the pinned
+        // set, the response may have come from a rebound address — discard it.
+        try {
+          await assertPinnedResolution(current);
+        } catch (error) {
+          await response.body?.cancel().catch(() => {});
+          throw error;
+        }
         await addLog('Info', 'http_response', `GET completed with HTTP ${response.status}.`, current.toString(), {
           status: response.status,
           duration_ms: Date.now() - requestStarted,
@@ -704,7 +734,7 @@ Deno.serve(async (req) => {
       httpUrl.protocol = 'http:';
       httpUrl.port = '';
       try {
-        await resolvePublicHost(httpUrl);
+        await assertPinnedResolution(httpUrl);
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         let response;
@@ -719,6 +749,13 @@ Deno.serve(async (req) => {
           clearTimeout(timer);
         }
         requestsMade += 1;
+        // Same post-connect rebinding check as fetchPage before trusting headers.
+        try {
+          await assertPinnedResolution(httpUrl);
+        } catch (error) {
+          await response.body?.cancel().catch(() => {});
+          throw error;
+        }
         const location = response.headers.get('location') || '';
         const redirectsSecurely = [301, 302, 303, 307, 308].includes(response.status)
           && location
