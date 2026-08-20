@@ -49,12 +49,18 @@ export function expandSlashes(value) {
   return restore(expanded, kept);
 }
 
-// Internal product names are not useful navigation for a technician.
+// Internal product names are not useful navigation for a technician. "CMMC
+// project" reads like an external site to visit, so internal destinations are
+// labeled as pages inside this app instead.
 export function cleanRunbookText(value) {
   return expandSlashes(
     String(value || '')
-      .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
-      .replace(/\b(?:the\s+)?project workspace\b/gi, 'this CMMC project')
+      .replace(/\b(?:this|the)\s+CMMC project(?:'s)?\s+records\b/gi, 'records in this app')
+      .replace(/\bCMMC project records\b/gi, 'records in this app')
+      .replace(/\b(?:this|the)\s+CMMC project's\b/gi, "this app's")
+      .replace(/\b(?:this|the)\s+CMMC project\b/gi, 'this app')
+      .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?(?:'s)?\b/gi, 'this app')
+      .replace(/\b(?:the\s+)?project workspace\b/gi, 'this app')
       .replace(/\.\s+shown at the top/gi, ' shown at the top')
       .replace(/\bStep 4\b/g, 'Step 3')
       .replace(/\bStep 5\b/g, 'Step 4')
