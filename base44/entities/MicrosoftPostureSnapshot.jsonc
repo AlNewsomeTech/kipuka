@@ -1,0 +1,175 @@
+{
+  "name": "MicrosoftPostureSnapshot",
+  "type": "object",
+  "description": "An IMMUTABLE point-in-time Microsoft 365 posture snapshot collected by the read-only ACOLYTE Graph monitoring capability. Every scan creates a NEW record; previous snapshots are never overwritten or deleted, giving a defensible historical record for trend analysis and drift detection. Created exclusively by the manageAcolyteMicrosoftMonitoring backend function (service-only writes). The only post-creation mutation permitted is baseline approval, which is also service-mediated.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Microsoft Entra tenant ID verified against Graph GET /organization at scan time."
+    },
+    "snapshot_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collector_version": {
+      "type": "string"
+    },
+    "connection_client_id": {
+      "type": "string",
+      "description": "Application (client) ID of the organization's own Entra app registration used to collect. Not a secret."
+    },
+    "collected_by": {
+      "type": "string",
+      "description": "Email of the authenticated user who ran the scan."
+    },
+    "graph_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Application permission roles present in the Graph token used for collection."
+    },
+    "identity_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Tenant, verified domains, user counts, privileged role membership, group counts."
+    },
+    "mfa_summary": {
+      "type": "object",
+      "default": {},
+      "description": "MFA capable/registered counts and coverage percent. Registration alone is NOT a complete CMMC MFA implementation."
+    },
+    "conditional_access_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Condensed Conditional Access policies with state, assignments, exclusions, grant/session controls, auth strength, Kipuka-managed classification, and per-policy config hashes."
+    },
+    "device_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Intune managed device counts, OS mix, compliance states, and a capped per-device compliance map."
+    },
+    "compliance_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Intune compliance/configuration policies and assignment counts."
+    },
+    "secure_score_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Latest Microsoft Secure Score (current, max, percent, report date) from Graph."
+    },
+    "config_hashes": {
+      "type": "object",
+      "default": {},
+      "description": "Map of normalized per-object SHA-256 hashes (Conditional Access, compliance policies) used for drift comparison."
+    },
+    "evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "ProjectEvidence records preserving the raw Graph source responses for this scan."
+    },
+    "secure_score_import_id": {
+      "type": "string",
+      "description": "SecureScoreImport record created from this scan's Graph Secure Score response (empty when unchanged or unavailable)."
+    },
+    "previous_snapshot_id": {
+      "type": "string"
+    },
+    "baseline_snapshot_id": {
+      "type": "string",
+      "description": "The approved baseline snapshot this scan was compared against (empty when no baseline existed)."
+    },
+    "comparison_status": {
+      "type": "string",
+      "enum": [
+        "No Baseline",
+        "In Sync",
+        "Drift Detected"
+      ],
+      "default": "No Baseline"
+    },
+    "drift_summary": {
+      "type": "object",
+      "default": {},
+      "description": "Drift items detected in this scan: counts by severity plus condensed item list with fingerprints."
+    },
+    "collection_status": {
+      "type": "string",
+      "enum": [
+        "Complete",
+        "Partial",
+        "Failed"
+      ],
+      "default": "Partial"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "snapshot_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the deterministically serialized collected content."
+    },
+    "is_approved_baseline": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only after an authorized person explicitly approves this snapshot as the Microsoft baseline. The first scan is NEVER automatically a baseline."
+    },
+    "baseline_approved_by": {
+      "type": "string"
+    },
+    "baseline_approved_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "tenant_id",
+    "snapshot_date",
+    "collector_version"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}

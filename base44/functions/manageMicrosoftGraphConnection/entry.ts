@@ -48,20 +48,27 @@ export default async function (req: Request): Promise<Response> {
     if (!ACTIONS.includes(action)) return Response.json({ error: 'Unsupported action.' }, { status: 400 });
 
     // `status` never fails on the flag so the UI can render the locked state;
-    // it returns metadata only and performs no Graph call.
+    // it returns metadata only and performs no Graph call. The tenant
+    // connection is shared infrastructure: EITHER capability (deployment OR
+    // ACOLYTE read-only monitoring) may manage it — monitoring-only
+    // organizations never need the deployment entitlement to connect.
     const access = await resolveGraphAccess(base44, {
       projectId: body.project_id ? String(body.project_id) : undefined,
       organizationId: body.organization_id ? String(body.organization_id) : undefined,
       requireFlag: action !== 'status',
+      flag: 'any',
       allowedRoles: action === 'status' ? null : CONNECT_ROLES,
     });
-    const { caller, sr, org, orgRole } = access;
-    const enabled = org.microsoft_graph_deployment_enabled === true;
+    const { caller, sr, org, orgRole, deploymentEnabled, monitoringEnabled } = access;
+    const enabled = deploymentEnabled;
+    const anyEnabled = deploymentEnabled || monitoringEnabled;
 
     if (action === 'status') {
-      const connection = enabled ? await getActiveConnection(sr, org.id) : null;
+      const connection = anyEnabled ? await getActiveConnection(sr, org.id) : null;
       return Response.json({
         enabled,
+        monitoring_enabled: monitoringEnabled,
+        any_enabled: anyEnabled,
         connection: publicConnection(connection),
         can_manage: CONNECT_ROLES.includes(orgRole),
       });

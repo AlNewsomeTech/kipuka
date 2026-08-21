@@ -97,6 +97,26 @@
     },
     "created_by": {
       "type": "string"
+    },
+    "detection_source": {
+      "type": "string",
+      "description": "How the finding was detected, e.g. 'Microsoft Graph Monitoring' for ACOLYTE drift findings. Empty for manually created findings."
+    },
+    "drift_fingerprint": {
+      "type": "string",
+      "description": "Deterministic fingerprint of the drift condition (type + Microsoft object). Used to update the same unresolved finding across scans instead of creating duplicates."
+    },
+    "source_snapshot_id": {
+      "type": "string",
+      "description": "The MicrosoftPostureSnapshot that most recently observed this condition."
+    },
+    "microsoft_object_id": {
+      "type": "string",
+      "description": "Graph object ID of the affected Microsoft policy/device where applicable."
+    },
+    "related_deployment_id": {
+      "type": "string",
+      "description": "MicrosoftPolicyDeployment id when the drifted object is Kipuka-managed. Enables the Review Proposed Restoration path (never automatic repair)."
     }
   },
   "required": [

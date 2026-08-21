@@ -21,6 +21,10 @@ export const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 export const DEPLOY_ROLES = ['Organization Owner', 'Organization Admin', 'IT Admin', 'Pac-Sec Admin', 'Pac-Sec Support'];
 // Organization roles that may connect / disconnect the Microsoft tenant.
 export const CONNECT_ROLES = ['Organization Owner', 'Organization Admin', 'IT Admin', 'Pac-Sec Admin'];
+// Organization roles that may run read-only ACOLYTE Microsoft posture scans.
+export const MONITOR_ROLES = ['Organization Owner', 'Organization Admin', 'Compliance Manager', 'IT Admin', 'Pac-Sec Admin', 'Pac-Sec Support'];
+// Organization roles that may approve a snapshot as the Microsoft baseline.
+export const BASELINE_ROLES = ['Organization Owner', 'Organization Admin', 'Pac-Sec Admin'];
 
 export class HttpError extends Error {
   status: number;
@@ -73,6 +77,12 @@ export function buildDeploymentPolicyName(args: {
 // the canonical records decide.
 export async function resolveGraphAccess(base44: any, opts: {
   projectId?: string; organizationId?: string; requireFlag?: boolean; allowedRoles?: string[] | null;
+  // Which optional capability gates this request:
+  //  'deployment' (default) — Graph Control Deployment entitlement
+  //  'monitoring' — ACOLYTE Graph monitoring entitlement (also requires an
+  //                 ACOLYTE service tier; monitoring NEVER requires deployment)
+  //  'any' — either capability (tenant connection management)
+  flag?: 'deployment' | 'monitoring' | 'any';
 }) {
   const caller = await base44.auth.me();
   if (!caller) throw new HttpError(401, 'Unauthorized');
@@ -114,13 +124,26 @@ export async function resolveGraphAccess(base44: any, opts: {
     throw new HttpError(403, 'Your organization role cannot perform this Microsoft deployment action.');
   }
 
-  // Feature entitlement gate — checked before ANY credential access or Graph
-  // call. Deployment endpoints reject outright when the flag is off.
-  if (opts.requireFlag !== false && org.microsoft_graph_deployment_enabled !== true) {
-    throw new HttpError(403, 'Microsoft Graph deployment is not enabled for this organization.');
+  // Feature entitlement gates — checked before ANY credential access or Graph
+  // call. Both capabilities default OFF and are super-admin controlled.
+  // Monitoring additionally requires an ACOLYTE service entitlement.
+  const deploymentEnabled = org.microsoft_graph_deployment_enabled === true;
+  const monitoringEnabled = org.acolyte_microsoft_graph_monitoring_enabled === true
+    && String(org.acolyte_tier || 'none') !== 'none';
+  const flag = opts.flag || 'deployment';
+  if (opts.requireFlag !== false) {
+    if (flag === 'deployment' && org.microsoft_graph_deployment_enabled !== true) {
+      throw new HttpError(403, 'Microsoft Graph deployment is not enabled for this organization.');
+    }
+    if (flag === 'monitoring' && !monitoringEnabled) {
+      throw new HttpError(403, 'ACOLYTE Microsoft Graph monitoring is not enabled for this organization.');
+    }
+    if (flag === 'any' && !deploymentEnabled && !monitoringEnabled) {
+      throw new HttpError(403, 'No Microsoft Graph capability is enabled for this organization.');
+    }
   }
 
-  return { caller, sr, org, project, orgRole, isPlatformStaff, isPlatformAdmin };
+  return { caller, sr, org, project, orgRole, isPlatformStaff, isPlatformAdmin, deploymentEnabled, monitoringEnabled };
 }
 
 // ---------- Tenant connection + tokens ----------
@@ -308,6 +331,10 @@ export async function createGraphSnapshotEvidence(sr: any, args: {
   org: any; project: any; caller: any; orgRole: string;
   title: string; label: string; controlIds: string[]; objectiveIds: string[];
   payload: any; tenantDomain: string; transitionId: string;
+  // Monitoring evidence: controls are linked only where a defensible mapping
+  // exists in the project's assessment; when none match, the evidence is still
+  // preserved (requireControls: false) instead of failing the scan.
+  requireControls?: boolean; collector?: string; descriptionNote?: string;
 }) {
   const today = new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
@@ -317,7 +344,9 @@ export async function createGraphSnapshotEvidence(sr: any, args: {
     .filter({ project_id: args.project.id }, null, 500).catch(() => []);
   const projectControls = new Set(assessments.map((a: any) => a.control_id));
   const controlIds = [...new Set(args.controlIds)].filter((id) => projectControls.has(id)).sort();
-  if (!controlIds.length) throw new HttpError(409, 'None of the definition\'s controls exist in this project\'s assessment.');
+  if (!controlIds.length && args.requireControls !== false) {
+    throw new HttpError(409, 'None of the definition\'s controls exist in this project\'s assessment.');
+  }
 
   // Only link objectives that exist in the active objective library for those controls.
   const objectives = await sr.entities.AssessmentObjectiveLibrary
@@ -333,7 +362,7 @@ export async function createGraphSnapshotEvidence(sr: any, args: {
   const fileName = [
     companySegment(args.org),
     'ConfigurationExport',
-    sanitizeSegment(controlIds[0], 'Control'),
+    sanitizeSegment(controlIds[0] || 'Monitoring', 'Control'),
     'MicrosoftGraph',
     sanitizeSegment(args.label, 'Snapshot'),
     today, // evidence files use the CURRENT collection date — each collection is a new snapshot
@@ -358,7 +387,8 @@ export async function createGraphSnapshotEvidence(sr: any, args: {
     source_tool: 'Microsoft Graph', file_uri: uploaded.file_uri, file_url: '',
     file_name: fileName, original_file_name: fileName, mime_type: 'application/json',
     file_size_bytes: bytes.length,
-    description: `Automated Microsoft Graph configuration snapshot (${args.label}). Collected by the Kipuka deployment engine; final control and objective determination follows the normal review workflow.`,
+    description: args.descriptionNote
+      || `Automated Microsoft Graph configuration snapshot (${args.label}). Collected by the Kipuka deployment engine; final control and objective determination follows the normal review workflow.`,
     evidence_date: today, expiration_date: expiration, retention_until: retention,
     uploaded_by: args.caller.full_name || args.caller.email, uploaded_by_user_id: args.caller.id || '',
     uploaded_by_email: args.caller.email || '', uploaded_date: now,
@@ -368,7 +398,7 @@ export async function createGraphSnapshotEvidence(sr: any, args: {
     source_system: String(args.tenantDomain || 'Microsoft 365 tenant').slice(0, 240),
     provenance_type: 'API Import',
     provenance_details: JSON.stringify({
-      collector: 'Kipuka Microsoft Graph deployment engine',
+      collector: args.collector || 'Kipuka Microsoft Graph deployment engine',
       tenant_id: args.payload?.provenance?.tenant_id || '',
       graph_endpoint: args.payload?.provenance?.graph_endpoint || '',
       graph_object_id: args.payload?.provenance?.graph_object_id || '',
