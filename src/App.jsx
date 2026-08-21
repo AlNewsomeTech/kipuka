@@ -67,6 +67,7 @@ import ExecutiveReports from '@/pages/acolyte/ExecutiveReports';
 import AcolyteSettings from '@/pages/acolyte/AcolyteSettings';
 import WebsiteScanner from '@/pages/acolyte/WebsiteScanner';
 import SecureScoreImports from '@/pages/acolyte/SecureScoreImports';
+import MicrosoftPosture from '@/pages/acolyte/MicrosoftPosture';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
@@ -129,6 +130,7 @@ const AuthenticatedApp = () => {
         <Route path="/acolyte/settings" element={<AcolyteSettings />} />
         <Route path="/acolyte/scanner" element={<WebsiteScanner />} />
         <Route path="/acolyte/secure-score" element={<SecureScoreImports />} />
+        <Route path="/acolyte/microsoft" element={<MicrosoftPosture />} />
 
         {/* Projects list + per-project workspace — all roles (read-only enforced inside) */}
         <Route path="/projects" element={<Projects />} />

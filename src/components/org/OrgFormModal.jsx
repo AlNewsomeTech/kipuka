@@ -19,6 +19,7 @@ const empty = {
   seat_limit: 5, storage_limit_gb: 5, support_level: 'Standard', customer_logo_url: '', notes: '',
   plan_tier: 'L1_Essentials', trial_full_access: false, trial_ends_date: '', acolyte_tier: 'none',
   microsoft_graph_deployment_enabled: false,
+  acolyte_microsoft_graph_monitoring_enabled: false,
 };
 
 export default function OrgFormModal({ open, onClose, org, onSaved }) {
@@ -162,6 +163,12 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
                 <label className="flex items-center gap-2 text-sm text-slate-700 h-[38px]">
                   <input type="checkbox" checked={!!form.microsoft_graph_deployment_enabled} onChange={(e) => set('microsoft_graph_deployment_enabled', e.target.checked)} />
                   Enable Graph-assisted implementation
+                </label>
+              </Field>
+              <Field label="ACOLYTE Graph monitoring (optional)">
+                <label className="flex items-center gap-2 text-sm text-slate-700 h-[38px]">
+                  <input type="checkbox" checked={!!form.acolyte_microsoft_graph_monitoring_enabled} onChange={(e) => set('acolyte_microsoft_graph_monitoring_enabled', e.target.checked)} />
+                  Enable read-only Microsoft monitoring (requires an ACOLYTE tier)
                 </label>
               </Field>
             </div>

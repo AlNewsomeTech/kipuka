@@ -17,6 +17,7 @@ import AcolyteProjectBar from '@/components/acolyte/AcolyteProjectBar';
 import NoProjectState from '@/components/acolyte/NoProjectState';
 import PostureCard from '@/components/acolyte/PostureCard';
 import PostureDashboardPanel from '@/components/acolyte/PostureDashboardPanel';
+import MicrosoftPosturePanel from '@/components/acolyte/microsoft/MicrosoftPosturePanel';
 import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import { PostureBadge } from '@/components/acolyte/AcolyteBadges';
 
@@ -162,6 +163,9 @@ export default function AcolyteOverview() {
 
           {/* Cyber posture (live PostureAssessment data) */}
           <PostureDashboardPanel organizationId={project?.organization_id} />
+
+          {/* Microsoft 365 posture (renders only when the optional Graph monitoring entitlement is enabled) */}
+          <MicrosoftPosturePanel projectId={projectId} />
 
           {/* Open issue summary */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">

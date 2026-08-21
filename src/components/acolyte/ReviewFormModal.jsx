@@ -5,6 +5,7 @@ import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import { REVIEW_TYPES, REVIEW_STATUSES, POSTURE_STATUSES } from '@/lib/acolyte';
 import RichTextField from '@/components/ui/RichTextField';
 import LinkMultiSelect from './LinkMultiSelect';
+import MicrosoftTelemetryHint from '@/components/acolyte/microsoft/MicrosoftTelemetryHint';
 
 const POSTURE_FIELDS = [
   ['endpoint_posture_status', 'Endpoint Posture'],
@@ -97,6 +98,8 @@ export default function ReviewFormModal({ project, existing, findings = [], reme
               <input className="form-input" value={form.prepared_by} onChange={(e) => set('prepared_by', e.target.value)} />
             </div>
           </div>
+
+          <MicrosoftTelemetryHint projectId={project?.id} />
 
           <div>
             <div className="text-xs font-semibold text-slate-600 mb-1.5">Posture at Review</div>
