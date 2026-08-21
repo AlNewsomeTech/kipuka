@@ -2,7 +2,7 @@
 import {
   LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
   AlertTriangle, ScrollText, BadgeCheck, BarChart3, Wrench, ShieldHalf,
-  Network, Share2, Siren, Gavel, Rocket,
+  Network, Share2, Siren, Gavel, Rocket, CloudCog,
 } from 'lucide-react';
 
 // Modules rendered in the per-project left navigation.
@@ -13,6 +13,9 @@ export const PROJECT_MODULES = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, read: true },
   { key: 'scoping', label: 'Preliminary Scope', icon: Crosshair, read: false },
   { key: 'assessment', label: 'Control Implementation', icon: ClipboardCheck, read: false },
+  // Optional Microsoft Graph deployment — only visible when the organization
+  // entitlement flag is true (filtered in ProjectNav). Default hidden.
+  { key: 'microsoft', label: 'Microsoft 365 Deployment', icon: CloudCog, read: false, orgFlag: 'microsoft_graph_deployment_enabled' },
   { key: 'security-tooling', label: 'Security Tooling', icon: ShieldHalf, read: false },
   { key: 'evidence', label: 'Evidence', icon: ListChecks, read: true },
   { key: 'readiness', label: 'Evidence Readiness', icon: ClipboardCheck, read: true },

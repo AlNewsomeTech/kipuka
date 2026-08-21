@@ -4,6 +4,7 @@ import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementation
 import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/lib/policyNaming';
 import { cleanRunbookText as cleanWorkspaceCopy, splitInstructions } from '@/lib/steInstructions';
 import StepInstruction from '@/components/guided/StepInstruction';
+import AutomatedImplementationBanner from '@/components/guided/AutomatedImplementationBanner';
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
 // stack label + selector to view another stack's instructions.
@@ -24,6 +25,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
 
   return (
     <div className="space-y-4">
+      <AutomatedImplementationBanner organization={organization} project={project} controlId={libEntry?.control_id} />
       <div className="flex items-center justify-between flex-wrap gap-2">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F1E3C] bg-slate-100 px-2.5 py-1 rounded-full">
           <Wrench className="w-3.5 h-3.5" /> Instructions for: {stackLabel(usedKey)}

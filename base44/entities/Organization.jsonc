@@ -90,6 +90,11 @@
       "default": "none",
       "description": "ACOLYTE Operations managed-service entitlement. Super-admin set. 'none' shows a locked preview of the service."
     },
+    "microsoft_graph_deployment_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Optional Microsoft Graph Control Deployment entitlement. Set ONLY by the Pac-Sec platform super-admin (same convention as plan_tier / acolyte_tier). When false, all Microsoft Graph deployment UI is hidden and every Graph deployment backend action is rejected server-side. Never auto-enabled."
+    },
     "subscription_status": {
       "type": "string",
       "enum": [

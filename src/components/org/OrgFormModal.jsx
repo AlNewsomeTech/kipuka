@@ -18,6 +18,7 @@ const empty = {
   subscription_status: 'Trial', subscription_start_date: '', subscription_end_date: '',
   seat_limit: 5, storage_limit_gb: 5, support_level: 'Standard', customer_logo_url: '', notes: '',
   plan_tier: 'L1_Essentials', trial_full_access: false, trial_ends_date: '', acolyte_tier: 'none',
+  microsoft_graph_deployment_enabled: false,
 };
 
 export default function OrgFormModal({ open, onClose, org, onSaved }) {
@@ -156,6 +157,12 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
               </Field>
               <Field label="Trial ends">
                 <input type="date" className="form-input" value={form.trial_ends_date || ''} onChange={(e) => set('trial_ends_date', e.target.value)} />
+              </Field>
+              <Field label="Microsoft Graph deployment (optional)">
+                <label className="flex items-center gap-2 text-sm text-slate-700 h-[38px]">
+                  <input type="checkbox" checked={!!form.microsoft_graph_deployment_enabled} onChange={(e) => set('microsoft_graph_deployment_enabled', e.target.checked)} />
+                  Enable Graph-assisted implementation
+                </label>
               </Field>
             </div>
             <p className="text-[11px] text-slate-400 mt-2">{PLAN_CONFIG[form.plan_tier]?.blurb}</p>

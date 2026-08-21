@@ -21,6 +21,7 @@ import SrmModule from '@/components/project/srm/SrmModule';
 import IncidentModule from '@/components/project/incident/IncidentModule';
 import EvidenceReadinessModule from '@/components/project/readiness/EvidenceReadinessModule';
 import MockAssessmentModule from '@/components/project/mock/MockAssessmentModule';
+import MicrosoftGraphModule from '@/components/project/microsoft/MicrosoftGraphModule';
 
 // Modules with full in-app workflows (Phase 3 + Phase 4 + Phase 5).
 const RICH_MODULES = {
@@ -30,6 +31,7 @@ const RICH_MODULES = {
   evidence: EvidenceModule,
   readiness: EvidenceReadinessModule,
   mock: MockAssessmentModule,
+  microsoft: MicrosoftGraphModule,
   'security-tooling': SecurityToolingModule,
   diagrams: DiagramModule,
   srm: SrmModule,

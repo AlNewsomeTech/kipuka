@@ -3,17 +3,19 @@ import { NavLink, Link } from 'react-router-dom';
 import { Radar, ArrowUpRight, SlidersHorizontal, LayoutGrid, Home, ArrowLeft } from 'lucide-react';
 import { PROJECT_MODULES, CLIENT_NAV_GROUPS } from '@/lib/projectModules';
 import { canAccessModule } from '@/lib/projectAccess';
+import { useOrg } from '@/lib/orgContext';
 
 const ADVANCED_KEY = 'projectNavAdvanced';
 
 const MODULE_GROUPS = [
   { label: 'Overview', keys: ['dashboard'] },
-  { label: 'Implement', keys: ['scoping', 'assessment', 'security-tooling', 'evidence', 'readiness'] },
+  { label: 'Implement', keys: ['scoping', 'assessment', 'microsoft', 'security-tooling', 'evidence', 'readiness'] },
   { label: 'Validate', keys: ['mock', 'poam', 'inventory', 'diagrams', 'srm', 'incident'] },
   { label: 'Deliver', keys: ['ssp', 'policies', 'reports', 'sprs', 'maintenance'] },
 ];
 
 export default function ProjectNav({ projectId, orgRole, isClient = false }) {
+  const { selectedOrg } = useOrg();
   const [advanced, setAdvanced] = useState(() => {
     if (!isClient) return true;
     return localStorage.getItem(ADVANCED_KEY) === '1';
@@ -34,7 +36,10 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
     }`;
 
   const showGrouped = isClient && !advanced;
-  const accessibleItems = PROJECT_MODULES.filter((m) => canAccessModule(orgRole, m.key));
+  // Entitlement-gated modules (e.g. Microsoft Graph deployment) stay hidden
+  // unless the organization flag is explicitly true. Default: hidden.
+  const accessibleItems = PROJECT_MODULES.filter((m) =>
+    canAccessModule(orgRole, m.key) && (!m.orgFlag || selectedOrg?.[m.orgFlag] === true));
   const groups = showGrouped
     ? [{ label: 'My CMMC Setup', items: CLIENT_NAV_GROUPS }]
     : MODULE_GROUPS.map((group) => ({

@@ -1,0 +1,209 @@
+{
+  "name": "MicrosoftPolicyDefinition",
+  "type": "object",
+  "description": "Versioned Kipuka/Pac-Sec canonical Microsoft implementation baseline (NOT a customer deployment). Service-controlled: definitions already deployed to customers are never silently modified \u2014 a new definition_version supersedes the old record. Deployments pin the exact definition_version and definition_sha256 they used.",
+  "properties": {
+    "definition_key": {
+      "type": "string",
+      "description": "Stable machine key, e.g. entra_ca_block_legacy_auth. Unique together with definition_version."
+    },
+    "definition_version": {
+      "type": "string",
+      "description": "Semantic version, e.g. 1.0.0."
+    },
+    "microsoft_service": {
+      "type": "string",
+      "enum": [
+        "Entra ID",
+        "Intune",
+        "Microsoft 365"
+      ],
+      "default": "Entra ID"
+    },
+    "graph_resource_type": {
+      "type": "string",
+      "description": "Graph resource type, e.g. conditionalAccessPolicy, windows10CompliancePolicy."
+    },
+    "policy_type": {
+      "type": "string",
+      "description": "PolicyType segment for the existing Kipuka naming engine, e.g. ConditionalAccessPolicy."
+    },
+    "policy_location": {
+      "type": "string",
+      "description": "ControlLocation segment for the naming engine, e.g. Entra, Intune."
+    },
+    "display_label": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "primary_control_id": {
+      "type": "string",
+      "description": "Primary CMMC practice, e.g. IA.L2-3.5.3."
+    },
+    "related_control_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "related_objective_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "NIST SP 800-171A objective IDs (e.g. 3.5.3[a]) this configuration supports. Evidence is linked only to objectives that exist in the active AssessmentObjectiveLibrary."
+    },
+    "cmmc_levels": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "target_stacks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Project implementation stacks this definition applies to, e.g. Microsoft 365 Commercial, Microsoft 365 GCC."
+    },
+    "graph_endpoint": {
+      "type": "string",
+      "description": "Graph collection path used for create/list, e.g. /identity/conditionalAccess/policies."
+    },
+    "graph_method": {
+      "type": "string",
+      "enum": [
+        "POST",
+        "PATCH"
+      ],
+      "default": "POST",
+      "description": "Method for initial creation. Updates always PATCH the stored Graph object ID."
+    },
+    "graph_read_suffix": {
+      "type": "string",
+      "description": "Optional query string appended when reading a single object back (e.g. ?$expand=scheduledActionsForRule for Intune compliance policies)."
+    },
+    "verify_ignore_keys": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Top-level desired keys required by the Graph POST but excluded from read-back verification because Graph does not echo them faithfully."
+    },
+    "required_application_permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "required_delegated_permissions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "required_microsoft_roles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "prerequisites": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "configurable_values": {
+      "type": "object",
+      "default": {},
+      "description": "Named values an operator may adjust before deployment, with defaults."
+    },
+    "desired_configuration": {
+      "type": "object",
+      "default": {},
+      "description": "Canonical desired Graph payload (displayName and state/mode are injected at deployment time)."
+    },
+    "assignment_strategy": {
+      "type": "string",
+      "description": "Human-readable statement of what the policy is assigned to."
+    },
+    "exclusion_strategy": {
+      "type": "string",
+      "description": "Human-readable statement of required exclusions (e.g. break-glass accounts)."
+    },
+    "validation_rules": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "description": "Extra read-back checks: [{ path: 'state', equals: '...' }]. The engine always also requires the returned object to contain every desired key (minus verify_ignore_keys)."
+    },
+    "evidence_rules": {
+      "type": "object",
+      "default": {},
+      "description": "Evidence extraction settings, e.g. { evidence_type: 'Configuration Export' }."
+    },
+    "rollback_strategy": {
+      "type": "string",
+      "enum": [
+        "restore_snapshot",
+        "not_supported"
+      ],
+      "default": "restore_snapshot"
+    },
+    "initial_deployment_mode": {
+      "type": "string",
+      "enum": [
+        "report_only",
+        "enabled",
+        "create_unassigned"
+      ],
+      "default": "report_only",
+      "description": "High-impact Conditional Access starts report_only. create_unassigned = low-risk object created without assignments."
+    },
+    "risk_note": {
+      "type": "string",
+      "description": "Why the initial deployment mode is safe."
+    },
+    "definition_sha256": {
+      "type": "string",
+      "description": "SHA-256 of the stable-serialized canonical definition content."
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "superseded_by_key": {
+      "type": "string",
+      "description": "Set when a newer definition version supersedes this record. Records are never deleted."
+    }
+  },
+  "required": [
+    "definition_key",
+    "definition_version",
+    "display_label",
+    "primary_control_id",
+    "graph_endpoint"
+  ],
+  "rls": {
+    "read": {},
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}

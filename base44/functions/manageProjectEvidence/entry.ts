@@ -1,4 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+// Canonical hash + metadata-shape primitives are shared with the Microsoft
+// Graph deployment engine so every ProjectEvidence producer hashes identically.
+import { sha256Hex, stableStringify, metadataSha } from '../../shared/evidenceIntegrity.ts';
 
 const ACTIONS = ['create', 'new_version', 'submit_review', 'accept', 'reject', 'archive', 'expire', 'update_quality', 'download'];
 const ACTION_LABELS: Record<string, string> = {
@@ -19,15 +22,6 @@ const ALLOWED_KEYS = [
   'source_tool', 'provenance_type', 'provenance_details', 'quality_notes', 'quality_checklist', 'note',
 ];
 
-async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-function stableStringify(value: any): string {
-  if (value === null || typeof value !== 'object') return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`;
-  return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`).join(',')}}`;
-}
 function cleanText(value: any, max = 4000): string {
   return String(value || '').trim().slice(0, max);
 }
@@ -95,24 +89,6 @@ async function fetchVerifiedPrivate(sr: any, fileUri: string, expectedHash: stri
   const bytes = new Uint8Array(await response.arrayBuffer());
   if ((await sha256Hex(bytes)) !== expectedHash) throw new Error('Evidence hash verification failed.');
   return bytes;
-}
-function metadataPayload(record: any) {
-  return {
-    organization_id: record.organization_id || '', project_id: record.project_id || '',
-    evidence_title: record.evidence_title || '', evidence_type: record.evidence_type || '',
-    control_ids: cleanArray(record.control_ids), objective_ids: cleanArray(record.objective_ids),
-    file_uri: record.file_uri || '', file_name: record.file_name || '', original_file_name: record.original_file_name || '',
-    mime_type: record.mime_type || '', file_size_bytes: Number(record.file_size_bytes || 0),
-    hash_algorithm: record.hash_algorithm || 'SHA-256', hash_value: record.hash_value || '',
-    description: record.description || '', evidence_date: record.evidence_date || '',
-    expiration_date: record.expiration_date || '', retention_until: record.retention_until || '',
-    owner: record.owner || '', source_system: record.source_system || '', source_tool: record.source_tool || '',
-    provenance_type: record.provenance_type || '', provenance_details: record.provenance_details || '',
-    version: Number(record.version || 1), supersedes_evidence_id: record.supersedes_evidence_id || '',
-  };
-}
-async function metadataSha(record: any): Promise<string> {
-  return await sha256Hex(new TextEncoder().encode(stableStringify(metadataPayload(record))));
 }
 async function createEvent(sr: any, evidence: any, caller: any, orgRole: string, transitionId: string, action: string, fromStatus: string, toStatus: string, note = '') {
   const payload = {

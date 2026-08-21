@@ -1,0 +1,107 @@
+{
+  "name": "MicrosoftTenantConnection",
+  "type": "object",
+  "description": "Per-organization Microsoft tenant authorization metadata for the optional Graph Control Deployment capability. One active connection per organization; each organization authorizes its OWN Entra app registration in its OWN tenant \u2014 never a shared credential across Kipuka customers. Contains metadata ONLY: the client secret lives in the service-only MicrosoftTenantCredential entity and raw OAuth tokens are never stored anywhere. Records are created and updated exclusively by the manageMicrosoftGraphConnection backend function.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "Optional project association. Connections are organization-level; deployments verify project \u2192 organization \u2192 tenant linkage server-side."
+    },
+    "tenant_id": {
+      "type": "string",
+      "description": "Microsoft Entra tenant (directory) ID, verified against Graph GET /organization at connect time."
+    },
+    "tenant_display_name": {
+      "type": "string"
+    },
+    "tenant_primary_domain": {
+      "type": "string"
+    },
+    "auth_method": {
+      "type": "string",
+      "enum": [
+        "client_credentials"
+      ],
+      "default": "client_credentials"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Application (client) ID of the customer's own Entra app registration. Not a secret."
+    },
+    "credential_id": {
+      "type": "string",
+      "description": "Id of the active service-only MicrosoftTenantCredential record."
+    },
+    "connection_status": {
+      "type": "string",
+      "enum": [
+        "Not Connected",
+        "Connected",
+        "Error",
+        "Disconnected"
+      ],
+      "default": "Not Connected"
+    },
+    "connection_health": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "Healthy",
+        "Degraded",
+        "Failed"
+      ],
+      "default": "Unknown"
+    },
+    "connection_verified_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "connected_by": {
+      "type": "string",
+      "description": "Email of the authenticated user who connected the tenant."
+    },
+    "granted_scopes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Application permission roles present in the last acquired Graph token."
+    },
+    "last_successful_call": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "error_details": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "tenant_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
