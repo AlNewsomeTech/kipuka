@@ -84,38 +84,40 @@
   }
 
   .dark {
-    --background: 210 12% 8%;
-    --foreground: 205 14% 92%;
-    --card: 210 12% 13%;
-    --card-foreground: 205 14% 92%;
-    --popover: 210 12% 13%;
-    --popover-foreground: 205 14% 92%;
+    /* Black Metal background · Cinder surfaces · Chimney lines
+       · Sea Lion tertiary · Blue Dolphin text */
+    --background: 0 0% 2%;
+    --foreground: 205 14% 77%;
+    --card: 210 12% 16%;
+    --card-foreground: 205 14% 82%;
+    --popover: 210 12% 16%;
+    --popover-foreground: 205 14% 82%;
     --primary: 207 9% 54%;
-    --primary-foreground: 210 12% 10%;
-    --secondary: 208 10% 19%;
-    --secondary-foreground: 205 14% 92%;
-    --muted: 208 10% 19%;
-    --muted-foreground: 205 12% 72%;
-    --accent: 207 9% 24%;
-    --accent-foreground: 205 14% 92%;
+    --primary-foreground: 0 0% 4%;
+    --secondary: 208 11% 21%;
+    --secondary-foreground: 205 14% 82%;
+    --muted: 208 11% 19%;
+    --muted-foreground: 207 9% 54%;
+    --accent: 205 8% 26%;
+    --accent-foreground: 205 14% 82%;
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 207 9% 27%;
-    --input: 207 9% 33%;
+    --border: 205 7% 31%;
+    --input: 205 7% 36%;
     --ring: 205 14% 77%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 3%;
+    --sidebar-foreground: 205 14% 77%;
+    --sidebar-primary: 207 9% 54%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 210 12% 16%;
+    --sidebar-accent-foreground: 205 14% 82%;
+    --sidebar-border: 205 7% 31%;
+    --sidebar-ring: 205 14% 77%;
   }
 
   .dark-green {
@@ -536,13 +538,14 @@
 }
 .dark .app-shell {
   background:
-    radial-gradient(circle at 88% -8%, rgb(128 138 146 / 0.13), transparent 30rem),
+    radial-gradient(circle at 88% -8%, rgb(128 138 146 / 0.1), transparent 30rem),
     var(--app-bg);
 }
 .dark .app-surface {
-  background: linear-gradient(180deg, #262b30, #1e2226);
+  /* Cinder surface raised off the Black Metal background */
+  background: linear-gradient(180deg, #282d33, #24292e);
   border-color: var(--app-border);
-  box-shadow: 0 18px 34px rgb(0 0 0 / 0.2);
+  box-shadow: 0 18px 34px rgb(0 0 0 / 0.45);
 }
 .dark .app-surface-interactive:hover {
   border-color: rgb(128 138 146 / 0.6);
@@ -600,9 +603,14 @@ html[data-theme='light'] .app-header {
   box-shadow: 0 1px 0 rgb(36 41 46 / 0.04);
 }
 html[data-theme='dark'] .app-header {
-  background: rgb(24 28 32 / 0.96);
-  border-color: #3a4045;
-  box-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+  background: rgb(5 5 6 / 0.96);
+  border-color: #4a5156;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.6);
+}
+html[data-theme='dark'] .app-sidebar {
+  background: linear-gradient(180deg, #08090a 0%, #050506 100%) !important;
+  border-color: #4a5156 !important;
+  box-shadow: 8px 0 28px rgb(0 0 0 / 0.5) !important;
 }
 .app-sidebar {
   position: relative;
@@ -893,6 +901,8 @@ html[data-theme='dark'] [class~='bg-slate-100/70'],
 html[data-theme='dark'] [class~='bg-slate-100/80'] { background-color: hsl(var(--muted)); }
 html[data-theme='dark'] [class~='bg-slate-200'],
 html[data-theme='dark'] [class~='bg-slate-200/60'] { background-color: hsl(var(--accent)); }
+/* Page-level wrappers stay Black Metal so Cinder cards read as raised. */
+html[data-theme='dark'] [class~='bg-\[\#F1F4F8\]'] { background-color: #050506; }
 
 /* Borders and dividers: one token, no stray light hairlines. */
 html[data-theme='dark'] [class~='border-slate-100'],
@@ -903,19 +913,20 @@ html[data-theme='dark'] [class~='divide-slate-100'] > * + *,
 html[data-theme='dark'] [class~='divide-slate-200'] > * + * { border-color: hsl(var(--border)); }
 
 /* Text: three legible steps across the whole app. */
+/* Type steps: Blue Dolphin headings → Blue Dolphin body → Sea Lion tertiary. */
 html[data-theme='dark'] [class~='text-slate-900'],
-html[data-theme='dark'] [class~='text-slate-800'] { color: #eef1f3; }
+html[data-theme='dark'] [class~='text-slate-800'] { color: #d7dee3; }
 html[data-theme='dark'] [class~='text-slate-700'],
 html[data-theme='dark'] [class~='text-slate-600'] { color: #bdc7ce; }
 html[data-theme='dark'] [class~='text-slate-500'],
 html[data-theme='dark'] [class~='text-slate-500/90'],
 html[data-theme='dark'] [class~='text-slate-400'],
-html[data-theme='dark'] [class~='text-slate-300'] { color: #949da4; }
+html[data-theme='dark'] [class~='text-slate-300'] { color: #808a92; }
 
-/* Status tints keep their hue but sit correctly on a dark surface. */
+/* Status tints keep their hue but sit correctly on a Cinder surface. */
 html[data-theme='dark'] [class~='bg-blue-50'],
-html[data-theme='dark'] [class~='bg-blue-50/60'] { background-color: #16233c; }
-html[data-theme='dark'] [class~='bg-blue-100'] { background-color: #1d3557; }
+html[data-theme='dark'] [class~='bg-blue-50/60'] { background-color: #1e2a33; }
+html[data-theme='dark'] [class~='bg-blue-100'] { background-color: #263845; }
 html[data-theme='dark'] [class~='bg-green-50'],
 html[data-theme='dark'] [class~='bg-emerald-50'] { background-color: #12291c; }
 html[data-theme='dark'] [class~='bg-green-100'],
@@ -938,7 +949,7 @@ html[data-theme='dark'] [class~='bg-cyan-100'] { background-color: #173843; }
 html[data-theme='dark'] [class~='text-blue-600'],
 html[data-theme='dark'] [class~='text-blue-700'],
 html[data-theme='dark'] [class~='text-blue-800'],
-html[data-theme='dark'] [class~='text-blue-900'] { color: #8cc2f7; }
+html[data-theme='dark'] [class~='text-blue-900'] { color: #bdc7ce; }
 html[data-theme='dark'] [class~='text-green-600'],
 html[data-theme='dark'] [class~='text-green-700'],
 html[data-theme='dark'] [class~='text-green-800'],
@@ -969,7 +980,7 @@ html[data-theme='dark'] [class~='text-cyan-800'] { color: #74d6e8; }
 /* Tinted borders match their surfaces. */
 html[data-theme='dark'] [class~='border-blue-100'],
 html[data-theme='dark'] [class~='border-blue-200'],
-html[data-theme='dark'] [class~='border-blue-300'] { border-color: #2b4a72; }
+html[data-theme='dark'] [class~='border-blue-300'] { border-color: #4a5156; }
 html[data-theme='dark'] [class~='border-green-200'],
 html[data-theme='dark'] [class~='border-emerald-200'] { border-color: #28553a; }
 html[data-theme='dark'] [class~='border-amber-200'],
@@ -993,8 +1004,8 @@ html[data-theme='light'] [class~='hover:bg-blue-50']:hover { background-color: #
 html[data-theme='light'] [class~='hover:bg-red-50']:hover { background-color: #fce9eb; }
 html[data-theme='dark'] [class~='hover:bg-slate-50']:hover,
 html[data-theme='dark'] [class~='hover:bg-slate-100']:hover { background-color: hsl(var(--accent)); }
-html[data-theme='dark'] [class~='hover:bg-slate-200']:hover { background-color: #2c3d55; }
-html[data-theme='dark'] [class~='hover:bg-blue-50']:hover { background-color: #1d3557; }
+html[data-theme='dark'] [class~='hover:bg-slate-200']:hover { background-color: #343a40; }
+html[data-theme='dark'] [class~='hover:bg-blue-50']:hover { background-color: #263845; }
 html[data-theme='dark'] [class~='hover:bg-red-50']:hover { background-color: #3d1e21; }
 
 /* Floating surfaces: dialogs, menus, dropdowns. */
@@ -1017,27 +1028,32 @@ html[data-theme='dark'] [role='listbox'] {
    states keep behaving as states and never become permanent fills.
    ============================================================ */
 
-/* ---- Surfaces: deepest to raised ---- */
-.bg-\[\#050a13\] { background-color: #0d0f11; }
-.bg-\[\#060c18\] { background-color: #16191c; }
-.bg-\[\#060c18\]\/90 { background-color: rgb(22 25 28 / 0.9); }
+/* ---- Surfaces: Black Metal base, Cinder panels ---- */
+.bg-\[\#050a13\] { background-color: #000000; }
+.bg-\[\#060c18\] { background-color: #050506; }
+.bg-\[\#060c18\]\/90 { background-color: rgb(5 5 6 / 0.9); }
 @supports (backdrop-filter: blur(0)) {
-  .supports-\[backdrop-filter\]\:bg-\[\#060c18\]\/75 { background-color: rgb(22 25 28 / 0.75); }
+  .supports-\[backdrop-filter\]\:bg-\[\#060c18\]\/75 { background-color: rgb(5 5 6 / 0.75); }
 }
-.bg-\[\#080f1e\] { background-color: #1b1f22; }
-.bg-\[\#0a1424\] { background-color: #1f2327; }
-.bg-\[\#0b1626\] { background-color: #22262a; }
-.bg-\[\#0d1a2e\] { background-color: #2a2f34; }
-.bg-\[\#1a2942\] { background-color: #343a3f; }
-.hover\:bg-\[\#0d1a2e\]:hover { background-color: #2a2f34; }
-.hover\:bg-\[\#080f1e\]:hover { background-color: #1b1f22; }
+.bg-\[\#080f1e\] { background-color: #0d0f10; }
+.bg-\[\#0a1424\] { background-color: #131619; }
+.bg-\[\#0b1626\] { background-color: #24292e; }
+.bg-\[\#0d1a2e\] { background-color: #2c3237; }
+.bg-\[\#1a2942\] { background-color: #3a4045; }
+.bg-\[\#121f36\] { background-color: #333a3f; }
+.bg-\[\#22344f\] { background-color: #434a4f; }
+.bg-\[\#24385a\] { background-color: #4a5156; }
+.bg-\[\#1c2c44\] { background-color: #3a4045; }
+.bg-\[\#2a3d5c\] { background-color: #4a5156; }
+.hover\:bg-\[\#0d1a2e\]:hover { background-color: #2c3237; }
+.hover\:bg-\[\#080f1e\]:hover { background-color: #0d0f10; }
 
-/* ---- Borders and dividers ---- */
-.border-\[\#131f33\] { border-color: #303539; }
-.border-\[\#1a2942\] { border-color: #343a3f; }
-.border-\[\#1c2c44\] { border-color: #383e43; }
-.border-\[\#22344f\] { border-color: #3f4549; }
-.border-\[\#24385a\] { border-color: #454b50; }
+/* ---- Borders and dividers: Chimney ---- */
+.border-\[\#131f33\] { border-color: #2c3237; }
+.border-\[\#1a2942\] { border-color: #3a4045; }
+.border-\[\#1c2c44\] { border-color: #3a4045; }
+.border-\[\#22344f\] { border-color: #434a4f; }
+.border-\[\#24385a\] { border-color: #4a5156; }
 .border-\[\#2a3d5c\] { border-color: #4a5156; }
 .hover\:border-\[\#479dcf\]:hover { border-color: #808a92; }
 .hover\:border-\[\#67d1f0\]:hover { border-color: #bdc7ce; }
@@ -1048,6 +1064,10 @@ html[data-theme='dark'] [role='listbox'] {
 .bg-\[\#479dcf\]\/10 { background-color: rgb(128 138 146 / 0.1); }
 .bg-\[\#479dcf\]\/15 { background-color: rgb(128 138 146 / 0.15); }
 .bg-\[\#479dcf\]\/20 { background-color: rgb(128 138 146 / 0.2); }
+.bg-\[\#479dcf\]\/30 { background-color: rgb(128 138 146 / 0.3); }
+.bg-\[\#479dcf\]\/60 { background-color: rgb(128 138 146 / 0.6); }
+.ring-\[\#67d1f0\]\/30 { --tw-ring-color: rgb(189 199 206 / 0.3); }
+.ring-\[\#479dcf\]\/30 { --tw-ring-color: rgb(128 138 146 / 0.3); }
 .bg-\[\#67d1f0\] { background-color: #bdc7ce; }
 .bg-\[\#67d1f0\]\/10 { background-color: rgb(189 199 206 / 0.1); }
 .bg-\[\#67d1f0\]\/15 { background-color: rgb(189 199 206 / 0.15); }
@@ -1063,13 +1083,14 @@ html[data-theme='dark'] [role='listbox'] {
 .focus-visible\:outline-\[\#67d1f0\]:focus-visible { outline-color: #bdc7ce; }
 .focus-visible\:outline-\[\#479dcf\]:focus-visible { outline-color: #808a92; }
 
-/* ---- Type: three readable steps on the dark surfaces ---- */
-.text-\[\#cfe4f5\] { color: #dfe4e7; }
+/* ---- Type: Blue Dolphin body, Sea Lion tertiary ---- */
+.text-\[\#cfe4f5\] { color: #bdc7ce; }
 .text-\[\#b9c8dc\] { color: #bdc7ce; }
-.text-\[\#8fa3bd\] { color: #949da4; }
-.text-\[\#64789a\] { color: #7c858c; }
+.text-\[\#8fa3bd\] { color: #808a92; }
+.text-\[\#64789a\] { color: #737d85; }
+.text-\[\#8296b0\] { color: #808a92; }
 .hover\:text-\[\#67d1f0\]:hover { color: #bdc7ce; }
 
 /* ---- Contrast type used ON the light accent fills ---- */
-.text-\[\#04101f\] { color: #24292e; }
-.text-\[\#060c18\] { color: #16191c; }
+.text-\[\#04101f\] { color: #000000; }
+.text-\[\#060c18\] { color: #050506; }
