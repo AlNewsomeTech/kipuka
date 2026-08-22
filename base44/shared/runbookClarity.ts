@@ -1,13 +1,17 @@
 // Shared clarity rules for the curated CMMC runbook rewrite.
 //
-// Goal: every stored step must be understandable by an average technician with
-// no CMMC background. One action per step, plain words, active voice, real
-// navigation only. These rules are enforced on the model output before any
-// stored record is changed.
+// Goal: every stored step must be understandable by a business user or junior
+// technician with no CMMC or product-administration background. Keep only the
+// actions needed to complete, check, and document the work. These rules are
+// enforced on the model output before any stored record is changed.
 
-export const MIGRATION_KEY = 'RUNBOOK-CLARITY-STE-V4';
-export const REWRITE_VERSION = 4;
+export const MIGRATION_KEY = 'RUNBOOK-CLARITY-STE-V5-NONTECHNICAL';
+export const REWRITE_VERSION = 5;
 export const MAX_WORDS_PER_STEP = 26;
+export const MIN_STEPS = 6;
+export const MAX_STEPS = 24;
+
+const GENERIC_VENDOR_TERMS = /\b(?:Microsoft|M365|Entra|Intune|Azure|Defender|Purview|SharePoint|Exchange|Teams|OneDrive)\b/i;
 
 export const URL_RE = /https?:\/\/[^\s)"']+/g;
 
@@ -212,13 +216,12 @@ function navSegments(step: string): string[] {
 export function validateRewrite(
   sourceSteps: string[],
   newSteps: string[],
-  opts: { requireNaming?: boolean; allowedNavSource?: string[] } = {},
+  opts: { requireNaming?: boolean; allowedNavSource?: string[]; variantKey?: string } = {},
 ): string[] {
   const failures: string[] = [];
   if (!newSteps.length) return ['no steps returned'];
-  if (newSteps.length < sourceSteps.length) {
-    failures.push('fewer steps than the original runbook');
-  }
+  if (newSteps.length < MIN_STEPS) failures.push(`fewer than ${MIN_STEPS} steps`);
+  if (newSteps.length > MAX_STEPS) failures.push(`more than ${MAX_STEPS} steps`);
 
   newSteps.forEach((step, index) => {
     for (const issue of stepIssues(step)) failures.push(`step ${index + 1}: ${issue}`);
@@ -226,6 +229,12 @@ export function validateRewrite(
 
   const newText = newSteps.join('\n');
   const newLower = newText.toLowerCase();
+  if (opts.variantKey === 'generic' && GENERIC_VENDOR_TERMS.test(newText)) {
+    failures.push('generic instructions contain vendor-specific product names');
+  }
+  if (new Set(newSteps.map((step) => step.toLowerCase().replace(/\W+/g, ' ').trim())).size !== newSteps.length) {
+    failures.push('duplicate steps');
+  }
 
   // Every portal URL in the source must survive the rewrite.
   const sourceUrls = new Set(sourceSteps.join('\n').match(URL_RE) || []);
@@ -277,7 +286,7 @@ export function rewritePrompt(args: {
     (s: any, i: number) => `${i + 1}. ${s}`,
   ).join('\n');
 
-  return `You rewrite CMMC implementation runbook steps so an average IT technician with no CMMC background can follow them without confusion.
+  return `You rewrite CMMC implementation runbook steps for a business user or junior technician with no CMMC or product-administration background.
 
 CONTROL: ${controlId} - ${controlTitle}
 ENVIRONMENT VARIANT: ${variantKey}
@@ -295,7 +304,7 @@ RULES (all mandatory):
 4. Use active voice and the imperative: "Select X", not "X should be selected".
 5. Never use a slash between words. Write "or".
 6. Never use vague wording: where applicable, as appropriate, as needed, if necessary, etc.
-7. Split a long original step into as many short steps as it needs. More steps is better.
+7. Keep only actions the user must perform, check, or document. Remove repeated reminders and duplicate evidence directions.
 8. NEVER invent a menu name, blade, tab, or path. Use only navigation names that appear in the text above.
 9. Keep every portal address (https://...) exactly as written.
 10. Do not use placeholder brackets like [SYSTEM].
@@ -304,7 +313,13 @@ RULES (all mandatory):
 13. Include a step that verifies the result and states what a pass looks like on screen.
 14. Include a step that says: if the check fails, set the control to Needs Work and create a POA&M item.
 15. End with steps that capture the evidence and finish on Capture & Upload.
-${requireNaming ? '16. When a step creates a new policy, rule, profile, group, or written procedure, tell the technician to use the exact name shown in the Policy and configuration names panel, in the format CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD. Include the literal text CompanyName_ in that step.' : ''}
+16. Use 8 to 20 steps when possible. Never return fewer than 6 or more than 24 steps.
+17. Define an acronym in plain words the first time it appears. Use the acronym alone only after that.
+18. Before a change can interrupt access or service, state what the change affects and tell the user to confirm an approved maintenance window.
+19. State the account role or permission needed to open each external administration page.
+20. For the generic variant, use vendor-neutral terms. Do not name Microsoft, M365, Entra, Intune, Azure, Defender, Purview, SharePoint, Exchange, Teams, or OneDrive.
+21. Do not repeat a step or restate the same confirmation in different words.
+${requireNaming ? '22. When a step creates a new policy, rule, profile, group, or written procedure, tell the technician to use the exact name shown in the Policy and configuration names panel, in the format CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD. Include the literal text CompanyName_ in that step.' : ''}
 ${previousFailures?.length ? `\nYOUR PREVIOUS ATTEMPT WAS REJECTED. Fix exactly these problems:\n- ${previousFailures.join('\n- ')}` : ''}
 
 Return JSON only: { "steps": ["...", "..."] }`;
