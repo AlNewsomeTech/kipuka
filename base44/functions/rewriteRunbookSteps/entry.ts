@@ -58,6 +58,7 @@ async function rewriteVariant(base44: any, record: any, variantKey: string) {
 
     lastFailures = validateRewrite(sourceSteps, steps, {
       requireNaming,
+      variantKey,
       allowedNavSource: [
         String(variant?.where_to_go?.name || ''),
         String(variant?.setting_to_change || ''),
