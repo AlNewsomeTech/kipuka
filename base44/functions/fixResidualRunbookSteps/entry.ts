@@ -99,7 +99,7 @@ export default async function (req) {
 
         // B) exact generic step replacements
         if (variantName === 'generic' && Array.isArray(variant.steps)) {
-          const newSteps = variant.steps.map((s) => GENERIC_STEP_FIXES[String(s)] ?? s);
+          const newSteps = variant.steps.map((s) => STEP_FIXES[String(s)] ?? s);
           const changedIdx = variant.steps
             .map((s, i) => (String(s) !== String(newSteps[i]) ? i + 1 : null))
             .filter((n) => n !== null);
