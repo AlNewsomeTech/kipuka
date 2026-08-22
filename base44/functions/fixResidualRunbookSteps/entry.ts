@@ -65,6 +65,13 @@ export default async function (req) {
 
     const body = await req.json().catch(() => ({}));
     const apply = body.mode === 'apply';
+    // Microsoft 365 Commercial is the recommended baseline for every client, so
+    // the generic variants keep Microsoft product names. This direction
+    // reverse-applies the neutral-wording map to restore the Microsoft text.
+    const microsoftFirst = body.direction === 'microsoft_first';
+    const STEP_FIXES = microsoftFirst
+      ? Object.fromEntries(Object.entries(GENERIC_STEP_FIXES).map(([a, b]) => [b, a]))
+      : GENERIC_STEP_FIXES;
 
     const controls = await base44.asServiceRole.entities.ControlLibrary.filter(
       { active: true, framework: 'CMMC' },

@@ -5,11 +5,13 @@
 // actions needed to complete, check, and document the work. These rules are
 // enforced on the model output before any stored record is changed.
 
-export const MIGRATION_KEY = 'RUNBOOK-CLARITY-STE-V6-MICROSOFT-FIRST';
-export const REWRITE_VERSION = 6;
+export const MIGRATION_KEY = 'RUNBOOK-CLARITY-STE-V5-NONTECHNICAL';
+export const REWRITE_VERSION = 5;
 export const MAX_WORDS_PER_STEP = 26;
 export const MIN_STEPS = 6;
 export const MAX_STEPS = 24;
+
+const GENERIC_VENDOR_TERMS = /\b(?:Microsoft|M365|Entra|Intune|Azure|Defender|Purview|SharePoint|Exchange|Teams|OneDrive)\b/i;
 
 export const URL_RE = /https?:\/\/[^\s)"']+/g;
 
@@ -139,7 +141,14 @@ export function normalizeModelSteps(steps: string[]): string[] {
     const halves = text.split(/;\s*/).map((h) => h.trim()).filter(Boolean);
     const splittable = halves.length > 1 && halves.every((h) => h.split(/\s+/).length >= 3);
     for (const piece of splittable ? halves : [text]) {
-      out.push(/[.!?]$/.test(piece) ? piece : `${piece}.`);
+      // The standard failure template joins two actions ("set to Needs Work
+      // and create a POA&M item..."). Split it deterministically so the fixed
+      // wording always passes the per-step word limit.
+      const poam = piece.match(/^(.*?Needs Work)(?:\s+in this CMMC project)?,? and create (?:a |an )?(.*POA&M.*)$/i);
+      const pieces = poam ? [poam[1], `Create a ${poam[2]}`] : [piece];
+      for (const part of pieces) {
+        out.push(/[.!?]$/.test(part) ? part : `${part}.`);
+      }
     }
   }
   return out;
@@ -209,7 +218,11 @@ export function requiresNaming(variant: any): boolean {
 
 function navSegments(step: string): string[] {
   const found: string[] = [];
-  for (const match of String(step || '').matchAll(NAV_VERB_RE)) {
+  // Scan each sentence on its own so a captured menu name never bleeds past
+  // a sentence boundary ("go to Policies. Confirm..." must yield "Policies",
+  // not "Policies. Confirm").
+  for (const sentence of String(step || '').split(/(?<=[.!?])\s+/))
+  for (const match of sentence.matchAll(NAV_VERB_RE)) {
     for (const part of match[1].split('>')) {
       const seg = part.trim().replace(/[.,:;]+$/, '');
       if (seg) found.push(seg);
@@ -234,6 +247,9 @@ export function validateRewrite(
 
   const newText = newSteps.join('\n');
   const newLower = newText.toLowerCase();
+  if (opts.variantKey === 'generic' && GENERIC_VENDOR_TERMS.test(newText)) {
+    failures.push('generic instructions contain vendor-specific product names');
+  }
   if (new Set(newSteps.map((step) => step.toLowerCase().replace(/\W+/g, ' ').trim())).size !== newSteps.length) {
     failures.push('duplicate steps');
   }
@@ -319,11 +335,9 @@ RULES (all mandatory):
 17. Define an acronym in plain words the first time it appears. Use the acronym alone only after that.
 18. Before a change can interrupt access or service, state what the change affects and tell the user to confirm an approved maintenance window.
 19. State the account role or permission needed to open each external administration page.
-20. Use Microsoft 365 Commercial as the recommended implementation baseline for every variant, including the fallback variant.
-21. Name the exact Microsoft admin center, page, menu path, required role, and setting when the source provides them.
-22. Prefer Entra, Intune, Defender, Purview, SharePoint, Exchange, Teams, and OneDrive controls over vendor-neutral substitutes.
-23. Do not repeat a step or restate the same confirmation in different words.
-${requireNaming ? '24. When a step creates a new policy, rule, profile, group, or written procedure, tell the technician to use the exact name shown in the Policy and configuration names panel, in the format CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD. Include the literal text CompanyName_ in that step.' : ''}
+20. For the generic variant, use vendor-neutral terms. Do not name Microsoft, M365, Entra, Intune, Azure, Defender, Purview, SharePoint, Exchange, Teams, or OneDrive.
+21. Do not repeat a step or restate the same confirmation in different words.
+${requireNaming ? '22. When a step creates a new policy, rule, profile, group, or written procedure, tell the technician to use the exact name shown in the Policy and configuration names panel, in the format CompanyName_PolicyType_CONTROLID_ControlLocation_YYYY-MM-DD. Include the literal text CompanyName_ in that step.' : ''}
 ${previousFailures?.length ? `\nYOUR PREVIOUS ATTEMPT WAS REJECTED. Fix exactly these problems:\n- ${previousFailures.join('\n- ')}` : ''}
 
 Return JSON only: { "steps": ["...", "..."] }`;
