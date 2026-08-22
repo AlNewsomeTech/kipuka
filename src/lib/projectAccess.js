@@ -8,7 +8,7 @@ import { isReadOnly } from '@/lib/orgRoles';
 export function visibleProjects(projects, { orgRole, isPlatformAdmin, selectedOrgId, userEmail, supportOrgIds = [] }) {
   if (isPlatformAdmin || orgRole === 'Pac-Sec Admin') return projects;
 
-  if (orgRole === 'Pac-Sec Support') {
+  if (orgRole === 'Pac-Sec Support' || supportOrgIds.length > 0) {
     const emailLower = (userEmail || '').toLowerCase();
     return projects.filter((p) =>
       supportOrgIds.includes(p.organization_id) ||
