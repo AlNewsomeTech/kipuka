@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
-const TARGET_VERSION = 5;
+const TARGET_VERSION = 6;
 const CONCURRENCY = 12;
 
 function needsRewrite(control) {
@@ -73,7 +73,7 @@ export default function RunbookClarityMigration() {
   return (
     <div className="mx-auto max-w-3xl p-8 space-y-5">
       <h1 className="text-2xl font-bold text-slate-900">Runbook clarity migration</h1>
-      <p className="text-sm text-slate-600">Rewriting every active guided control for a non-technical reader. Keep this page open until it finishes.</p>
+      <p className="text-sm text-slate-600">Rewriting every active guided control for a non-technical reader using the Microsoft 365 Commercial baseline. Keep this page open until it finishes.</p>
       <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-3">
         <div className="flex justify-between text-sm font-semibold text-slate-700"><span>{status.phase}</span><span>{percent}%</span></div>
         <div className="h-3 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-emerald-500 transition-all" style={{ width: `${percent}%` }} /></div>
