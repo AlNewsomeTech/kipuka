@@ -151,7 +151,15 @@ export function normalizeModelSteps(steps: string[]): string[] {
       }
     }
   }
-  return out;
+  // Drop exact repeats (rule: never restate the same instruction). Keeping the
+  // first occurrence never changes meaning.
+  const seen = new Set<string>();
+  return out.filter((step) => {
+    const key = step.toLowerCase().replace(/\W+/g, ' ').trim();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export function stepIssues(step: string): string[] {
@@ -255,7 +263,10 @@ export function validateRewrite(
   }
 
   // Every portal URL in the source must survive the rewrite.
-  const sourceUrls = new Set(sourceSteps.join('\n').match(URL_RE) || []);
+  // Trailing sentence punctuation is not part of the address.
+  const sourceUrls = new Set(
+    (sourceSteps.join('\n').match(URL_RE) || []).map((u) => u.replace(/[.,;:]+$/, '')),
+  );
   for (const url of sourceUrls) {
     if (!newText.includes(url)) failures.push(`dropped portal address: ${url}`);
   }
