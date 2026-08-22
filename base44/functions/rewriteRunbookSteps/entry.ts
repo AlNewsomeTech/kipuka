@@ -109,7 +109,10 @@ Deno.serve(async (req) => {
     );
     const pending = controls
       .filter((c: any) => (body.control_id ? c.control_id === body.control_id : true))
-      .map((c: any) => ({ record: c, variants: pendingVariants(c) }))
+      .map((c: any) => ({
+        record: c,
+        variants: pendingVariants(c).filter((variantKey) => body.variant ? variantKey === body.variant : true),
+      }))
       .filter((c: any) => c.variants.length > 0);
 
     const batch = pending.slice(0, limit);
