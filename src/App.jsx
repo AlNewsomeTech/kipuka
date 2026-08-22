@@ -48,6 +48,7 @@ import AIAssistant from '@/pages/AIAssistant';
 import TermsAndConditions from '@/pages/TermsAndConditions';
 import SaaSAdmin from '@/pages/SaaSAdmin';
 import ControlLibraryAdmin from '@/pages/ControlLibraryAdmin';
+import RunbookClarityMigration from '@/pages/RunbookClarityMigration';
 import BrandingSettings from '@/pages/BrandingSettings';
 import PolicyLibraryAdmin from '@/pages/PolicyLibraryAdmin';
 import OrgSettings from '@/pages/OrgSettings';
@@ -190,6 +191,7 @@ const AuthenticatedApp = () => {
           <Route path="/saas-admin" element={<SaaSAdmin />} />
           <Route path="/demo-workspace" element={<DemoWorkspace />} />
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
+          <Route path="/runbook-clarity-migration" element={<RunbookClarityMigration />} />
           <Route path="/branding" element={<BrandingSettings />} />
           <Route path="/policy-library" element={<PolicyLibraryAdmin />} />
           <Route path="/blog-admin" element={<BlogAdminErrorBoundary><BlogAdmin /></BlogAdminErrorBoundary>} />
