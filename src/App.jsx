@@ -191,7 +191,7 @@ const AuthenticatedApp = () => {
           <Route path="/saas-admin" element={<SaaSAdmin />} />
           <Route path="/demo-workspace" element={<DemoWorkspace />} />
           <Route path="/control-library" element={<ControlLibraryAdmin />} />
-          <Route path="/runbook-clarity-migration" element={<RunbookClarityMigration />} />
+          <Route path="/runbook-clarity-migration" element={<RunbookClarityMigration key="v5-12-worker-restart" />} />
           <Route path="/branding" element={<BrandingSettings />} />
           <Route path="/policy-library" element={<PolicyLibraryAdmin />} />
           <Route path="/blog-admin" element={<BlogAdminErrorBoundary><BlogAdmin /></BlogAdminErrorBoundary>} />
