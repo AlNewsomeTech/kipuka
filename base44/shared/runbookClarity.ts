@@ -158,9 +158,16 @@ export function stepIssues(step: string): string[] {
   // quote would change the requirement, so only the instruction before the
   // colon is measured.
   const measured = text.includes(': ') ? text.split(': ')[0] : text;
-  const commas = (measured.match(/,/g) || []).length;
-  const limit = commas >= 4 ? 42 : MAX_WORDS_PER_STEP;
-  if (words(measured) > limit) issues.push(`over ${limit} words`);
+  // The display layer (splitInstructions) shows each sentence as its own
+  // instruction line, so the limit applies per sentence, not per stored step.
+  for (const sentence of measured.split(/(?<=[.!?])\s+/)) {
+    const commas = (sentence.match(/,/g) || []).length;
+    const limit = commas >= 4 ? 42 : MAX_WORDS_PER_STEP;
+    if (words(sentence) > limit) {
+      issues.push(`over ${limit} words`);
+      break;
+    }
+  }
 
   const lower = text.toLowerCase();
   const withoutUrls = text.replace(URL_RE, ' ');
