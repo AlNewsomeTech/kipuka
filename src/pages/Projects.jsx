@@ -13,7 +13,7 @@ import EmptyState from '@/components/EmptyState';
 export default function Projects() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { selectedOrgId, selectedOrg, orgRole, isPlatformAdmin, memberships, organizations, can } = useOrg();
+  const { selectedOrgId, selectedOrg, selectOrg, orgRole, isPlatformAdmin, memberships, organizations, can } = useOrg();
   const [projects, setProjects] = useState([]);
   const [readinessById, setReadinessById] = useState({});
   const [loading, setLoading] = useState(true);
@@ -90,7 +90,7 @@ export default function Projects() {
             return (
             <button
               key={p.id}
-              onClick={() => navigate(`/projects/${p.id}`)}
+              onClick={() => { selectOrg(p.organization_id); navigate(`/projects/${p.id}`); }}
               className="app-surface app-surface-interactive overflow-hidden p-5 text-left"
             >
               <div className="flex items-center justify-between mb-3">
