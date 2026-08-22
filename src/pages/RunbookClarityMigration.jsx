@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 
 const TARGET_VERSION = 5;
-const CONCURRENCY = 4;
+const CONCURRENCY = 12;
 
 function needsRewrite(control) {
   return Object.values(control?.how_to_implement || {}).some(
