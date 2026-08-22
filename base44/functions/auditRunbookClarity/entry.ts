@@ -6,6 +6,9 @@ const FORBIDDEN_NAVIGATION = [
   'kipuka training records',
 ];
 
+const MAX_STEPS = 24;
+const GENERIC_VENDOR_TERMS = /\b(?:microsoft|m365|entra|intune|azure|defender|purview|sharepoint|exchange|teams|onedrive)\b/i;
+
 const BLOCKED_BOILERPLATE = [
   'create or approve the exact matrix',
   'configure or perform the control',
@@ -40,7 +43,13 @@ function auditVariant(controlId, variantName, variant) {
   )) {
     structural.push('external Microsoft portal and internal CMMC project destination mixed in one step');
   }
-  if (steps.length < 5) structural.push('fewer than five implementation steps');
+  if (steps.length < 6) structural.push('fewer than six implementation steps');
+  if (steps.length > MAX_STEPS) structural.push(`more than ${MAX_STEPS} implementation steps`);
+  if (variantName === 'generic' && GENERIC_VENDOR_TERMS.test(text)) {
+    structural.push('generic instructions contain vendor-specific product names');
+  }
+  const normalizedSteps = steps.map((step) => String(step).toLowerCase().replace(/\W+/g, ' ').trim());
+  if (new Set(normalizedSteps).size !== normalizedSteps.length) structural.push('duplicate implementation steps');
   if (!steps.some((step) => /(sign in|open |select |click |go to |under |left menu|navigation)/i.test(String(step)))) {
     structural.push('no navigation action');
   }
@@ -78,7 +87,7 @@ Deno.serve(async (req) => {
     }
 
     const controls = await base44.asServiceRole.entities.ControlLibrary.filter(
-      { active: true, framework: 'CMMC', cmmc_level: 'Level 2' },
+      { active: true, framework: 'CMMC' },
       'sort_order',
       500,
     );
