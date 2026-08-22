@@ -47,7 +47,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
       {fellBack && (
         <div className="flex items-start gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-[13px] text-amber-800">
           <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          Specific instructions for that environment aren't available yet — showing the generic steps that work anywhere.
+          Specific instructions for that Microsoft environment are not available yet. These steps use the Microsoft 365 Commercial recommended baseline.
         </div>
       )}
 
