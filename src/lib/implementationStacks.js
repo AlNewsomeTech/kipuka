@@ -6,7 +6,7 @@ export const STACK_VARIANTS = [
   { key: 'm365_gcc', label: 'Microsoft 365 GCC' },
   { key: 'm365_gcc_high', label: 'Microsoft 365 GCC High' },
   { key: 'google_workspace', label: 'Google Workspace' },
-  { key: 'generic', label: 'Generic (any environment)' },
+  { key: 'generic', label: 'Microsoft 365 Recommended Baseline' },
 ];
 
 // Map a Project.implementation_stack enum value to a how_to_implement variant key.
@@ -36,5 +36,5 @@ export function resolveVariant(libEntry, requestedKey) {
 }
 
 export function stackLabel(key) {
-  return STACK_VARIANTS.find((v) => v.key === key)?.label || 'Generic';
+  return STACK_VARIANTS.find((v) => v.key === key)?.label || 'Microsoft 365 Recommended Baseline';
 }
