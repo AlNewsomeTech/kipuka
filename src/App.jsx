@@ -27,6 +27,7 @@ import ProjectWorkspace from '@/pages/ProjectWorkspace';
 import ProjectDashboard from '@/pages/project/ProjectDashboard';
 import ProjectModulePage from '@/pages/project/ProjectModulePage';
 import GuidedWalkthrough from '@/pages/project/GuidedWalkthrough';
+import PolicyWorkflowPage from '@/pages/project/PolicyWorkflowPage';
 import GuidedQueue from '@/pages/project/GuidedQueue';
 import '@/lib/externalLinks'; // force all external links to open in a new tab
 import ClientIntake from '@/pages/ClientIntake';
@@ -143,6 +144,7 @@ const AuthenticatedApp = () => {
           <Route path="scoping" element={<ProjectModulePage moduleKey="scoping" />} />
           <Route path="inventory" element={<ProjectModulePage moduleKey="inventory" />} />
           <Route path="assessment" element={<ProjectModulePage moduleKey="assessment" />} />
+          <Route path="implementation-approval" element={<PolicyWorkflowPage />} />
           <Route path="microsoft" element={<ProjectModulePage moduleKey="microsoft" />} />
           <Route path="evidence" element={<ProjectModulePage moduleKey="evidence" />} />
           <Route path="readiness" element={<ProjectModulePage moduleKey="readiness" />} />
