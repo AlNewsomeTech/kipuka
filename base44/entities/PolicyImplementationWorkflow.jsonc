@@ -1,0 +1,180 @@
+{
+  "name": "PolicyImplementationWorkflow",
+  "type": "object",
+  "description": "Role-neutral, tenant-scoped approval workflow for CMMC policy and configuration implementation.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "control_id": {
+      "type": "string"
+    },
+    "control_title": {
+      "type": "string"
+    },
+    "implementation_system": {
+      "type": "string"
+    },
+    "task_title": {
+      "type": "string"
+    },
+    "draft_policy_configuration": {
+      "type": "string"
+    },
+    "business_rationale": {
+      "type": "string"
+    },
+    "affected_systems_users": {
+      "type": "string"
+    },
+    "implementation_risk": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Moderate",
+        "High",
+        "Critical"
+      ],
+      "default": "Moderate"
+    },
+    "assignment_plan": {
+      "type": "string"
+    },
+    "evidence_requirements": {
+      "type": "string"
+    },
+    "evidence_safety_note": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Review Requested",
+        "Approved for Assignment",
+        "Assigned/Implemented",
+        "Evidence Required",
+        "Evidence Submitted",
+        "Evidence Accepted",
+        "Changes Required"
+      ],
+      "default": "Draft"
+    },
+    "creator_user_id": {
+      "type": "string"
+    },
+    "creator_email": {
+      "type": "string"
+    },
+    "creator_name": {
+      "type": "string"
+    },
+    "submitted_by_user_id": {
+      "type": "string"
+    },
+    "submitted_by_email": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_by_user_id": {
+      "type": "string"
+    },
+    "approved_by_email": {
+      "type": "string"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "assigned_by_user_id": {
+      "type": "string"
+    },
+    "assigned_by_email": {
+      "type": "string"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_uploaded_by_user_id": {
+      "type": "string"
+    },
+    "evidence_uploaded_by_email": {
+      "type": "string"
+    },
+    "evidence_submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_accepted_by_user_id": {
+      "type": "string"
+    },
+    "evidence_accepted_by_email": {
+      "type": "string"
+    },
+    "evidence_accepted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "linked_evidence_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "review_comments": {
+      "type": "string"
+    },
+    "change_request_comments": {
+      "type": "string"
+    },
+    "training_metadata": {
+      "type": "object",
+      "default": {}
+    },
+    "last_transition_id": {
+      "type": "string"
+    },
+    "last_action": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "control_id",
+    "task_title",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
