@@ -70,7 +70,9 @@ export default function PolicyWorkflowPage() {
       base44.entities.ProjectEvidence.filter({ project_id: project.id }, '-uploaded_date', 500).catch(() => []),
     ]);
     const payload = unwrap(workflowResponse);
-    const projectControls = library.filter((row) => !project.target_cmmc_level || row.cmmc_level === project.target_cmmc_level);
+    const eligibleControls = library.filter((row) => !project.target_cmmc_level || row.cmmc_level === project.target_cmmc_level);
+    const projectControls = [...new Map(eligibleControls.map((row) => [row.control_id, row])).values()]
+      .sort((left, right) => Number(left.sort_order || 0) - Number(right.sort_order || 0));
     setWorkflows(payload.workflows || []);
     setEvents(payload.events || []);
     setSettings(payload.settings || null);
