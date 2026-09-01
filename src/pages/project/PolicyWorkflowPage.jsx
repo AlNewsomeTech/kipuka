@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { AlertTriangle, CheckCircle2, ChevronDown, ChevronUp, ClipboardCheck, FileImage, History, Loader2, Plus, Save, Settings2, ShieldCheck, Upload } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, ClipboardCheck, FileImage, History, Loader2, Plus, Save, Settings2, ShieldCheck, Upload } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
 
