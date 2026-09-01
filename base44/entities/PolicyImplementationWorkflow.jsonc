@@ -147,6 +147,12 @@
     },
     "last_action": {
       "type": "string"
+    },
+    "last_transition_from_status": {
+      "type": "string"
+    },
+    "last_transition_to_status": {
+      "type": "string"
     }
   },
   "required": [
