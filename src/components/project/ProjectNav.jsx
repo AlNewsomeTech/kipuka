@@ -9,7 +9,7 @@ const ADVANCED_KEY = 'projectNavAdvanced';
 
 const MODULE_GROUPS = [
   { label: 'Overview', keys: ['dashboard'] },
-  { label: 'Implement', keys: ['scoping', 'assessment', 'microsoft', 'security-tooling', 'evidence', 'readiness'] },
+  { label: 'Implement', keys: ['scoping', 'assessment', 'implementation-approval', 'microsoft', 'security-tooling', 'evidence', 'readiness'] },
   { label: 'Validate', keys: ['mock', 'poam', 'inventory', 'diagrams', 'srm', 'incident'] },
   { label: 'Deliver', keys: ['ssp', 'policies', 'reports', 'sprs', 'maintenance'] },
 ];
