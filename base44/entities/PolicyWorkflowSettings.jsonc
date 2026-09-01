@@ -1,0 +1,57 @@
+{
+  "name": "PolicyWorkflowSettings",
+  "type": "object",
+  "description": "Tenant-specific role mapping and separation-of-duties settings for policy/configuration workflows.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "training_metadata_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "enforce_creator_approver_separation": {
+      "type": "boolean",
+      "default": true
+    },
+    "enforce_creator_evidence_acceptor_separation": {
+      "type": "boolean",
+      "default": true
+    },
+    "role_permissions": {
+      "type": "object",
+      "default": {}
+    },
+    "updated_by_email": {
+      "type": "string"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
