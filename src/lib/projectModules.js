@@ -2,7 +2,7 @@
 import {
   LayoutDashboard, Crosshair, Boxes, ClipboardCheck, ListChecks, FileStack,
   AlertTriangle, ScrollText, BadgeCheck, BarChart3, Wrench, ShieldHalf,
-  Network, Share2, Siren, Gavel, Rocket, CloudCog,
+  Network, Share2, Siren, Gavel, Rocket, CloudCog, GitPullRequest,
 } from 'lucide-react';
 
 // Modules rendered in the per-project left navigation.
@@ -13,6 +13,7 @@ export const PROJECT_MODULES = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, read: true },
   { key: 'scoping', label: 'Preliminary Scope', icon: Crosshair, read: false },
   { key: 'assessment', label: 'Control Implementation', icon: ClipboardCheck, read: false },
+  { key: 'implementation-approval', label: 'Implementation Approval', icon: GitPullRequest, read: false },
   // Optional Microsoft Graph deployment — only visible when the organization
   // entitlement flag is true (filtered in ProjectNav). Default hidden.
   { key: 'microsoft', label: 'Microsoft 365 Deployment', icon: CloudCog, read: false, orgFlag: 'microsoft_graph_deployment_enabled' },
@@ -42,6 +43,7 @@ export function moduleByKey(key) {
 export const CLIENT_NAV_GROUPS = [
   { key: 'dashboard', label: 'Guided Setup', icon: Rocket },
   { key: 'assessment', label: 'My Controls', icon: ClipboardCheck },
+  { key: 'implementation-approval', label: 'Implementation Approval', icon: GitPullRequest },
   { key: 'evidence', label: 'Evidence', icon: ListChecks },
   { key: 'poam', label: 'POA&M (Gaps)', icon: AlertTriangle },
   { key: 'policies', label: 'Policies', icon: ScrollText },
