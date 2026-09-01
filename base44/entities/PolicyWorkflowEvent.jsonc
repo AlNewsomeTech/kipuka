@@ -1,0 +1,76 @@
+{
+  "name": "PolicyWorkflowEvent",
+  "type": "object",
+  "description": "Immutable audit event for a policy/configuration approval workflow transition.",
+  "properties": {
+    "organization_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "workflow_id": {
+      "type": "string"
+    },
+    "transition_id": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "from_status": {
+      "type": "string"
+    },
+    "to_status": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string"
+    },
+    "actor_email": {
+      "type": "string"
+    },
+    "actor_name": {
+      "type": "string"
+    },
+    "actor_role": {
+      "type": "string"
+    },
+    "comments": {
+      "type": "string"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "organization_id",
+    "project_id",
+    "workflow_id",
+    "transition_id",
+    "action",
+    "event_date"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "write": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    }
+  }
+}
