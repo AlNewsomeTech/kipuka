@@ -50,26 +50,29 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
       )}
 
       {variant.outcome && (
-        <GuideSection index={i++} tone="brand" icon={Target} kicker="What you will finish" lead={cleanWorkspaceCopy(variant.outcome)} />
+        <GuideSection index={i++} tone="brand" icon={Target} kicker="What you will finish" lead={cleanWorkspaceCopy(variant.outcome)} center />
       )}
 
-      {variant.responsible_role && (
-        <GuideSection index={i++} icon={UserRound} kicker="Who should do this" lead={cleanWorkspaceCopy(variant.responsible_role)} />
+      {(variant.responsible_role || variant.where_to_go?.name) && (
+        <div className="grid gap-5 md:grid-cols-2">
+          {variant.responsible_role && (
+            <GuideSection index={i++} icon={UserRound} kicker="Who should do this" lead={cleanWorkspaceCopy(variant.responsible_role)} />
+          )}
+          {variant.where_to_go?.name && (
+            <GuideSection index={i++} icon={MapPin} kicker="Where to go" title={cleanWorkspaceCopy(variant.where_to_go.name)}>
+              {variant.where_to_go.url && (
+                <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
+                  Open <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </GuideSection>
+          )}
+        </div>
       )}
 
       {Array.isArray(variant.before_you_start) && variant.before_you_start.length > 0 && (
         <GuideSection index={i++} icon={ListChecks} kicker="Before you start">
           <GuideList items={variant.before_you_start.map(cleanWorkspaceCopy)} />
-        </GuideSection>
-      )}
-
-      {variant.where_to_go?.name && (
-        <GuideSection index={i++} icon={MapPin} kicker="Where to go" title={cleanWorkspaceCopy(variant.where_to_go.name)}>
-          {variant.where_to_go.url && (
-            <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
-              Open <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          )}
         </GuideSection>
       )}
 

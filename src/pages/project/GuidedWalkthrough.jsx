@@ -12,7 +12,8 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilePlan } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
-import GuidedHero from '@/components/guided/GuidedHero';
+import GuidedHero, { STEP_LABELS } from '@/components/guided/GuidedHero';
+import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
 import StepDo from '@/components/guided/StepDo';
 import StepCapture from '@/components/guided/StepCapture';
@@ -327,15 +328,20 @@ export default function GuidedWalkthrough() {
         <ChevronLeft className="w-4 h-4" /> All controls
       </Link>
 
-      {/* Header */}
+      {/* Hero */}
       <GuidedHero
         libEntry={libEntry}
         points={points}
         minutes={minutes}
         step={step}
-        completedSteps={completedSteps}
-        onJump={goToStep}
+        queuePosition={queueIndex >= 0 ? queueIndex : null}
+        queueLength={queue.length}
       />
+
+      {/* Sticky progress bar */}
+      <div className="sticky top-2 z-30 rounded-2xl border border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 py-3 shadow-sm">
+        <GuidedStepper current={step} completedSteps={completedSteps} onJump={goToStep} />
+      </div>
 
       {project.control_set_mode === 'CMMC + SCF' && (
         <ScfCrossReferencePanel controlId={controlId} compact />
@@ -399,25 +405,36 @@ export default function GuidedWalkthrough() {
         </div>
       )}
 
-      {/* Footer nav */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <button onClick={back} disabled={step === 1} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 disabled:opacity-40">
+      {/* CTA band */}
+      <div className="rounded-2xl bg-[#0F1E3C] p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-lg font-bold text-white leading-snug">
+            {step < 4 ? `Next up: ${STEP_LABELS[step + 1]}` : 'Final step — confirm the checks and finish'}
+          </p>
+          <p className="text-sm text-white/60 mt-1">Your place in this walkthrough saves as you go.</p>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <button onClick={back} disabled={step === 1} className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-sm font-semibold text-white/80 bg-white/10 hover:bg-white/20 disabled:opacity-40">
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           {step < 4 && (
-            <button onClick={advance} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52]">
-              Next <ArrowRight className="w-4 h-4" />
+            <button onClick={advance} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-bold text-[#0F1E3C] bg-white hover:bg-slate-100">
+              Continue <ArrowRight className="w-4 h-4" />
             </button>
           )}
         </div>
+      </div>
 
+      {/* Utility nav */}
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
           {!readOnly && (
             <button onClick={() => { setStuckOpen(!stuckOpen); setActionError(''); }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
               <HelpCircle className="w-4 h-4" /> I'm stuck
             </button>
           )}
+        </div>
+        <div className="flex items-center gap-2">
           <button onClick={() => goToControl(prevControl?.control_id)} disabled={!prevControl} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-40">
             <ChevronLeft className="w-4 h-4" /> Prev control
           </button>
