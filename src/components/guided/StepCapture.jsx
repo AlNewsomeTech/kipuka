@@ -1,26 +1,29 @@
 import { useState } from 'react';
-import {
-  Camera, Copy, Check, ExternalLink, Maximize2, MapPin, Monitor, Tags,
-} from 'lucide-react';
+import { Camera, Copy, Check, ExternalLink, Maximize2, MapPin, Monitor, Tags, SlidersHorizontal, FileCheck2 } from 'lucide-react';
 import { resolveVariant, stackLabel } from '@/lib/implementationStacks';
 import { EVIDENCE_FILENAME_FORMAT } from '@/lib/evidenceFilename';
 import { buildCaptureItems, CAPTURE_SAFETY_NOTE } from '@/lib/captureInstructions';
 import { buildPolicyNames, shouldShowPolicyNames } from '@/lib/policyNaming';
+import GuideSection from '@/components/guided/GuideSection';
+import GuideList from '@/components/guided/GuideList';
+import { PolicyNameChips } from '@/components/guided/PolicyNameList';
+import Reveal from '@/components/landing/Reveal';
 import StepUpload from '@/components/guided/StepUpload';
+
+const FULL_PAGE_ITEMS = [
+  'Tenant, system, or organization name',
+  'Complete policy or configuration name',
+  'Enabled or enforcement status',
+  'Configured values and settings',
+  'Assignments, scope, and exclusions',
+  'Date or other current-page context when available',
+];
 
 // Step 3 CAPTURE & UPLOAD. Repeats the relevant context from Do, gives explicit
 // full-page capture guidance, and keeps upload on the same page.
 export default function StepCapture({
-  project,
-  organization,
-  libEntry,
-  projectStackKey,
-  selectedStack,
-  suggestedFilename,
-  filenamePlan,
-  controlId,
-  readOnly,
-  onChanged,
+  project, organization, libEntry, projectStackKey, selectedStack,
+  suggestedFilename, filenamePlan, controlId, readOnly, onChanged,
 }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant, usedKey } = resolveVariant(libEntry, activeKey);
@@ -39,133 +42,99 @@ export default function StepCapture({
     });
   };
 
+  let i = 0;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0F1E3C] bg-slate-100 px-2.5 py-1 rounded-full w-fit">
         <Monitor className="w-3.5 h-3.5" /> Capture from: {stackLabel(usedKey)}
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-5">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Camera className="w-4 h-4 text-[#0F1E3C]" />
-            <h3 className="text-sm font-bold text-slate-800">Capture and upload evidence</h3>
-          </div>
-          <p className="text-sm text-slate-600 leading-relaxed">
-            Return to the policy or configuration page you used in Do. Confirm you are looking at the correct environment and record before taking the screenshot.
+      <GuideSection
+        index={i++}
+        tone="brand"
+        icon={Camera}
+        kicker="Capture and upload evidence"
+        lead="Return to the policy or configuration page you used in Do. Confirm you are looking at the correct environment and record before taking the screenshot."
+      />
+
+      {variant?.where_to_go?.name && (
+        <GuideSection index={i++} icon={MapPin} kicker="Evidence source to reopen" title={variant.where_to_go.name}>
+          {variant.where_to_go.url && (
+            <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
+              Open <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </GuideSection>
+      )}
+
+      {policyNames.length > 0 && (
+        <GuideSection index={i++} tone="accent" icon={Tags} kicker="New item name or existing item to open">
+          <PolicyNameChips names={policyNames} showFormat={false} />
+          <p className="mt-3 text-sm leading-relaxed text-violet-800">
+            Use the generated name only for a new item created today. If an approved item already existed, open it under its current name and record that exact existing name in the evidence.
           </p>
-        </div>
+        </GuideSection>
+      )}
 
-        {variant?.where_to_go?.name && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5" /> Evidence source to reopen
-            </div>
-            <div className="flex items-center gap-2 text-sm text-slate-800">
-              {variant.where_to_go.name}
-              {variant.where_to_go.url && (
-                <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs">
-                  Open <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+      {variant?.setting_to_change && (
+        <GuideSection index={i++} icon={SlidersHorizontal} kicker="Setting or decision from Do" lead={variant.setting_to_change} />
+      )}
 
-        {policyNames.length > 0 && (
-          <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
-            <div className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <Tags className="w-3.5 h-3.5" /> New item name or existing item to open
-            </div>
-            <div className="space-y-2">
-              {policyNames.map((name) => (
-                <div key={name.value}>
-                  <div className="text-[11px] font-semibold text-violet-700 mb-1">{name.label}</div>
-                  <div className="flex items-center gap-2 bg-slate-950 rounded-lg px-3 py-2">
-                    <code className="text-green-400 font-mono text-xs break-all flex-1">{name.value}</code>
-                    <button onClick={() => copy(name.value)} className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/80 hover:text-white flex-shrink-0">
-                      {copied === name.value ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copied === name.value ? 'Copied' : 'Copy'}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className="mt-2 text-[11px] leading-relaxed text-violet-800">
-              Use the generated name only for a new item created today. If an approved item already existed, open it under its current name and record that exact existing name in the evidence.
-            </p>
-          </div>
-        )}
+      <GuideSection
+        index={i++}
+        tone="info"
+        icon={Maximize2}
+        kicker="Full-page screenshot"
+        title="Take a full-page screenshot of the policy"
+        lead="Show the full browser page, not a tightly cropped setting. Expand the policy or configuration details so a reviewer can identify the record and understand how it is applied."
+      >
+        <GuideList items={FULL_PAGE_ITEMS} textClass="text-blue-950" markerClass="bg-blue-100 text-blue-800" className="sm:grid sm:grid-cols-2 sm:gap-x-6 sm:space-y-0 sm:gap-y-2.5" />
+        <p className="mt-5 text-sm font-semibold text-blue-900">
+          If the complete policy will not fit on one page, take multiple full-page screenshots with enough overlap to show they belong to the same record.
+        </p>
+      </GuideSection>
 
-        {variant?.setting_to_change && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setting or decision from Do</div>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{variant.setting_to_change}</p>
-          </div>
-        )}
-
-        <div className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4">
-          <div className="flex items-center gap-2 text-sm font-bold text-blue-950">
-            <Maximize2 className="w-4 h-4" /> Take a full-page screenshot of the policy
-          </div>
-          <p className="mt-2 text-[13px] leading-relaxed text-blue-950">
-            Show the full browser page, not a tightly cropped setting. Expand the policy or configuration details so a reviewer can identify the record and understand how it is applied.
-          </p>
-          <ul className="mt-3 grid gap-1.5 text-[13px] text-blue-950 sm:grid-cols-2">
-            <li>• Tenant, system, or organization name</li>
-            <li>• Complete policy or configuration name</li>
-            <li>• Enabled or enforcement status</li>
-            <li>• Configured values and settings</li>
-            <li>• Assignments, scope, and exclusions</li>
-            <li>• Date or other current-page context when available</li>
-          </ul>
-          <p className="mt-3 text-xs font-semibold text-blue-900">
-            If the complete policy will not fit on one page, take multiple full-page screenshots with enough overlap to show they belong to the same record.
-          </p>
-        </div>
-
-        <div>
-          <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Required proof</div>
-          <ol className="space-y-3">
-            {captureItems.map((item, index) => (
-              <li key={`${index}-${item.title}`} className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-3">
-                <span className="w-6 h-6 rounded-full bg-[#0F1E3C] text-white text-xs font-bold flex items-center justify-center flex-shrink-0">{index + 1}</span>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold text-slate-800">{item.title}</div>
-                  <p className="text-[13px] text-slate-600 leading-relaxed mt-1">{item.instructions}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900" role="note">
+      <GuideSection index={i++} icon={FileCheck2} kicker="Required proof">
+        <ol className="space-y-3">
+          {captureItems.map((item, index) => (
+            <li key={`${index}-${item.title}`} className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+              <span className="w-9 flex-shrink-0 text-3xl font-black tabular-nums leading-none text-slate-300 select-none">{String(index + 1).padStart(2, '0')}</span>
+              <div className="min-w-0">
+                <h3 className="text-base font-semibold text-slate-800 leading-snug">{item.title}</h3>
+                <p className="text-sm text-slate-600 leading-relaxed mt-1.5">{item.instructions}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs leading-relaxed text-amber-900" role="note">
           <span className="font-semibold">Before upload:</span> {CAPTURE_SAFETY_NOTE}
         </div>
-      </div>
+      </GuideSection>
 
-      <div className="bg-slate-900 rounded-xl p-5">
-        <div className="text-[10px] text-slate-400 uppercase tracking-wide mb-2">Name your file exactly like this</div>
+      <GuideSection index={i++} tone="dark" kicker="Name your file exactly like this">
         <div className="flex items-center gap-2 flex-wrap">
-          <code className="text-green-400 font-mono text-sm break-all flex-1">{filename}</code>
+          <code className="text-green-400 font-mono text-sm sm:text-base break-all flex-1">{filename}</code>
           <button onClick={() => copy(filename)} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 text-white hover:bg-white/20">
             {copied === filename ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
             {copied === filename ? 'Copied' : 'Copy filename'}
           </button>
         </div>
-        <p className="text-[11px] text-slate-400 mt-2">Format: {EVIDENCE_FILENAME_FORMAT}</p>
-      </div>
+        <p className="text-[11px] text-slate-400 mt-3">Format: {EVIDENCE_FILENAME_FORMAT}</p>
+      </GuideSection>
 
-      <StepUpload
-        project={project}
-        libEntry={libEntry}
-        variant={variant}
-        controlId={controlId}
-        suggestedFilename={suggestedFilename}
-        filenamePlan={filenamePlan}
-        readOnly={readOnly}
-        onChanged={onChanged}
-      />
+      <Reveal delay={Math.min(i * 0.06, 0.36)}>
+        <StepUpload
+          project={project}
+          libEntry={libEntry}
+          variant={variant}
+          controlId={controlId}
+          suggestedFilename={suggestedFilename}
+          filenamePlan={filenamePlan}
+          readOnly={readOnly}
+          onChanged={onChanged}
+        />
+      </Reveal>
     </div>
   );
 }

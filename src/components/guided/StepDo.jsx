@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks, Copy, Check, Tags } from 'lucide-react';
+import { Wrench, ExternalLink, AlertTriangle, UserRound, ClipboardCheck, ListChecks, Tags, MapPin, Target, SlidersHorizontal, ListOrdered, ShieldAlert } from 'lucide-react';
 import { STACK_VARIANTS, resolveVariant, stackLabel } from '@/lib/implementationStacks';
-import { buildPolicyNames, POLICY_NAME_FORMAT, shouldShowPolicyNames } from '@/lib/policyNaming';
+import { buildPolicyNames, shouldShowPolicyNames } from '@/lib/policyNaming';
 import { cleanRunbookText as cleanWorkspaceCopy, splitInstructions } from '@/lib/steInstructions';
+import GuideSection from '@/components/guided/GuideSection';
+import GuideList from '@/components/guided/GuideList';
 import StepInstruction from '@/components/guided/StepInstruction';
+import { InlineRequiredNames, PolicyNameChips } from '@/components/guided/PolicyNameList';
 import AutomatedImplementationBanner from '@/components/guided/AutomatedImplementationBanner';
 
 // Step 2 DO — the how_to_implement variant matching the project stack, with a
@@ -23,8 +25,10 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
     return <div className="bg-white rounded-xl border border-slate-200 p-5 text-sm text-slate-500">No implementation instructions are available for this control yet.</div>;
   }
 
+  let i = 0;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <AutomatedImplementationBanner organization={organization} project={project} controlId={libEntry?.control_id} />
       <div className="flex items-center justify-between flex-wrap gap-2">
         <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0F1E3C] bg-slate-100 px-2.5 py-1 rounded-full">
@@ -32,14 +36,8 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         </span>
         <label className="flex items-center gap-2 text-xs text-slate-500">
           View another environment:
-          <select
-            className="form-input text-xs py-1 w-auto"
-            value={selectorValue || ''}
-            onChange={(e) => onSelectStack(e.target.value)}
-          >
-            {availableVariants.map((v) => (
-              <option key={v.key} value={v.key}>{v.label}</option>
-            ))}
+          <select className="form-input text-xs py-1 w-auto" value={selectorValue || ''} onChange={(e) => onSelectStack(e.target.value)}>
+            {availableVariants.map((v) => <option key={v.key} value={v.key}>{v.label}</option>)}
           </select>
         </label>
       </div>
@@ -51,180 +49,72 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-5">
-        {variant.outcome && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <div className="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">What you will finish</div>
-            <p className="text-sm text-blue-950 leading-relaxed">{cleanWorkspaceCopy(variant.outcome)}</p>
-          </div>
-        )}
+      {variant.outcome && (
+        <GuideSection index={i++} tone="brand" icon={Target} kicker="What you will finish" lead={cleanWorkspaceCopy(variant.outcome)} />
+      )}
 
-        {variant.responsible_role && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1 flex items-center gap-1.5">
-              <UserRound className="w-3.5 h-3.5" /> Who should do this
-            </div>
-            <p className="text-sm text-slate-700 leading-relaxed">{cleanWorkspaceCopy(variant.responsible_role)}</p>
-          </div>
-        )}
+      {variant.responsible_role && (
+        <GuideSection index={i++} icon={UserRound} kicker="Who should do this" lead={cleanWorkspaceCopy(variant.responsible_role)} />
+      )}
 
-        {Array.isArray(variant.before_you_start) && variant.before_you_start.length > 0 && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <ListChecks className="w-3.5 h-3.5" /> Before you start
-            </div>
-            <ul className="space-y-1.5">
-              {variant.before_you_start.map((item, i) => (
-                <li key={i} className="text-sm text-slate-700 flex gap-2">
-                  <span className="text-slate-400">•</span><span>{cleanWorkspaceCopy(item)}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      {Array.isArray(variant.before_you_start) && variant.before_you_start.length > 0 && (
+        <GuideSection index={i++} icon={ListChecks} kicker="Before you start">
+          <GuideList items={variant.before_you_start.map(cleanWorkspaceCopy)} />
+        </GuideSection>
+      )}
 
-        {variant.where_to_go?.name && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Where to go</div>
-            <div className="flex items-center gap-2 text-sm text-slate-800">
-              {cleanWorkspaceCopy(variant.where_to_go.name)}
-              {variant.where_to_go.url && (
-                <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-blue-600 hover:underline text-xs">
-                  Open <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-          </div>
-        )}
+      {variant.where_to_go?.name && (
+        <GuideSection index={i++} icon={MapPin} kicker="Where to go" title={cleanWorkspaceCopy(variant.where_to_go.name)}>
+          {variant.where_to_go.url && (
+            <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
+              Open <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+          )}
+        </GuideSection>
+      )}
 
-        {policyNames.length > 0 && <PolicyNamingBlock names={policyNames} />}
+      {policyNames.length > 0 && (
+        <GuideSection
+          index={i++}
+          tone="accent"
+          icon={Tags}
+          kicker="Policy and configuration names"
+          lead="When a step tells you to create a new policy, rule, profile, query, group, account, or written procedure, use the exact suggested name below. Do not rename an existing approved item solely for this runbook. Record its current name in the evidence instead."
+        >
+          <PolicyNameChips names={policyNames} />
+        </GuideSection>
+      )}
 
-        {Array.isArray(variant.steps) && variant.steps.length > 0 && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Step-by-step</div>
-            <ol className="space-y-2">
-              {variant.steps.map((s, i) => {
-                const requiredNames = policyNames.filter((name) => name.stepIndexes?.includes(i));
-                return (
-                  <StepInstruction key={i} number={i + 1} instructions={splitInstructions(s)}>
-                    {requiredNames.length > 0 && <InlineRequiredNames names={requiredNames} />}
-                  </StepInstruction>
-                );
-              })}
-            </ol>
-          </div>
-        )}
+      {Array.isArray(variant.steps) && variant.steps.length > 0 && (
+        <GuideSection index={i++} icon={ListOrdered} kicker="Step-by-step">
+          <ol className="space-y-3">
+            {variant.steps.map((s, idx) => {
+              const requiredNames = policyNames.filter((name) => name.stepIndexes?.includes(idx));
+              return (
+                <StepInstruction key={idx} number={idx + 1} instructions={splitInstructions(s)}>
+                  {requiredNames.length > 0 && <InlineRequiredNames names={requiredNames} />}
+                </StepInstruction>
+              );
+            })}
+          </ol>
+        </GuideSection>
+      )}
 
-        {variant.setting_to_change && (
-          <div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Setting or decision to record</div>
-            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{cleanWorkspaceCopy(variant.setting_to_change)}</p>
-          </div>
-        )}
+      {variant.setting_to_change && (
+        <GuideSection index={i++} icon={SlidersHorizontal} kicker="Setting or decision to record" lead={cleanWorkspaceCopy(variant.setting_to_change)} />
+      )}
 
-        {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
-            <div className="text-xs font-semibold text-emerald-800 uppercase tracking-wide mb-2 flex items-center gap-1.5">
-              <ClipboardCheck className="w-3.5 h-3.5" /> Finish on Capture & Upload
-            </div>
-            <ol className="space-y-1.5">
-              {variant.kipuka_actions.map((item, i) => (
-                <li key={i} className="text-[13px] text-emerald-950 flex gap-2">
-                  <span className="font-bold">{i + 1}.</span><span>{cleanWorkspaceCopy(item)}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
+      {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
+        <GuideSection index={i++} tone="success" icon={ClipboardCheck} kicker="Finish on Capture & Upload">
+          <GuideList ordered items={variant.kipuka_actions.map(cleanWorkspaceCopy)} textClass="text-emerald-950" markerClass="bg-emerald-100 text-emerald-800" />
+        </GuideSection>
+      )}
 
-        {Array.isArray(variant.common_mistakes) && variant.common_mistakes.length > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <div className="text-xs font-semibold text-red-700 uppercase tracking-wide mb-1.5">Common mistakes to avoid</div>
-            <ul className="space-y-1">
-              {variant.common_mistakes.map((m, i) => (
-                <li key={i} className="text-[13px] text-red-800 flex gap-2"><span>•</span>{cleanWorkspaceCopy(m)}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function InlineRequiredNames({ names }) {
-  const [copied, setCopied] = useState('');
-
-  const copy = (value) => {
-    navigator.clipboard?.writeText(value).then(() => {
-      setCopied(value);
-      window.setTimeout(() => setCopied(''), 1600);
-    });
-  };
-
-  return (
-    <div className="mt-2 rounded-lg border border-violet-300 bg-violet-50 p-2.5">
-      <div className="text-[11px] font-bold uppercase tracking-wide text-violet-800 mb-1.5">
-        Required name for this step
-      </div>
-      <div className="space-y-1.5">
-        {names.map((name) => (
-          <div key={name.value}>
-            {names.length > 1 && <div className="text-[11px] font-semibold text-violet-700 mb-1">{name.label}</div>}
-            <div className="flex items-center gap-2 rounded-md bg-slate-950 px-2.5 py-2">
-              <code className="min-w-0 flex-1 break-all font-mono text-xs text-green-400">{name.value}</code>
-              <button
-                onClick={() => copy(name.value)}
-                className="inline-flex flex-shrink-0 items-center gap-1 text-[11px] font-semibold text-white/80 hover:text-white"
-              >
-                {copied === name.value ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied === name.value ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="mt-1.5 text-[11px] text-violet-800">For a new item, copy this exact value. If this step tells you to edit an existing approved item, keep its current name and record that name in the evidence.</p>
-    </div>
-  );
-}
-
-function PolicyNamingBlock({ names }) {
-  const [copied, setCopied] = useState('');
-
-  const copy = (value) => {
-    navigator.clipboard?.writeText(value).then(() => {
-      setCopied(value);
-      window.setTimeout(() => setCopied(''), 1600);
-    });
-  };
-
-  return (
-    <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
-      <div className="text-xs font-semibold text-violet-800 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
-        <Tags className="w-3.5 h-3.5" /> Policy and configuration names
-      </div>
-      <p className="text-[13px] text-violet-950 mb-2">
-        When a step tells you to create a new policy, rule, profile, query, group, account, or written procedure, use the exact suggested name below. Do not rename an existing approved item solely for this runbook. Record its current name in the evidence instead.
-      </p>
-      <div className="space-y-2">
-        {names.map((name) => (
-          <div key={name.value}>
-            <div className="text-[11px] font-semibold text-violet-700 mb-1">{name.label}</div>
-            <div className="flex items-center gap-2 bg-slate-950 rounded-lg px-3 py-2">
-              <code className="text-green-400 font-mono text-xs break-all flex-1">{name.value}</code>
-              <button
-                onClick={() => copy(name.value)}
-                className="inline-flex items-center gap-1 text-[11px] font-semibold text-white/80 hover:text-white flex-shrink-0"
-              >
-                {copied === name.value ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied === name.value ? 'Copied' : 'Copy'}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p className="text-[11px] text-violet-800 mt-2">Format: {POLICY_NAME_FORMAT}</p>
+      {Array.isArray(variant.common_mistakes) && variant.common_mistakes.length > 0 && (
+        <GuideSection index={i++} tone="danger" icon={ShieldAlert} kicker="Common mistakes to avoid">
+          <GuideList items={variant.common_mistakes.map(cleanWorkspaceCopy)} textClass="text-red-800" markerClass="bg-red-100 text-red-700" />
+        </GuideSection>
+      )}
     </div>
   );
 }

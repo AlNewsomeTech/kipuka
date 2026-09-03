@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  ArrowLeft, ArrowRight, ChevronLeft, Clock, Star, HelpCircle, Loader2, Layers,
+  ArrowLeft, ArrowRight, ChevronLeft, HelpCircle, Loader2, Layers,
 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useOrg } from '@/lib/orgContext';
@@ -12,7 +12,7 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilePlan } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
-import GuidedStepper from '@/components/guided/GuidedStepper';
+import GuidedHero from '@/components/guided/GuidedHero';
 import StepUnderstand from '@/components/guided/StepUnderstand';
 import StepDo from '@/components/guided/StepDo';
 import StepCapture from '@/components/guided/StepCapture';
@@ -321,36 +321,21 @@ export default function GuidedWalkthrough() {
   const goToControl = (cid) => cid && navigate(`/projects/${projectId}/guided/${cid}`);
 
   return (
-    <div className="space-y-4 max-w-4xl mx-auto">
+    <div className="space-y-5 max-w-4xl mx-auto">
       {/* Back to list */}
       <Link to={`/projects/${projectId}/assessment`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
         <ChevronLeft className="w-4 h-4" /> All controls
       </Link>
 
       {/* Header */}
-      <div className="bg-white rounded-xl border border-slate-200 p-5">
-        <div className="flex items-start justify-between flex-wrap gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-mono font-semibold text-slate-500">{libEntry.control_id}</span>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{libEntry.domain}</span>
-            </div>
-            <h1 className="text-lg font-bold text-slate-900 mt-1">{libEntry.control_title}</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">
-              <Star className="w-3.5 h-3.5" /> {points} SPRS {points === 1 ? 'point' : 'points'}
-            </span>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700">
-              <Clock className="w-3.5 h-3.5" /> ~{minutes} min walkthrough
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-5">
-          <GuidedStepper current={step} completedSteps={completedSteps} onJump={goToStep} />
-        </div>
-      </div>
+      <GuidedHero
+        libEntry={libEntry}
+        points={points}
+        minutes={minutes}
+        step={step}
+        completedSteps={completedSteps}
+        onJump={goToStep}
+      />
 
       {project.control_set_mode === 'CMMC + SCF' && (
         <ScfCrossReferencePanel controlId={controlId} compact />
