@@ -418,7 +418,7 @@ export default function GuidedWalkthrough() {
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           {step < 4 && (
-            <button onClick={advance} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-bold text-[#0F1E3C] bg-white hover:bg-slate-100">
+            <button onClick={advance} className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-lg text-sm font-bold text-neutral-950 bg-[#FAFAFA] hover:bg-[#E5E5E5]">
               Continue <ArrowRight className="w-4 h-4" />
             </button>
           )}
