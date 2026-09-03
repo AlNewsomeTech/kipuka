@@ -20,6 +20,7 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
   const policyNames = shouldShowPolicyNames(libEntry, variant)
     ? buildPolicyNames({ organization, project, libEntry, variant })
     : [];
+  const beforeYouStart = Array.isArray(variant?.before_you_start) ? variant.before_you_start : [];
 
   if (!variant) {
     return <div className="bg-white rounded-xl border border-slate-200 p-5 text-sm text-slate-500">No implementation instructions are available for this control yet.</div>;
@@ -70,22 +71,25 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         </div>
       )}
 
-      {Array.isArray(variant.before_you_start) && variant.before_you_start.length > 0 && (
-        <GuideSection index={i++} icon={ListChecks} kicker="Before you start">
-          <GuideList items={variant.before_you_start.map(cleanWorkspaceCopy)} />
-        </GuideSection>
-      )}
-
-      {policyNames.length > 0 && (
-        <GuideSection
-          index={i++}
-          tone="accent"
-          icon={Tags}
-          kicker="Policy and configuration names"
-          lead="When a step tells you to create a new policy, rule, profile, query, group, account, or written procedure, use the exact suggested name below. Do not rename an existing approved item solely for this runbook. Record its current name in the evidence instead."
-        >
-          <PolicyNameChips names={policyNames} />
-        </GuideSection>
+      {(beforeYouStart.length > 0 || policyNames.length > 0) && (
+        <div className="grid gap-5 md:grid-cols-2">
+          {beforeYouStart.length > 0 && (
+            <GuideSection index={i++} icon={ListChecks} kicker="Before you start">
+              <GuideList items={beforeYouStart.map(cleanWorkspaceCopy)} />
+            </GuideSection>
+          )}
+          {policyNames.length > 0 && (
+            <GuideSection
+              index={i++}
+              tone="accent"
+              icon={Tags}
+              kicker="Policy and configuration names"
+              lead="When a step tells you to create a new policy, rule, profile, query, group, account, or written procedure, use the exact suggested name below. Do not rename an existing approved item solely for this runbook. Record its current name in the evidence instead."
+            >
+              <PolicyNameChips names={policyNames} />
+            </GuideSection>
+          )}
+        </div>
       )}
 
       {Array.isArray(variant.steps) && variant.steps.length > 0 && (
@@ -107,16 +111,19 @@ export default function StepDo({ libEntry, project, organization, projectStackKe
         <GuideSection index={i++} icon={SlidersHorizontal} kicker="Setting or decision to record" lead={cleanWorkspaceCopy(variant.setting_to_change)} />
       )}
 
-      {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
-        <GuideSection index={i++} tone="success" icon={ClipboardCheck} kicker="Finish on Capture & Upload">
-          <GuideList ordered items={variant.kipuka_actions.map(cleanWorkspaceCopy)} textClass="text-emerald-950" markerClass="bg-emerald-100 text-emerald-800" />
-        </GuideSection>
-      )}
-
-      {Array.isArray(variant.common_mistakes) && variant.common_mistakes.length > 0 && (
-        <GuideSection index={i++} tone="danger" icon={ShieldAlert} kicker="Common mistakes to avoid">
-          <GuideList items={variant.common_mistakes.map(cleanWorkspaceCopy)} textClass="text-red-800" markerClass="bg-red-100 text-red-700" />
-        </GuideSection>
+      {((Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0) || (Array.isArray(variant.common_mistakes) && variant.common_mistakes.length > 0)) && (
+        <div className="grid gap-5 md:grid-cols-2">
+          {Array.isArray(variant.kipuka_actions) && variant.kipuka_actions.length > 0 && (
+            <GuideSection index={i++} tone="success" icon={ClipboardCheck} kicker="Finish on Capture & Upload">
+              <GuideList ordered items={variant.kipuka_actions.map(cleanWorkspaceCopy)} textClass="text-emerald-950" markerClass="bg-emerald-100 text-emerald-800" />
+            </GuideSection>
+          )}
+          {Array.isArray(variant.common_mistakes) && variant.common_mistakes.length > 0 && (
+            <GuideSection index={i++} tone="danger" icon={ShieldAlert} kicker="Common mistakes to avoid">
+              <GuideList items={variant.common_mistakes.map(cleanWorkspaceCopy)} textClass="text-red-800" markerClass="bg-red-100 text-red-700" />
+            </GuideSection>
+          )}
+        </div>
       )}
     </div>
   );

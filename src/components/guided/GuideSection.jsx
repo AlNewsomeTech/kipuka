@@ -16,8 +16,8 @@ const TONES = {
 export default function GuideSection({ index = 0, tone = 'default', icon: Icon, kicker, title, lead, center = false, children, className = '' }) {
   const t = TONES[tone] || TONES.default;
   return (
-    <Reveal delay={Math.min(index * 0.06, 0.36)} className={className}>
-      <section className={`rounded-2xl border p-6 sm:p-9 ${t.wrap} ${center ? 'text-center' : ''}`}>
+    <Reveal delay={Math.min(index * 0.06, 0.36)} className={`h-full ${className}`}>
+      <section className={`h-full rounded-2xl border p-6 sm:p-9 ${t.wrap} ${center ? 'text-center' : ''}`}>
         {kicker && (
           <div className={`flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] ${t.kicker} ${center ? 'justify-center' : ''}`}>
             {Icon && <Icon className="w-3.5 h-3.5" />}{kicker}

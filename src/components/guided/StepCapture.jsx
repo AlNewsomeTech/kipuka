@@ -58,14 +58,21 @@ export default function StepCapture({
         lead="Return to the policy or configuration page you used in Do. Confirm you are looking at the correct environment and record before taking the screenshot."
       />
 
-      {variant?.where_to_go?.name && (
-        <GuideSection index={i++} icon={MapPin} kicker="Evidence source to reopen" title={variant.where_to_go.name}>
-          {variant.where_to_go.url && (
-            <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
-              Open <ExternalLink className="w-3.5 h-3.5" />
-            </a>
+      {(variant?.where_to_go?.name || variant?.setting_to_change) && (
+        <div className="grid gap-5 md:grid-cols-2">
+          {variant?.where_to_go?.name && (
+            <GuideSection index={i++} icon={MapPin} kicker="Evidence source to reopen" title={variant.where_to_go.name}>
+              {variant.where_to_go.url && (
+                <a href={variant.where_to_go.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:underline">
+                  Open <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </GuideSection>
           )}
-        </GuideSection>
+          {variant?.setting_to_change && (
+            <GuideSection index={i++} icon={SlidersHorizontal} kicker="Setting or decision from Do" lead={variant.setting_to_change} />
+          )}
+        </div>
       )}
 
       {policyNames.length > 0 && (
@@ -75,10 +82,6 @@ export default function StepCapture({
             Use the generated name only for a new item created today. If an approved item already existed, open it under its current name and record that exact existing name in the evidence.
           </p>
         </GuideSection>
-      )}
-
-      {variant?.setting_to_change && (
-        <GuideSection index={i++} icon={SlidersHorizontal} kicker="Setting or decision from Do" lead={variant.setting_to_change} />
       )}
 
       <GuideSection
@@ -96,7 +99,7 @@ export default function StepCapture({
       </GuideSection>
 
       <GuideSection index={i++} icon={FileCheck2} kicker="Required proof">
-        <ol className="space-y-3">
+        <ol className="grid gap-3 md:grid-cols-2">
           {captureItems.map((item, index) => (
             <li key={`${index}-${item.title}`} className="flex gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
               <span className="w-9 flex-shrink-0 text-3xl font-black tabular-nums leading-none text-slate-300 select-none">{String(index + 1).padStart(2, '0')}</span>

@@ -23,7 +23,7 @@ export default function StepVerify({ libEntry, projectStackKey, selectedStack, c
         {steps.length === 0 ? (
           <p className="text-base text-slate-600 leading-relaxed">No specific validation steps are listed for this control. Confirm your configuration is in place, then mark it done below.</p>
         ) : (
-          <ul className="space-y-2.5">
+          <ul className="grid gap-2.5 md:grid-cols-2">
             {steps.map((s, i) => (
               <li key={i}>
                 <button

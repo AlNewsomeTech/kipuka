@@ -322,7 +322,7 @@ export default function GuidedWalkthrough() {
   const goToControl = (cid) => cid && navigate(`/projects/${projectId}/guided/${cid}`);
 
   return (
-    <div className="space-y-5 max-w-4xl mx-auto">
+    <div className="space-y-5 max-w-5xl mx-auto">
       {/* Back to list */}
       <Link to={`/projects/${projectId}/assessment`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700">
         <ChevronLeft className="w-4 h-4" /> All controls
