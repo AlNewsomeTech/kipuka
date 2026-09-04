@@ -69,9 +69,12 @@ function findActiveSection(pathname) {
 }
 
 const SESSION_KEY = 'cmmc.sidebar.expanded';
+const COLLAPSE_KEY = 'cmmc.sidebar.collapsed';
 
 export default function Layout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    try { return localStorage.getItem(COLLAPSE_KEY) === '1'; } catch { return false; }
+  });
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { clients, selectedClientId, setSelectedClientId, selectedClient, loading } = useClient();
@@ -110,6 +113,11 @@ export default function Layout() {
     try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(expanded)); } catch { /* ignore */ }
   }, [expanded]);
 
+  // Persist the collapsed preference across reloads.
+  useEffect(() => {
+    try { localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0'); } catch { /* ignore */ }
+  }, [collapsed]);
+
   // Auto-expand the section that contains the active page.
   useEffect(() => {
     if (activeSection) {
@@ -131,7 +139,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'sidebar-open' : ''} app-sidebar z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
+      <aside className={`${collapsed && !mobileOpen ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'sidebar-open' : ''} app-sidebar z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
             <BrandLogo variant={theme === 'light' ? 'color' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
@@ -239,7 +247,7 @@ export default function Layout() {
           onClick={() => setCollapsed(!collapsed)}
           type="button"
           aria-label={collapsed ? 'Expand navigation' : 'Collapse navigation'}
-          className="hidden h-11 items-center justify-center border-t border-white/10 text-white/35 transition-colors hover:bg-white/[0.05] hover:text-white lg:flex"
+          className="hidden h-11 items-center justify-center border-t border-white/10 text-white/35 transition-colors hover:bg-white/[0.05] hover:text-white sm:flex"
         >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
