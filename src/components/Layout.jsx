@@ -139,7 +139,7 @@ export default function Layout() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${collapsed && !mobileOpen ? 'w-[68px]' : 'w-[248px]'} ${mobileOpen ? 'sidebar-open' : ''} app-sidebar z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
+      <aside className={`${collapsed && !mobileOpen ? 'w-0 overflow-hidden border-r-0' : 'w-[248px]'} ${mobileOpen ? 'sidebar-open' : ''} app-sidebar z-40 h-full bg-gradient-to-b from-[#0b1930] via-[#0e203b] to-[#091526] flex flex-col transition-all duration-300 flex-shrink-0 border-r border-white/5 shadow-2xl shadow-slate-950/20`}>
         <div className="flex h-16 flex-shrink-0 items-center gap-3 border-b border-white/[0.08] px-4">
           {hasLogo ? (
             <BrandLogo variant={theme === 'light' ? 'color' : 'white'} imgClassName={collapsed ? 'h-9 w-9 object-contain' : 'h-10 w-auto max-w-[190px] object-contain'} />
@@ -262,7 +262,7 @@ export default function Layout() {
               type="button"
               onClick={() => setMobileOpen(true)}
               aria-label="Open navigation"
-              className="sidebar-mobile-only rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100"
+              className={`${collapsed ? '' : 'sidebar-mobile-only'} rounded-xl p-2 text-slate-600 transition-colors hover:bg-slate-100`}
             >
               <Menu className="h-5 w-5" />
             </button>
