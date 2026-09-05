@@ -4,7 +4,8 @@
 // Originals are archived to MigrationArchive before any change, and the
 // result must pass the shared stepIssues validator before it is stored.
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
-import { MIGRATION_KEY, stepIssues } from '../../shared/runbookClarity.ts';
+import { MIGRATION_KEY, REWRITE_VERSION, stepIssues } from '../../shared/runbookClarity.ts';
+import { canAutoRewriteVariant } from '../../shared/runbookReviewGuard.ts';
 
 const TARGETS = [
   { control: 'IA.L1-b.1.vi', variant: 'm365_commercial' },
@@ -60,6 +61,11 @@ export default async function (req) {
       const variant = hti[target.variant];
       if (!variant || !Array.isArray(variant.steps)) {
         results.push({ ...target, error: 'variant not found' });
+        continue;
+      }
+
+      if (!canAutoRewriteVariant(variant, REWRITE_VERSION)) {
+        results.push({ ...target, changed: [], note: 'protected newer or manually reviewed directions' });
         continue;
       }
 
