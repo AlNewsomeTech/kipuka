@@ -9,6 +9,8 @@ import {
   validateRewrite,
 } from '../../shared/runbookClarity.ts';
 
+import { canAutoRewriteVariant } from '../../shared/runbookReviewGuard.ts';
+
 const MAX_ATTEMPTS = 3;
 
 async function sha256(value: string): Promise<string> {
@@ -19,7 +21,7 @@ async function sha256(value: string): Promise<string> {
 
 function pendingVariants(record: any): string[] {
   return Object.entries(record?.how_to_implement || {})
-    .filter(([, v]: [string, any]) => v && typeof v === 'object' && v.clarity_rewrite_version !== REWRITE_VERSION)
+    .filter(([, v]: [string, any]) => canAutoRewriteVariant(v, REWRITE_VERSION))
     .map(([k]) => k);
 }
 
