@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Wrench, BookOpen, ListChecks, FolderOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { isToolActive, isToolImplemented, toolByName, TOOL_SUPPORT_DISCLAIMER } from '@/lib/securityTools';
+import {
+  isToolActive, isToolImplemented, toolImplementsControl, toolByName, TOOL_SUPPORT_DISCLAIMER,
+} from '@/lib/securityTools';
 
 // Compact "Related Security Tools" area for a single CMMC control.
 // Only renders when:
@@ -34,7 +36,7 @@ export default function RelatedSecurityTools({ projectId, controlId }) {
             ...m,
             runbook: toolByName(m.tool_name)?.runbook || null,
             evidenceCount,
-            implemented: isToolImplemented(toolRecord),
+            implemented: isToolImplemented(toolRecord) && toolImplementsControl(m.tool_name, controlId),
           };
         });
       setEntries(rows);
