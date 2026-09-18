@@ -63,6 +63,23 @@
     "control_id"
   ],
   "rls": {
+    "create": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
@@ -80,7 +97,24 @@
         }
       ]
     },
-    "write": {
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "delete": {
       "$or": [
         {
           "created_by_id": "{{user.id}}"

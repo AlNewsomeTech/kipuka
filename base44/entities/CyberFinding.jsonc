@@ -124,6 +124,20 @@
     "finding_title"
   ],
   "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
     "read": {
       "$or": [
         {
@@ -138,7 +152,21 @@
         }
       ]
     },
-    "write": {
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "technician"
+          }
+        }
+      ]
+    },
+    "delete": {
       "$or": [
         {
           "user_condition": {

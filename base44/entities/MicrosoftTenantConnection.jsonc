@@ -84,6 +84,11 @@
     "tenant_id"
   ],
   "rls": {
+    "create": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
     "read": {
       "$or": [
         {
@@ -98,7 +103,12 @@
         }
       ]
     },
-    "write": {
+    "update": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "delete": {
       "user_condition": {
         "role": "__service_only__"
       }

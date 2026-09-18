@@ -199,8 +199,18 @@
     "graph_endpoint"
   ],
   "rls": {
-    "read": {},
-    "write": {
+    "create": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "__service_only__"
+      }
+    },
+    "delete": {
       "user_condition": {
         "role": "__service_only__"
       }
