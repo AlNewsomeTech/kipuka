@@ -1,7 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Crosshair, Save, CheckCircle2, Loader2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { Crosshair, Save, CheckCircle2, Loader2, AlertTriangle, Sparkles } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { SCOPING_QUESTIONS } from '@/lib/scopingQuestions';
+import { CUI_HOSTING, CUI_HOSTING_OPTIONS } from '@/lib/cuiHosting';
+import {
+  buildPreveilManagedCuiAutofill,
+  mergeScopingAutofill,
+  preveilManagedCuiStackStatus,
+} from '@/lib/scopingAutofill';
 import RichTextField from '@/components/ui/RichTextField';
 import StatusBadge from '@/components/StatusBadge';
 import TagListField from './TagListField';
@@ -16,20 +22,35 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
   const [saveError, setSaveError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [securityTools, setSecurityTools] = useState([]);
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [autofillNotice, setAutofillNotice] = useState('');
+  const autofillAppliedRef = useRef('');
 
   const load = useCallback(async () => {
     setLoading(true);
     setLoadError(null);
     try {
-      const existing = await base44.entities.ScopingProfile.filter({ project_id: project.id });
-      if (existing.length > 0) {
-        setProfile(existing[0]);
+      const [profiles, tools, companies] = await Promise.all([
+        base44.entities.ScopingProfile.filter({ project_id: project.id }),
+        base44.entities.ProjectSecurityTool.filter({ project_id: project.id }).catch(() => []),
+        base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }).catch(() => []),
+      ]);
+      const orgProfiles = profiles.filter((item) => !item.organization_id || item.organization_id === project.organization_id);
+      const orgTools = tools.filter((item) => !item.organization_id || item.organization_id === project.organization_id);
+      setSecurityTools(orgTools);
+      setCompanyProfile(companies.find((item) => item.organization_id === project.organization_id) || companies[0] || null);
+      setAutofillNotice('');
+
+      if (orgProfiles.length > 0) {
+        setProfile(orgProfiles[0]);
       } else {
         setProfile({
           organization_id: project.organization_id,
           project_id: project.id,
           scope_name: `${project.project_name} — Assessment Scope`,
           handles_fci: false, handles_cui: false,
+          cui_hosting: CUI_HOSTING.UNDECIDED,
           environment_type: 'Unknown',
           included_locations: [], excluded_locations: [],
           wizard_answers: {},
@@ -47,6 +68,41 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
 
   const set = (field, value) => setProfile((p) => ({ ...p, [field]: value }));
   const setAnswer = (key, value) => setProfile((p) => ({ ...p, wizard_answers: { ...(p.wizard_answers || {}), [key]: value } }));
+
+  const stackStatus = useMemo(
+    () => preveilManagedCuiStackStatus({ profile, tools: securityTools }),
+    [profile, securityTools]
+  );
+  const autofillTemplate = useMemo(
+    () => buildPreveilManagedCuiAutofill({ profile: profile || {}, project, companyProfile }),
+    [companyProfile, profile, project]
+  );
+  const autofillPreview = useMemo(() => {
+    if (!profile || !stackStatus.eligible) return [];
+    return mergeScopingAutofill(profile, autofillTemplate).appliedFields;
+  }, [autofillTemplate, profile, stackStatus.eligible]);
+  const autofillKey = `${project.id}:${profile?.id || 'new'}:${profile?.cui_hosting || ''}:${stackStatus.activeToolNames.join('|')}`;
+
+  const applyPreveilAutofill = useCallback((source = 'manual') => {
+    if (!profile) return false;
+    const result = mergeScopingAutofill(profile, autofillTemplate);
+    if (!result.appliedFields.length) {
+      if (source === 'manual') setAutofillNotice('All eligible scope blocks already have text.');
+      return false;
+    }
+    setProfile(result.profile);
+    const blockWord = result.appliedFields.length === 1 ? 'block' : 'blocks';
+    setAutofillNotice(`${result.appliedFields.length} empty scope ${blockWord} filled from the PreVeil managed CUI device stack. Review and save the scope when ready.`);
+    return true;
+  }, [autofillTemplate, profile]);
+
+  useEffect(() => {
+    if (readOnly || !profile || !stackStatus.eligible) return;
+    if (autofillAppliedRef.current === autofillKey) return;
+    autofillAppliedRef.current = autofillKey;
+    applyPreveilAutofill('auto');
+  }, [applyPreveilAutofill, autofillKey, profile, readOnly, stackStatus.eligible]);
+
   const scopeApprovalChecks = [
     { label: 'Scope name is complete', pass: Boolean(String(profile?.scope_name || '').trim()) },
     { label: 'Environment type is selected', pass: ENV_TYPES.includes(profile?.environment_type) && profile.environment_type !== 'Unknown' },
@@ -139,6 +195,48 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
               onChange={(e) => set('handles_cui', e.target.checked)} /> Handles CUI
           </label>
         </div>
+
+        {profile.handles_cui && (
+          <div className="grid sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">CUI Hosting Architecture</label>
+              <select className="form-input" value={profile.cui_hosting || CUI_HOSTING.UNDECIDED} disabled={readOnly}
+                onChange={(e) => set('cui_hosting', e.target.value)}>
+                <option value={CUI_HOSTING.UNDECIDED}>Not selected</option>
+                {CUI_HOSTING_OPTIONS.map((option) => <option key={option.key} value={option.key}>{option.label}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">CUI Hosting Notes</label>
+              <textarea rows={2} className="form-input" value={profile.cui_hosting_notes || ''} disabled={readOnly}
+                onChange={(e) => set('cui_hosting_notes', e.target.value)} />
+            </div>
+          </div>
+        )}
+
+        {profile.handles_cui && profile.cui_hosting === CUI_HOSTING.PREVEIL && (
+          <div className="mt-4 rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <div className="text-sm font-bold text-indigo-950">PreVeil-managed CUI device scope</div>
+                <p className="mt-1 text-xs text-indigo-800">
+                  {stackStatus.eligible
+                    ? 'PreVeil, NinjaOne, Microsoft Intune, and Microsoft Defender are active for this project.'
+                    : `Waiting on active tooling: ${stackStatus.missingTools.join(', ') || 'none'}.`}
+                </p>
+                {autofillNotice && <p className="mt-2 text-xs font-semibold text-indigo-900">{autofillNotice}</p>}
+              </div>
+              {!readOnly && (
+                <button type="button" onClick={() => applyPreveilAutofill('manual')}
+                  disabled={!stackStatus.eligible || autofillPreview.length === 0}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-indigo-300 bg-white px-3 py-2 text-xs font-bold text-indigo-800 hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  title="Fill empty scoping blocks">
+                  <Sparkles className="w-3.5 h-3.5" /> Fill empty scope blocks
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="grid gap-4 mt-4">
           <RichTextField label="FCI Description" value={profile.fci_description} disabled={readOnly}
