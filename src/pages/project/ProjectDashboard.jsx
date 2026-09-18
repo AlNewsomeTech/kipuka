@@ -15,6 +15,7 @@ import { deriveAutoChecklist, mergeChecklist } from '@/lib/checklistAuto';
 import StatusBadge from '@/components/StatusBadge';
 import OnboardingChecklist from '@/components/project/OnboardingChecklist';
 import AcolyteSummaryCard from '@/components/acolyte/AcolyteSummaryCard';
+import PieeSelfAssessmentUpload from '@/components/project/PieeSelfAssessmentUpload';
 import CuiHostingBanner from '@/components/cui/CuiHostingBanner';
 import { cuiHostingRequired } from '@/lib/cuiHosting';
 import { downloadScfCrossReferenceCsv } from '@/lib/scfCrossReferenceExport';
@@ -304,6 +305,8 @@ export default function ProjectDashboard() {
           <Metric icon={BadgeCheck} label="SPRS / PIEE" value={counts?.sprsStatus ?? '—'} tone={counts?.sprsStatus === 'Affirmed' ? 'green' : counts?.sprsStatus === 'Submitted' ? 'blue' : 'slate'} />
         </Link>
       </div>
+
+      <PieeSelfAssessmentUpload project={project} user={user} readOnly={readOnly} onUploaded={() => setReloadKey((k) => k + 1)} />
 
       <AcolyteSummaryCard projectId={project.id} />
 
