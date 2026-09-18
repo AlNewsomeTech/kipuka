@@ -12,6 +12,7 @@ import NoProjectState from '@/components/acolyte/NoProjectState';
 import ReviewFormModal from '@/components/acolyte/ReviewFormModal';
 import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import StatusBadge from '@/components/StatusBadge';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 export default function ReadinessReviews() {
   const scope = useAcolyteScope();
@@ -130,7 +131,7 @@ export default function ReadinessReviews() {
                         {r.review_period_start || '—'} to {r.review_period_end || '—'} · Readiness {Math.round(r.readiness_score || 0)}% · Prepared by {r.prepared_by || '—'}
                       </div>
                       {r.executive_summary && (
-                        <div className="prose prose-slate prose-sm max-w-none text-slate-600 mt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: r.executive_summary }} />
+                        <div className="prose prose-slate prose-sm max-w-none text-slate-600 mt-2 line-clamp-3" dangerouslySetInnerHTML={{ __html: sanitizeHtml(r.executive_summary) }} />
                       )}
                     </div>
                     {!readOnly && (

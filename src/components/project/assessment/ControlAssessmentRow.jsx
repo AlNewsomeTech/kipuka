@@ -10,6 +10,7 @@ import SimpleStatusBadge from '@/components/SimpleStatusBadge';
 import RichTextField from '@/components/ui/RichTextField';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
 import RelatedSecurityTools from '@/components/securitytools/RelatedSecurityTools';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 const RISK_TONE = {
   Low: 'bg-green-50 text-green-700', Moderate: 'bg-amber-50 text-amber-700',
@@ -74,13 +75,13 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
       {open && (
         <div className="mt-3 ml-7 space-y-4 text-sm">
           {libEntry?.requirement_text && (
-            <Field label="Requirement"><div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: libEntry.requirement_text }} /></Field>
+            <Field label="Requirement"><div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(libEntry.requirement_text) }} /></Field>
           )}
           {libEntry?.plain_english_summary && (
-            <Field label="Plain-English Explanation"><div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: libEntry.plain_english_summary }} /></Field>
+            <Field label="Plain-English Explanation"><div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(libEntry.plain_english_summary) }} /></Field>
           )}
           <Field label="Evidence Expectations">
-            <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: assessment.evidence_required || libEntry?.example_evidence || '<em>Not specified</em>' }} />
+            <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(assessment.evidence_required || libEntry?.example_evidence || '<em>Not specified</em>') }} />
           </Field>
 
           {assessment.status === 'Not Applicable' && (
@@ -162,7 +163,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
                 </div>
               </div>
             ) : (
-              <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: assessment.ssp_statement || libEntry?.ssp_statement_starter || '<em>No SSP statement yet.</em>' }} />
+              <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(assessment.ssp_statement || libEntry?.ssp_statement_starter || '<em>No SSP statement yet.</em>') }} />
             )}
           </Field>
 
