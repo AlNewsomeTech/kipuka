@@ -58,8 +58,13 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
   // Seed suggested control mappings for a tool the first time it becomes active.
   const seedMappings = async (toolName) => {
     const existing = await base44.entities.ToolControlMapping.filter({ project_id: project.id, tool_name: toolName }).catch(() => []);
-    if (existing.length > 0) return;
-    const suggestions = defaultControlMappingsForTool(toolName);
+    const existingIds = new Set(
+      existing
+        .filter((mapping) => !mapping.organization_id || mapping.organization_id === project.organization_id)
+        .map((mapping) => mapping.control_id),
+    );
+    const suggestions = defaultControlMappingsForTool(toolName)
+      .filter((suggestion) => !existingIds.has(suggestion.control_id));
     if (suggestions.length === 0) return;
     await Promise.all(suggestions.map((s) => base44.entities.ToolControlMapping.create({
       organization_id: project.organization_id, project_id: project.id, tool_name: toolName,
@@ -169,6 +174,7 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
     const wasActive = record ? isToolActive(record.tool_status) : false;
     const patch = {
       tool_status: newStatus,
+      ...(newStatus !== 'Enabled' ? { implementation_status: 'Not Implemented' } : {}),
       ...(newStatus === 'Enabled' && !wasActive ? { enabled_by: who, enabled_date: new Date().toISOString().slice(0, 10) } : {}),
     };
     if (record?.id) await base44.entities.ProjectSecurityTool.update(record.id, patch);
@@ -186,7 +192,11 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
     const wasActive = record ? isToolActive(record.tool_status) : false;
     const payload = {
       organization_id: project.organization_id, project_id: project.id, tool_name: tool.name,
-      tool_status: form.tool_status, owner: form.owner,
+      tool_status: form.tool_status,
+      implementation_status: form.tool_status === 'Enabled'
+        ? (record?.implementation_status || 'Not Implemented')
+        : 'Not Implemented',
+      owner: form.owner,
       admin_contact_name: form.admin_contact_name, admin_contact_email: form.admin_contact_email || undefined,
       notes: form.notes,
       ...(form.tool_status === 'Enabled' && !wasActive ? { enabled_by: who, enabled_date: new Date().toISOString().slice(0, 10) } : {}),
