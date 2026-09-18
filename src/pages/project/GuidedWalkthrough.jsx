@@ -12,6 +12,7 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilePlan } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
+import { isToolImplemented } from '@/lib/securityTools';
 import GuidedHero, { STEP_LABELS } from '@/components/guided/GuidedHero';
 import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
@@ -71,6 +72,7 @@ export default function GuidedWalkthrough() {
   const [applicabilityWorkflow, setApplicabilityWorkflow] = useState(null);
   const [actionError, setActionError] = useState('');
   const [progressError, setProgressError] = useState('');
+  const [implementedTools, setImplementedTools] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,7 +85,7 @@ export default function GuidedWalkthrough() {
         return;
       }
       const levels = targetLevelsFor(p);
-      const [lib, asmt, prog, applicabilityResponse] = await Promise.all([
+      const [lib, asmt, prog, applicabilityResponse, projectTools, controlMappings] = await Promise.all([
         base44.entities.ControlLibrary.filter({ active: true }),
         base44.entities.ControlAssessment.filter({ project_id: projectId }),
         loadGuidedProgress(projectId, controlId),
@@ -94,14 +96,37 @@ export default function GuidedWalkthrough() {
           project_id: projectId,
           control_id: controlId,
         }).catch(() => null),
+        base44.entities.ProjectSecurityTool.filter({ project_id: projectId }).catch(() => []),
+        base44.entities.ToolControlMapping.filter({
+          project_id: projectId,
+          control_id: controlId,
+          active: true,
+        }).catch(() => []),
       ]);
       setProject(p);
       setLibrary(lib.filter((c) => levels.includes(c.cmmc_level)));
       setAssessments(asmt);
       setApplicabilityWorkflow(applicabilityResponse?.data || null);
       setProgress(prog);
-      setStep(normalizeCurrentStep(prog?.current_step, prog?.workflow_version));
-      setCompletedSteps(normalizeCompletedSteps(prog?.completed_steps, prog?.workflow_version));
+      const mappedNames = new Set(
+        controlMappings
+          .filter((mapping) => !mapping.organization_id || mapping.organization_id === p.organization_id)
+          .map((mapping) => mapping.tool_name),
+      );
+      const completedByTools = projectTools
+        .filter((tool) => (
+          (!tool.organization_id || tool.organization_id === p.organization_id)
+          && isToolImplemented(tool)
+          && mappedNames.has(tool.tool_name)
+        ))
+        .map((tool) => tool.tool_name);
+      setImplementedTools(completedByTools);
+      const savedStep = normalizeCurrentStep(prog?.current_step, prog?.workflow_version);
+      setStep(completedByTools.length > 0 ? Math.max(3, savedStep) : savedStep);
+      const savedCompleted = normalizeCompletedSteps(prog?.completed_steps, prog?.workflow_version);
+      setCompletedSteps(completedByTools.length > 0
+        ? Array.from(new Set([...savedCompleted, 1, 2])).sort()
+        : savedCompleted);
       setSelectedStack(prog?.selected_stack || '');
       setChecks(prog?.verify_checks || {});
     } catch (error) {
@@ -363,6 +388,7 @@ export default function GuidedWalkthrough() {
             controlId={controlId}
             readOnly={readOnly}
             onChanged={load}
+            implementedTools={implementedTools}
           />
         )}
         {step === 4 && (
