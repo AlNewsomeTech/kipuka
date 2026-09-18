@@ -65,7 +65,11 @@ function resolveFields({ template, project, organization, companyProfile, scopin
   put(fields, 'scope.systems', componentNames || scoping?.included_systems_summary, 'SystemComponent/ScopingProfile');
   put(fields, 'scope.data_flow', scoping?.data_flow_summary, 'ScopingProfile.data_flow_summary');
 
-  const enabledTools = (tools || []).filter((t: any) => t.tool_status === 'Enabled').map((t: any) => t.tool_name);
+  const enabledTools = (tools || [])
+    .filter((t: any) => t.tool_status === 'Enabled')
+    .map((t: any) => t.implementation_status === 'Implemented'
+      ? `${t.tool_name} (implemented; evidence pending)`
+      : `${t.tool_name} (enabled)`);
   const stack = project?.implementation_stack || '';
   put(fields, 'implementation.control_location', stack ? (enabledTools.length ? `${stack} (managed with ${enabledTools.join(', ')})` : stack) : '', 'Project.implementation_stack/ProjectSecurityTool');
   put(fields, 'implementation.responsible_team', config?.default_responsible_team, 'DocumentConfiguration.default_responsible_team');
