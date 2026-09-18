@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Wrench, BookOpen, ListChecks, FolderOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { isToolActive, toolByName, TOOL_SUPPORT_DISCLAIMER } from '@/lib/securityTools';
+import { isToolActive, isToolImplemented, toolByName, TOOL_SUPPORT_DISCLAIMER } from '@/lib/securityTools';
 
 // Compact "Related Security Tools" area for a single CMMC control.
 // Only renders when:
@@ -29,7 +29,13 @@ export default function RelatedSecurityTools({ projectId, controlId }) {
         .filter((m) => activeToolNames.has(m.tool_name))
         .map((m) => {
           const evidenceCount = evidence.filter((e) => e.source_tool === m.tool_name && (e.control_ids || []).includes(controlId)).length;
-          return { ...m, runbook: toolByName(m.tool_name)?.runbook || null, evidenceCount };
+          const toolRecord = tools.find((tool) => tool.tool_name === m.tool_name);
+          return {
+            ...m,
+            runbook: toolByName(m.tool_name)?.runbook || null,
+            evidenceCount,
+            implemented: isToolImplemented(toolRecord),
+          };
         });
       setEntries(rows);
       setLoading(false);
@@ -53,6 +59,11 @@ export default function RelatedSecurityTools({ projectId, controlId }) {
               <div className="flex items-center gap-2">
                 <span className="text-[15px] font-bold text-slate-800">{e.tool_name}</span>
                 <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">{e.support_type}</span>
+                {e.implemented && (
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                    Implemented - evidence pending
+                  </span>
+                )}
               </div>
               <span className="text-[12px] text-slate-400">{e.evidenceCount} linked evidence</span>
             </div>
