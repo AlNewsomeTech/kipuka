@@ -3,7 +3,7 @@ import { Wrench, Loader2, CheckCircle2, BookOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import {
   TOOL_CATALOG, toolByName, isToolActive, TOOL_SUPPORT_DISCLAIMER,
-  appendUniqueScopeText, toolImplementationScopeText,
+  appendUniqueScopeText, toolImplementationScopeText, toolImplementsControl,
 } from '@/lib/securityTools';
 import { defaultControlMappingsForTool, runbookForTool } from '@/lib/runbooks';
 import ToolCard from '@/components/securitytools/ToolCard';
@@ -143,6 +143,7 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
     const mappedIds = new Set(
       mappings
         .filter((mapping) => !mapping.organization_id || mapping.organization_id === project.organization_id)
+        .filter((mapping) => toolImplementsControl(tool.name, mapping.control_id))
         .map((mapping) => mapping.control_id),
     );
     const updates = assessments.filter((assessment) => (
@@ -228,8 +229,8 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
           <h1 className="text-lg font-bold text-slate-900">Security Tooling</h1>
         </div>
         <p className="text-sm text-slate-500 mt-1 max-w-3xl">
-          Optional security tools that support CMMC readiness. Enable and configure these as part of the
-          Implementation phase, and collect their evidence before generating the Final SSP. {TOOL_SUPPORT_DISCLAIMER}
+          Enabled makes a tool available across scoping, control guidance, and evidence. Implemented moves its
+          mapped implementation controls to evidence collection without completing assessment review. {TOOL_SUPPORT_DISCLAIMER}
         </p>
         <div className="flex flex-wrap gap-2 mt-4">
           {TABS.map((t) => (
