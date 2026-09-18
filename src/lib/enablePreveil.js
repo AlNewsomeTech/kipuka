@@ -27,8 +27,14 @@ export async function enablePreveilTool({ project, currentUser }) {
   // Seed suggested mappings only if none exist yet.
   const mappings = await base44.entities.ToolControlMapping
     .filter({ project_id: project.id, tool_name: 'PreVeil' }).catch(() => []);
-  if (mappings.length === 0) {
-    const suggestions = defaultControlMappingsForTool('PreVeil');
+  const existingIds = new Set(
+    mappings
+      .filter((mapping) => !mapping.organization_id || mapping.organization_id === project.organization_id)
+      .map((mapping) => mapping.control_id),
+  );
+  const suggestions = defaultControlMappingsForTool('PreVeil')
+    .filter((suggestion) => !existingIds.has(suggestion.control_id));
+  if (suggestions.length > 0) {
     await Promise.all(suggestions.map((s) => base44.entities.ToolControlMapping.create({
       organization_id: project.organization_id, project_id: project.id, tool_name: 'PreVeil',
       control_id: s.control_id, support_type: s.support_type, active: true,
