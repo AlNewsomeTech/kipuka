@@ -3,6 +3,7 @@ import { CORTEX_RUNBOOK } from './cortexRunbook';
 import { PREVEIL_RUNBOOK } from './preveilRunbook';
 import { DEFENDER_RUNBOOK } from './defenderRunbook';
 import { INTUNE_RUNBOOK } from './intuneRunbook';
+import { PREVEIL_INHERITED_CONTROL_IDS } from '@/lib/securityTools';
 
 // Runbook lookup by slug (matches TOOL_CATALOG.runbook and RUNBOOK_TO_TOOL).
 export const RUNBOOKS_BY_SLUG = {
@@ -29,6 +30,11 @@ export function defaultControlMappingsForTool(toolName) {
   const rb = runbookForTool(toolName);
   if (!rb) return [];
   const map = new Map();
+  if (toolName === 'PreVeil') {
+    PREVEIL_INHERITED_CONTROL_IDS.forEach((controlId) => {
+      map.set(controlId, { control_id: controlId, support_type: 'Primary Evidence Source' });
+    });
+  }
   rb.sections.forEach((s) => {
     (s.controls || []).forEach((cid) => {
       if (!map.has(cid)) map.set(cid, { control_id: cid, support_type: 'Supporting Evidence Source' });
