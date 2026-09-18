@@ -11,6 +11,10 @@ export function isToolActive(status) {
   return ACTIVE_TOOL_STATUSES.includes(status);
 }
 
+export function isToolImplemented(record) {
+  return record?.implementation_status === 'Implemented';
+}
+
 export const SUPPORT_TYPES = [
   'Primary Evidence Source',
   'Supporting Evidence Source',
