@@ -12,7 +12,7 @@ import { stackKeyForProject, resolveVariant } from '@/lib/implementationStacks';
 import { buildEvidenceFilePlan } from '@/lib/evidenceFilename';
 import { GUIDED_DONE_STATUS, GUIDED_STUCK_STATUS } from '@/lib/simpleStatus';
 import { loadGuidedProgress, saveGuidedProgress } from '@/lib/guidedProgress';
-import { isToolImplemented } from '@/lib/securityTools';
+import { isToolImplemented, toolImplementsControl } from '@/lib/securityTools';
 import GuidedHero, { STEP_LABELS } from '@/components/guided/GuidedHero';
 import GuidedStepper from '@/components/guided/GuidedStepper';
 import StepUnderstand from '@/components/guided/StepUnderstand';
@@ -118,6 +118,7 @@ export default function GuidedWalkthrough() {
           (!tool.organization_id || tool.organization_id === p.organization_id)
           && isToolImplemented(tool)
           && mappedNames.has(tool.tool_name)
+          && toolImplementsControl(tool.tool_name, controlId)
         ))
         .map((tool) => tool.tool_name);
       setImplementedTools(completedByTools);
