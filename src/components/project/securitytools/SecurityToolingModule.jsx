@@ -281,7 +281,14 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
                       <h3 className="text-[15px] font-bold text-slate-900">{t.tool_name}</h3>
                     </div>
-                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">{t.tool_status}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">{t.tool_status}</span>
+                      {t.implementation_status === 'Implemented' && (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                          Implemented - evidence pending
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <p className="text-[13px] text-slate-500 mt-1">{cat?.description}</p>
                   <div className="mt-3 space-y-1 text-[13px] text-slate-600">
