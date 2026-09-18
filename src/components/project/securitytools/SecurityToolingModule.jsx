@@ -1,13 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Wrench, Loader2, CheckCircle2, BookOpen } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import { TOOL_CATALOG, toolByName, isToolActive, TOOL_SUPPORT_DISCLAIMER } from '@/lib/securityTools';
+import {
+  TOOL_CATALOG, toolByName, isToolActive, TOOL_SUPPORT_DISCLAIMER,
+  appendUniqueScopeText, toolImplementationScopeText,
+} from '@/lib/securityTools';
 import { defaultControlMappingsForTool, runbookForTool } from '@/lib/runbooks';
 import ToolCard from '@/components/securitytools/ToolCard';
 import ToolDetailsModal from '@/components/securitytools/ToolDetailsModal';
 import ToolControlMappingView from '@/components/securitytools/ToolControlMappingView';
 import ToolEvidenceChecklistView from '@/components/securitytools/ToolEvidenceChecklistView';
 import RunbookViewer from '@/components/securitytools/RunbookViewer';
+
+const PENDING_EVIDENCE_ELIGIBLE_STATUSES = new Set([
+  'Not Started',
+  'Implementation Planned',
+  'Implementation In Progress',
+  'Partially Implemented',
+  'Not Implemented',
+  'Needs Review',
+]);
 
 const TABS = [
   { key: 'selection', label: 'Tool Selection' },
@@ -25,6 +37,7 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
   const [savingTool, setSavingTool] = useState(false);
   const [activeRunbookTool, setActiveRunbookTool] = useState(null); // tool name
   const [acolyteEnabled, setAcolyteEnabled] = useState(false);
+  const [notice, setNotice] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -52,6 +65,100 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
       organization_id: project.organization_id, project_id: project.id, tool_name: toolName,
       control_id: s.control_id, support_type: s.support_type, active: true,
     })));
+  };
+
+  const seedEvidenceChecklistForTool = async (toolName) => {
+    const rb = runbookForTool(toolName);
+    if (!rb) return;
+    const existing = await base44.entities.ToolEvidenceChecklist
+      .filter({ project_id: project.id, tool_name: toolName }).catch(() => []);
+    if (existing.length > 0) return;
+    const gather = rb.sections.find((section) => section.evidenceTable);
+    if (!gather) return;
+    await Promise.all(gather.evidenceTable.map((title) => base44.entities.ToolEvidenceChecklist.create({
+      organization_id: project.organization_id,
+      project_id: project.id,
+      tool_name: toolName,
+      checklist_item_title: title,
+      evidence_type: 'Screenshot',
+      upload_status: 'Not Started',
+    })));
+  };
+
+  const appendImplementedToolToScope = async (toolName) => {
+    const rows = await base44.entities.ScopingProfile.filter({ project_id: project.id }).catch(() => []);
+    const profile = rows.find((row) => !row.organization_id || row.organization_id === project.organization_id);
+    if (!profile?.id) return;
+    const addition = toolImplementationScopeText(toolName);
+    const answers = profile.wizard_answers && typeof profile.wizard_answers === 'object'
+      ? profile.wizard_answers
+      : {};
+    const patch = {
+      included_systems_summary: appendUniqueScopeText(profile.included_systems_summary, addition),
+      external_service_providers: appendUniqueScopeText(profile.external_service_providers, addition),
+      wizard_answers: {
+        ...answers,
+        cui_systems: appendUniqueScopeText(answers.cui_systems, addition),
+        boundary_evidence: appendUniqueScopeText(
+          answers.boundary_evidence,
+          `${toolName} implementation must be supported by current screenshots, exports, logs, or reports mapped to the applicable controls.`,
+        ),
+      },
+    };
+    await base44.entities.ScopingProfile.update(profile.id, patch);
+  };
+
+  const markImplemented = async (tool) => {
+    setNotice('');
+    const who = currentUser?.full_name || currentUser?.email || '';
+    const today = new Date().toISOString().slice(0, 10);
+    const record = recordFor(tool.name);
+    const payload = {
+      tool_status: 'Enabled',
+      implementation_status: 'Implemented',
+      implemented_by: who,
+      implemented_date: today,
+      ...(!record?.enabled_date ? { enabled_by: who, enabled_date: today } : {}),
+    };
+    if (record?.id) {
+      await base44.entities.ProjectSecurityTool.update(record.id, payload);
+    } else {
+      await base44.entities.ProjectSecurityTool.create({
+        organization_id: project.organization_id,
+        project_id: project.id,
+        tool_name: tool.name,
+        ...payload,
+      });
+    }
+
+    await seedMappings(tool.name);
+    const [mappings, assessments] = await Promise.all([
+      base44.entities.ToolControlMapping.filter({
+        project_id: project.id,
+        tool_name: tool.name,
+        active: true,
+      }).catch(() => []),
+      base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
+    ]);
+    const mappedIds = new Set(
+      mappings
+        .filter((mapping) => !mapping.organization_id || mapping.organization_id === project.organization_id)
+        .map((mapping) => mapping.control_id),
+    );
+    const updates = assessments.filter((assessment) => (
+      (!assessment.organization_id || assessment.organization_id === project.organization_id)
+      && mappedIds.has(assessment.control_id)
+      && PENDING_EVIDENCE_ELIGIBLE_STATUSES.has(assessment.status || 'Not Started')
+    ));
+    await Promise.all(updates.map((assessment) => base44.entities.ControlAssessment.update(assessment.id, {
+      status: 'Implemented Pending Evidence',
+    })));
+    await Promise.all([
+      seedEvidenceChecklistForTool(tool.name),
+      appendImplementedToolToScope(tool.name),
+    ]);
+    setNotice(`${tool.name} is implemented. ${updates.length} mapped control${updates.length === 1 ? '' : 's'} now need evidence; existing tenant text and later review states were preserved.`);
+    await load();
   };
 
   // Create-or-update a tool record with a new status.
@@ -134,6 +241,12 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
         </div>
       </div>
 
+      {notice && (
+        <div role="status" className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+          {notice}
+        </div>
+      )}
+
       {/* Tool Selection */}
       {tab === 'selection' && (
         <div className="grid md:grid-cols-2 gap-4">
@@ -144,6 +257,7 @@ export default function SecurityToolingModule({ project, readOnly, currentUser }
               record={recordFor(tool.name)}
               readOnly={readOnly}
               onSetStatus={setStatus}
+              onMarkImplemented={markImplemented}
               onEditDetails={(t, r) => setDetailsModal({ tool: t, record: r })}
               onOpenRunbook={openRunbook}
             />
