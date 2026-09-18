@@ -20,8 +20,20 @@ export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, 
 
   const handle = async (newStatus) => {
     setBusy(newStatus);
-    await onSetStatus(tool, newStatus);
-    setBusy(null);
+    try {
+      await onSetStatus(tool, newStatus);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleImplemented = async () => {
+    setBusy('Implemented');
+    try {
+      await onMarkImplemented(tool);
+    } finally {
+      setBusy(null);
+    }
   };
 
   return (
@@ -47,7 +59,7 @@ export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, 
           {!readOnly && (
             <div className="flex flex-wrap gap-1.5 mt-4">
               <StatusBtn label="Enabled" icon={CheckCircle2} active={status === 'Enabled'} busy={busy === 'Enabled'} onClick={() => handle('Enabled')} tone="green" />
-              <StatusBtn label="Implemented" icon={ClipboardCheck} active={implemented} busy={busy === 'Implemented'} onClick={async () => { setBusy('Implemented'); await onMarkImplemented(tool); setBusy(null); }} tone="violet" />
+              <StatusBtn label="Implemented" icon={ClipboardCheck} active={implemented} busy={busy === 'Implemented'} onClick={handleImplemented} tone="violet" />
               <StatusBtn label="Planned" icon={Clock} active={status === 'Planned'} busy={busy === 'Planned'} onClick={() => handle('Planned')} tone="blue" />
               <StatusBtn label="Disable" icon={XCircle} active={status === 'Disabled'} busy={busy === 'Disabled'} onClick={() => handle('Disabled')} tone="slate" />
             </div>
@@ -60,6 +72,8 @@ export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, 
               <DetailRow label="Admin contact" value={record.admin_contact_name} />
               {record.admin_contact_email && <DetailRow label="Admin email" value={record.admin_contact_email} />}
               {record.enabled_by && <DetailRow label="Enabled by" value={record.enabled_by} />}
+              {record.implemented_by && <DetailRow label="Implemented by" value={record.implemented_by} />}
+              {record.implemented_date && <DetailRow label="Implemented on" value={record.implemented_date} />}
             </div>
           )}
 
