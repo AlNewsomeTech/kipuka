@@ -12,7 +12,55 @@ export function isToolActive(status) {
 }
 
 export function isToolImplemented(record) {
-  return record?.implementation_status === 'Implemented';
+  return record?.implementation_status === 'Implemented' && record?.tool_status === 'Enabled';
+}
+
+// Published as "PreVeil Inherited" control rows in PreVeil's customer
+// responsibility matrix. Supporting/shared rows remain visible mappings but do
+// not bypass implementation in the guided workflow.
+export const PREVEIL_INHERITED_CONTROL_IDS = new Set([
+  'AC.L1-3.1.2',
+  'AC.L2-3.1.7',
+  'AC.L2-3.1.8',
+  'AC.L2-3.1.12',
+  'AC.L2-3.1.13',
+  'AC.L2-3.1.14',
+  'AC.L2-3.1.15',
+  'AC.L2-3.1.17',
+  'AU.L2-3.3.1',
+  'AU.L2-3.3.2',
+  'AU.L2-3.3.7',
+  'IA.L1-3.5.2',
+  'IA.L2-3.5.4',
+  'MA.L2-3.7.1',
+  'MA.L2-3.7.2',
+  'MA.L2-3.7.4',
+  'MA.L2-3.7.5',
+  'MA.L2-3.7.6',
+  'PE.L1-3.10.1',
+  'PE.L1-3.10.3',
+  'PE.L1-3.10.4',
+  'PE.L1-3.10.5',
+  'PE.L2-3.10.2',
+  'PE.L2-3.10.6',
+  'SC.L2-3.13.2',
+  'SC.L2-3.13.3',
+  'SC.L2-3.13.7',
+  'SC.L2-3.13.8',
+  'SC.L2-3.13.9',
+  'SC.L2-3.13.10',
+  'SC.L2-3.13.11',
+  'SC.L2-3.13.13',
+  'SC.L2-3.13.15',
+  'SC.L2-3.13.16',
+  'SI.L1-3.14.1',
+  'SI.L1-3.14.2',
+  'SI.L1-3.14.4',
+]);
+
+export function toolImplementsControl(toolName, controlId) {
+  if (toolName === 'PreVeil') return PREVEIL_INHERITED_CONTROL_IDS.has(controlId);
+  return true;
 }
 
 export const SUPPORT_TYPES = [
