@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Camera, Copy, Check, ExternalLink, Maximize2, MapPin, Monitor, Tags, SlidersHorizontal, FileCheck2 } from 'lucide-react';
+import { Camera, Copy, Check, ExternalLink, Maximize2, MapPin, Monitor, Tags, SlidersHorizontal, FileCheck2, ShieldCheck } from 'lucide-react';
 import { resolveVariant, stackLabel } from '@/lib/implementationStacks';
 import { EVIDENCE_FILENAME_FORMAT } from '@/lib/evidenceFilename';
 import { buildCaptureItems, CAPTURE_SAFETY_NOTE } from '@/lib/captureInstructions';
@@ -23,7 +23,7 @@ const FULL_PAGE_ITEMS = [
 // full-page capture guidance, and keeps upload on the same page.
 export default function StepCapture({
   project, organization, libEntry, projectStackKey, selectedStack,
-  suggestedFilename, filenamePlan, controlId, readOnly, onChanged,
+  suggestedFilename, filenamePlan, controlId, readOnly, onChanged, implementedTools = [],
 }) {
   const activeKey = selectedStack || projectStackKey;
   const { variant, usedKey } = resolveVariant(libEntry, activeKey);
@@ -49,6 +49,17 @@ export default function StepCapture({
       <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0F1E3C] bg-slate-100 px-2.5 py-1 rounded-full w-fit">
         <Monitor className="w-3.5 h-3.5" /> Capture from: {stackLabel(usedKey)}
       </div>
+
+      {implementedTools.length > 0 && (
+        <GuideSection
+          index={i++}
+          tone="success"
+          icon={ShieldCheck}
+          kicker="Implementation recorded - evidence still required"
+          title={implementedTools.join(', ')}
+          lead="Kipuka has skipped the setup work for this control because the mapped security tool is marked Implemented. Capture current screenshots, exports, logs, or reports that prove the configured tool covers this tenant and the full in-scope population. This does not mark the control assessment complete."
+        />
+      )}
 
       <GuideSection
         index={i++}
