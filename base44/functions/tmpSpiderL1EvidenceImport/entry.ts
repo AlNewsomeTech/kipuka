@@ -199,6 +199,24 @@ function l1AssessmentRows(assessments: any[]): any[] {
   return assessments.filter((a) => a.cmmc_level === 'Level 1' || /^\w+\.L1[-.]/.test(String(a.control_id || '')));
 }
 
+function targetL1RequirementRows(assessments: any[]): any[] {
+  const l1Rows = l1AssessmentRows(assessments);
+  const rowsByReq = new Map<string, any>();
+
+  for (const row of assessments) {
+    const req = numericFromControlId(row.control_id);
+    if (!L1_REQUIREMENTS.includes(req)) continue;
+    if (!rowsByReq.has(req)) rowsByReq.set(req, row);
+  }
+
+  for (const row of l1Rows) {
+    const req = numericFromControlId(row.control_id);
+    if (L1_REQUIREMENTS.includes(req)) rowsByReq.set(req, row);
+  }
+
+  return L1_REQUIREMENTS.map((req) => rowsByReq.get(req)).filter(Boolean);
+}
+
 function requirementResolver(assessmentRows: any[]) {
   const byReq = new Map<string, any>();
   for (const row of assessmentRows) {
@@ -210,6 +228,7 @@ function requirementResolver(assessmentRows: any[]) {
 
 function projectSummary(project: any, org: any, assessments: any[]) {
   const l1Rows = l1AssessmentRows(assessments);
+  const targetRows = targetL1RequirementRows(assessments);
   return {
     project_id: project.id,
     project_name: project.project_name,
@@ -218,8 +237,10 @@ function projectSummary(project: any, org: any, assessments: any[]) {
     organization_id: project.organization_id,
     organization_name: org?.legal_name || org?.organization_name || org?.short_name || '',
     level_1_assessments: l1Rows.length,
+    l1_requirement_assessments: targetRows.length,
+    l1_requirement_control_ids: targetRows.map((row: any) => row.control_id),
     total_assessments: assessments.length,
-    status_counts: l1Rows.reduce((acc: any, row: any) => {
+    status_counts: targetRows.reduce((acc: any, row: any) => {
       const key = row.status || 'Unknown';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
@@ -290,7 +311,7 @@ async function buildContext(sr: any, projectId: string) {
     sr.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, null, 500).catch(() => []),
   ]);
   const assessments = assessmentsRaw.filter((row: any) => sameOrg(row, project.organization_id));
-  const objectives = objectivesRaw.filter((row: any) => row.active === true && row.cmmc_level === 'Level 1');
+  const objectives = objectivesRaw.filter((row: any) => row.active === true);
   const existingEvidence = evidenceRaw.filter((row: any) => sameOrg(row, project.organization_id));
   const existingLinks = linksRaw.filter((row: any) => sameOrg(row, project.organization_id));
   return { project, org, summaries, assessments, objectives, existingEvidence, existingLinks };
@@ -463,7 +484,7 @@ async function applyImport(sr: any, zip: JSZip, ctx: any, plan: any[], objective
   }
 
   let assessmentsUpdated = 0;
-  for (const assessment of l1AssessmentRows(ctx.assessments)) {
+  for (const assessment of targetL1RequirementRows(ctx.assessments)) {
     const notes = clean(assessment.assessor_notes, 8000);
     const nextNotes = notes.includes('Spider LLC Level 1 legacy evidence package imported')
       ? notes
@@ -517,8 +538,8 @@ export default async function (req: Request): Promise<Response> {
       }, { status: 409 });
     }
 
-    const l1Rows = l1AssessmentRows(ctx.assessments);
-    const reqToAssessment = requirementResolver(l1Rows);
+    const targetRows = targetL1RequirementRows(ctx.assessments);
+    const reqToAssessment = requirementResolver(targetRows);
     const missingRequiredAssessments = L1_REQUIREMENTS.filter((req) => !reqToAssessment.has(req));
     const { plan, skipped } = await plannedEntries(zip, reqToAssessment);
     const controlsCovered = [...new Set(plan.flatMap((item) => item.control_ids))].sort();
@@ -531,11 +552,11 @@ export default async function (req: Request): Promise<Response> {
       objectivesByControl.get(objective.control_id)!.push(objective);
     }
     const objectiveCount = [...objectivesByControl.values()].reduce((sum, rows) => sum + rows.length, 0);
-    const controlsWithoutEvidence = l1Rows.map((row: any) => row.control_id).filter((controlId: string) => !controlsCovered.includes(controlId)).sort();
+    const controlsWithoutEvidence = targetRows.map((row: any) => row.control_id).filter((controlId: string) => !controlsCovered.includes(controlId)).sort();
     const controlsWithoutObjectives = controlsCovered.filter((controlId) => !(objectivesByControl.get(controlId)?.length));
     const projectInfo = projectSummary(ctx.project, ctx.org, ctx.assessments);
     const warnings: string[] = [];
-    if (missingRequiredAssessments.length) warnings.push(`Missing Level 1 assessment rows for: ${missingRequiredAssessments.join(', ')}`);
+    if (missingRequiredAssessments.length) warnings.push(`Missing Spider project assessment rows for these Level 1 requirement numbers: ${missingRequiredAssessments.join(', ')}`);
     if (controlsWithoutEvidence.length) warnings.push(`No imported evidence maps to: ${controlsWithoutEvidence.join(', ')}`);
     if (controlsWithoutObjectives.length) warnings.push(`No active Level 1 objectives found for: ${controlsWithoutObjectives.join(', ')}`);
 
