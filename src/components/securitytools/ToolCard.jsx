@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Loader2, BookOpen, CheckCircle2, Clock, XCircle, Wrench } from 'lucide-react';
-import { TOOL_STATUSES, isToolActive } from '@/lib/securityTools';
+import { Loader2, BookOpen, CheckCircle2, Clock, XCircle, Wrench, ClipboardCheck } from 'lucide-react';
+import { TOOL_STATUSES, isToolActive, isToolImplemented } from '@/lib/securityTools';
 
 const STATUS_STYLE = {
   'Enabled': 'bg-green-50 text-green-700 border-green-200',
@@ -12,10 +12,11 @@ const STATUS_STYLE = {
 
 // One tool selection card. Handles status changes, owner/admin contact/notes,
 // and links to the runbook when active. `record` may be null (not yet created).
-export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, onEditDetails, onOpenRunbook }) {
+export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, onMarkImplemented, onEditDetails, onOpenRunbook }) {
   const [busy, setBusy] = useState(null);
   const status = record?.tool_status || 'Not Used';
   const active = isToolActive(status);
+  const implemented = isToolImplemented(record);
 
   const handle = async (newStatus) => {
     setBusy(newStatus);
@@ -45,7 +46,8 @@ export default function ToolCard({ tool, record, readOnly, saving, onSetStatus, 
           {/* Status buttons */}
           {!readOnly && (
             <div className="flex flex-wrap gap-1.5 mt-4">
-              <StatusBtn label="Enable" icon={CheckCircle2} active={status === 'Enabled'} busy={busy === 'Enabled'} onClick={() => handle('Enabled')} tone="green" />
+              <StatusBtn label="Enabled" icon={CheckCircle2} active={status === 'Enabled'} busy={busy === 'Enabled'} onClick={() => handle('Enabled')} tone="green" />
+              <StatusBtn label="Implemented" icon={ClipboardCheck} active={implemented} busy={busy === 'Implemented'} onClick={async () => { setBusy('Implemented'); await onMarkImplemented(tool); setBusy(null); }} tone="violet" />
               <StatusBtn label="Planned" icon={Clock} active={status === 'Planned'} busy={busy === 'Planned'} onClick={() => handle('Planned')} tone="blue" />
               <StatusBtn label="Disable" icon={XCircle} active={status === 'Disabled'} busy={busy === 'Disabled'} onClick={() => handle('Disabled')} tone="slate" />
             </div>
@@ -86,6 +88,7 @@ function StatusBtn({ label, icon: Icon, active, busy, onClick, tone }) {
   const toneCls = active
     ? tone === 'green' ? 'bg-green-600 text-white border-green-600'
       : tone === 'blue' ? 'bg-blue-600 text-white border-blue-600'
+      : tone === 'violet' ? 'bg-violet-600 text-white border-violet-600'
       : 'bg-slate-600 text-white border-slate-600'
     : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300';
   return (
