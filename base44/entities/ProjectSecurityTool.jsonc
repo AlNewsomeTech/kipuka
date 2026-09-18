@@ -40,6 +40,22 @@
       "type": "string",
       "format": "date"
     },
+    "implementation_status": {
+      "type": "string",
+      "enum": [
+        "Not Implemented",
+        "Implemented"
+      ],
+      "default": "Not Implemented",
+      "description": "Implemented means the configured tool can move its mapped controls to evidence collection. It does not complete assessment review."
+    },
+    "implemented_by": {
+      "type": "string"
+    },
+    "implemented_date": {
+      "type": "string",
+      "format": "date"
+    },
     "owner": {
       "type": "string"
     },
