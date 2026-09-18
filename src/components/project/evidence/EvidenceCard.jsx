@@ -3,6 +3,7 @@ import { FileText, Download, Pencil, Archive, ChevronDown, Calendar, User, Alert
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import { EVIDENCE_QUALITY_ITEMS, isExpired } from '@/lib/evidenceQuality';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 function checklistFrom(item) {
   return Object.fromEntries(
@@ -96,7 +97,7 @@ export default function EvidenceCard({ item, compact, readOnly, onEdit, onRefres
       {open && (
         <div className={`space-y-3 ${compact ? 'px-3 pb-3' : 'mt-3 pt-3 border-t border-slate-100'}`}>
           {error && <div className="flex gap-2 rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs text-red-800"><AlertTriangle className="w-4 h-4 flex-shrink-0" />{error}</div>}
-          {item.description && <div className="prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: item.description }} />}
+          {item.description && <div className="prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.description) }} />}
           <div className="grid sm:grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-500">
             {item.expiration_date && <div>Expires: <span className="text-slate-700">{item.expiration_date}</span></div>}
             {item.retention_until && <div>Retain until: <span className="text-slate-700">{item.retention_until}</span></div>}

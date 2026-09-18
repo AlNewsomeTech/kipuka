@@ -20,6 +20,7 @@ import PostureDashboardPanel from '@/components/acolyte/PostureDashboardPanel';
 import MicrosoftPosturePanel from '@/components/acolyte/microsoft/MicrosoftPosturePanel';
 import AssistantPanel from '@/components/acolyte/AssistantPanel';
 import { PostureBadge } from '@/components/acolyte/AcolyteBadges';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 function Field({ label, value }) {
   return (
@@ -195,7 +196,7 @@ export default function AcolyteOverview() {
               <Link to="/acolyte/settings" className="text-xs font-semibold text-blue-600 hover:underline">Edit</Link>
             </div>
             {profile?.next_steps_summary ? (
-              <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: profile.next_steps_summary }} />
+              <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.next_steps_summary) }} />
             ) : (
               <p className="text-sm text-slate-400 italic">No next steps recorded yet. Add them in ACOLYTE Settings.</p>
             )}
@@ -207,13 +208,13 @@ export default function AcolyteOverview() {
               {profile?.executive_summary && (
                 <div className="bg-white rounded-xl border border-slate-200 p-5">
                   <h3 className="text-sm font-bold text-slate-800 mb-2">Executive Summary</h3>
-                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: profile.executive_summary }} />
+                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.executive_summary) }} />
                 </div>
               )}
               {profile?.key_risks_summary && (
                 <div className="bg-white rounded-xl border border-slate-200 p-5">
                   <h3 className="text-sm font-bold text-slate-800 mb-2">Key Risks</h3>
-                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: profile.key_risks_summary }} />
+                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.key_risks_summary) }} />
                 </div>
               )}
             </div>

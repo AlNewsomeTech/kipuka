@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, Pencil, Trash2, Clock } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 const RISK_TONE = {
   Low: 'bg-green-50 text-green-700', Moderate: 'bg-amber-50 text-amber-700',
@@ -28,10 +29,10 @@ export default function PoamRow({ poam, readOnly, overdue, onEdit, onDelete }) {
       </div>
       {open && (
         <div className="mt-3 ml-7 space-y-2 text-xs text-slate-600">
-          {poam.gap_statement && <div><span className="font-semibold text-slate-500">Gap: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: poam.gap_statement }} /></div>}
-          {poam.remediation_plan && <div><span className="font-semibold text-slate-500">Remediation: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: poam.remediation_plan }} /></div>}
-          {poam.milestones && <div><span className="font-semibold text-slate-500">Milestones: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: poam.milestones }} /></div>}
-          {poam.closure_notes && <div><span className="font-semibold text-slate-500">Closure: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: poam.closure_notes }} /></div>}
+          {poam.gap_statement && <div><span className="font-semibold text-slate-500">Gap: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: sanitizeHtml(poam.gap_statement) }} /></div>}
+          {poam.remediation_plan && <div><span className="font-semibold text-slate-500">Remediation: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: sanitizeHtml(poam.remediation_plan) }} /></div>}
+          {poam.milestones && <div><span className="font-semibold text-slate-500">Milestones: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: sanitizeHtml(poam.milestones) }} /></div>}
+          {poam.closure_notes && <div><span className="font-semibold text-slate-500">Closure: </span><span className="prose prose-sm max-w-none inline" dangerouslySetInnerHTML={{ __html: sanitizeHtml(poam.closure_notes) }} /></div>}
         </div>
       )}
     </div>

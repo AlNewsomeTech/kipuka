@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, Pencil, Trash2, ShieldCheck } from 'lucide-react';
 import StatusBadge from '@/components/StatusBadge';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 const CAT_TONE = {
   'CUI Asset': 'bg-red-50 text-red-700',
@@ -42,7 +43,7 @@ export default function AssetRow({ asset, readOnly, onEdit, onDelete }) {
           {asset.operating_system && <div>OS: <span className="text-slate-700">{asset.operating_system}</span></div>}
           {asset.management_tool && <div>Managed by: <span className="text-slate-700">{asset.management_tool}</span></div>}
           {flags.length > 0 && <div className="sm:col-span-2 flex items-center gap-1.5 text-slate-700"><ShieldCheck className="w-3.5 h-3.5 text-slate-400" /> {flags.join(' · ')}</div>}
-          {asset.notes && <div className="sm:col-span-2 prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: asset.notes }} />}
+          {asset.notes && <div className="sm:col-span-2 prose prose-sm max-w-none text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(asset.notes) }} />}
         </div>
       )}
     </div>

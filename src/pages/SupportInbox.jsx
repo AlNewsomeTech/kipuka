@@ -3,6 +3,7 @@ import { Inbox, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 const STATUSES = ['Open', 'In Progress', 'Waiting on Customer', 'Resolved', 'Closed'];
 
@@ -63,7 +64,7 @@ export default function SupportInbox() {
                     {r.requester_name || 'Unknown'} · {r.requester_email || '—'}
                   </p>
                   {r.description && (
-                    <div className="prose prose-slate prose-sm max-w-none mt-2 text-slate-600" dangerouslySetInnerHTML={{ __html: r.description }} />
+                    <div className="prose prose-slate prose-sm max-w-none mt-2 text-slate-600" dangerouslySetInnerHTML={{ __html: sanitizeHtml(r.description) }} />
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2 flex-shrink-0">

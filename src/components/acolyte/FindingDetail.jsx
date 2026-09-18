@@ -1,13 +1,14 @@
 import { X, Wrench, Pencil, Sparkles } from 'lucide-react';
 import { SeverityBadge } from './AcolyteBadges';
 import StatusBadge from '@/components/StatusBadge';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 function Rich({ label, html }) {
   if (!html) return null;
   return (
     <div>
       <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wide mb-1">{label}</div>
-      <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: html }} />
+      <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }} />
     </div>
   );
 }

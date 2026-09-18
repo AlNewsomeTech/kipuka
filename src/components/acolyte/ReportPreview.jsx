@@ -2,6 +2,7 @@ import { X, ShieldAlert } from 'lucide-react';
 import { REPORT_SECTIONS } from '@/lib/acolyteReportSections';
 import { ACOLYTE_BRAND } from '@/lib/acolyte';
 import StatusBadge from '@/components/StatusBadge';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 
 // In-app branded preview of an ACOLYTE executive report.
 export default function ReportPreview({ report, project, orgName, demo, onClose }) {
@@ -41,7 +42,7 @@ export default function ReportPreview({ report, project, orgName, demo, onClose 
               <div key={key}>
                 <h3 className="text-sm font-bold text-slate-800 border-b border-slate-200 pb-1 mb-1.5">{label}</h3>
                 {report[key] ? (
-                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: report[key] }} />
+                  <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(report[key]) }} />
                 ) : (
                   <p className="text-sm text-slate-400 italic">—</p>
                 )}
