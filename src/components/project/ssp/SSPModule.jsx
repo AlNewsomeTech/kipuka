@@ -9,6 +9,8 @@ import {
   computeReadiness, sspPrechecks, allPass, FINAL_DOC_WARNING, validApprovedSsp,
 } from '@/lib/readinessGate';
 import ReadinessPrecheck from '@/components/project/ReadinessPrecheck';
+import SSPStatementEditor from '@/components/project/ssp/SSPStatementEditor';
+import { hasSspStatement, planSspControlStatements, saveSspControlStatements } from '@/lib/sspControlStatements';
 
 export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [ssp, setSsp] = useState(null);
@@ -22,6 +24,9 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [loadError, setLoadError] = useState(null);
   const [building, setBuilding] = useState(false);
   const [buildError, setBuildError] = useState('');
+  const [statementSaving, setStatementSaving] = useState(false);
+  const [dirtyStatementIds, setDirtyStatementIds] = useState([]);
+  const statementsBusy = statementSaving || dirtyStatementIds.length > 0;
   const [savingKey, setSavingKey] = useState(null);
   const [reviewBusy, setReviewBusy] = useState(false);
   const [reviewError, setReviewError] = useState('');
@@ -33,8 +38,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     try {
       const [sspList, stmts, asmt, ev, objectives, links, scope, assets, poams, providers, diagrams] = await Promise.all([
         base44.entities.SystemSecurityPlan.filter({ project_id: project.id }),
-        base44.entities.SSPControlStatement.filter({ project_id: project.id }),
-        base44.entities.ControlAssessment.filter({ project_id: project.id }),
+        base44.entities.SSPControlStatement.filter({ project_id: project.id }, 'control_id', 500),
+        base44.entities.ControlAssessment.filter({ project_id: project.id }, 'control_id', 500),
         base44.entities.ProjectEvidence.filter({ project_id: project.id }),
         base44.entities.AssessmentObjectiveLibrary.filter({ active: true, cmmc_level: project.target_cmmc_level }, 'sort_order', 500),
         base44.entities.ObjectiveEvidenceLink.filter({ project_id: project.id }, 'objective_id', 500),
@@ -45,7 +50,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
         base44.entities.ProjectDiagram.filter({ project_id: project.id }),
       ]);
       setSsp(sspList[0] || null);
-      setStatements(stmts);
+      setStatements(stmts.filter((statement) => !statement.ssp_id || statement.ssp_id === sspList[0]?.id));
       setAssessments(asmt);
       setEvidence(ev);
       setObjectiveLibrary(objectives);
@@ -71,8 +76,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     const m = {}; evidence.forEach((e) => (e.control_ids || []).forEach((c) => (m[c] = true))); return m;
   }, [evidence]);
   const missingStatements = useMemo(() => {
-    const have = new Set(statements.map((s) => s.control_id));
-    return assessments.filter((a) => !have.has(a.control_id) || !statements.find((s) => s.control_id === a.control_id)?.implementation_statement);
+    const have = new Set(statements.filter((s) => hasSspStatement(s.implementation_statement)).map((s) => s.control_id));
+    return assessments.filter((a) => !have.has(a.control_id));
   }, [assessments, statements]);
   const controlsNoEvidence = useMemo(() => assessments.filter((a) => !evByControl[a.control_id]), [assessments, evByControl]);
 
@@ -99,39 +104,44 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   };
 
   const buildDraft = async () => {
+    if (readOnly || building || statementsBusy) return;
     setBuilding(true);
     setBuildError('');
     try {
       // Resolve current tool selections at the user's build action, not from a
       // global/selected client. Ambiguous organization clients are never guessed.
-      const [securityTools, clients, profiles] = await Promise.all([
+      const [securityTools, clients, profiles, library, freshStatements, freshAssessments, mappings] = await Promise.all([
         base44.entities.ProjectSecurityTool.filter({ project_id: project.id }, '-created_date', 500),
         project.organization_id ? base44.entities.Client.filter({ organization_id: project.organization_id }) : Promise.resolve([]),
         project.organization_id ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }) : Promise.resolve([]),
+        base44.entities.ControlLibrary.filter({ active: true, authoritative: true }, 'sort_order', 500),
+        base44.entities.SSPControlStatement.filter({ project_id: project.id }, 'control_id', 500),
+        base44.entities.ControlAssessment.filter({ project_id: project.id }, 'control_id', 500),
+        base44.entities.ToolControlMapping.filter({ project_id: project.id }, 'control_id', 500),
       ]);
       const ownClients = clients.filter((item) => item.organization_id === project.organization_id);
       const ownProfiles = profiles.filter((item) => item.organization_id === project.organization_id);
-      const draft = buildSspDraft({
-        project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence,
-        poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams,
-        existingSsp: ssp, securityTools,
+      const context = {
+        project, scoping: ctx.scoping, assets: ctx.assets, providers: ctx.providers, securityTools,
         client: ownClients.length === 1 ? ownClients[0] : null,
         companyProfile: ownProfiles.length === 1 ? ownProfiles[0] : null,
+      };
+      // Plan before writing anything. Existing blank rows are repaired, not skipped.
+      const statementPlan = planSspControlStatements({
+        project, assessments: freshAssessments,
+        statements: freshStatements.filter((statement) => !statement.ssp_id || statement.ssp_id === ssp?.id),
+        library, context, mappings,
+      });
+      const draft = buildSspDraft({
+        ...context, org, assessments: freshAssessments, evidence,
+        poams: ctx.poams, diagrams: ctx.diagrams, existingSsp: ssp,
       });
       const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0' };
       let saved;
       if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);
       else saved = await base44.entities.SystemSecurityPlan.create(payload);
 
-      // Sync control statements from assessments.
-      const have = new Set(statements.map((statement) => statement.control_id));
-      const toCreate = assessments.filter((assessment) => !have.has(assessment.control_id)).map((assessment) => ({
-        organization_id: project.organization_id, project_id: project.id, ssp_id: saved.id,
-        control_id: assessment.control_id, control_title: assessment.control_title,
-        implementation_statement: assessment.ssp_statement || '', responsible_owner: assessment.responsible_owner || '',
-        statement_status: assessment.ssp_statement ? 'Draft' : 'Not Started',
-      }));
-      if (toCreate.length) await base44.entities.SSPControlStatement.bulkCreate(toCreate);
+      await saveSspControlStatements(project, saved.id, statementPlan);
       await load();
     } catch (error) {
       setBuildError(error?.response?.data?.error || error?.message || 'The SSP draft was not saved.');
@@ -196,20 +206,20 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           </div>
           <div className="flex gap-2 flex-wrap">
             {!readOnly && (
-              <button onClick={buildDraft} disabled={building}
+              <button onClick={buildDraft} disabled={building || statementsBusy}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52] disabled:opacity-60">
                 {building ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
                 {ssp ? 'Rebuild Draft SSP' : 'Build Draft SSP'}
               </button>
             )}
             {ssp && (
-              <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
+              <button disabled={building || statementsBusy} onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
                 <FileDown className="w-4 h-4" /> Draft SSP PDF
               </button>
             )}
             {ssp && !readOnly && (
-              <button onClick={() => (finalReady ? exportFinal() : setShowFinalGate(true))}
+              <button disabled={building || statementsBusy} onClick={() => (finalReady ? exportFinal() : setShowFinalGate(true))}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-green-700 hover:bg-green-800">
                 <FileDown className="w-4 h-4" /> Final SSP
               </button>
@@ -221,6 +231,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           Generate draft SSP content early for planning, but generate the final SSP only after implementation,
           evidence collection, control validation, and final inventory are complete.
         </p>
+        {dirtyStatementIds.length > 0 && <p role="status" className="mt-3 text-sm text-muted-foreground">Save or discard your control statement edits before rebuilding, exporting, or submitting for review.</p>}
         {buildError && (
           <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
             <span className="font-semibold">Draft save failed:</span> {buildError}
@@ -280,6 +291,20 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
             ))}
           </div>
 
+          {statements.length > 0 && (
+            <section className="space-y-3" aria-label="Control implementation statements">
+              <h2 className="text-lg font-semibold text-foreground">Control Implementation Statements ({statements.length})</h2>
+              <p className="text-sm text-muted-foreground">Expand a control to review or edit its narrative. Draft wording does not mark a control implemented or satisfy its evidence requirements.</p>
+              {statements.map((statement) => (
+                <SSPStatementEditor key={statement.id} statement={statement}
+                  readOnly={readOnly || building || statementSaving || ssp.approval_status === 'Approved' || ssp.approval_status === 'In Review'}
+                  onSavingChange={setStatementSaving}
+                  onDirtyChange={(dirty) => setDirtyStatementIds((ids) => dirty ? [...new Set([...ids, statement.id])] : ids.filter((id) => id !== statement.id))}
+                  onSaved={(saved) => setStatements((rows) => rows.map((row) => row.id === saved.id ? saved : row))} />
+              ))}
+            </section>
+          )}
+
           {/* Approval block */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h3 className="text-sm font-bold text-slate-800 mb-3">Independent Review &amp; Revision</h3>
@@ -312,7 +337,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
                 {reviewError && <p className="text-xs text-red-700 mt-2">{reviewError}</p>}
                 <div className="flex flex-wrap gap-2 mt-3">
                   {(ssp.approval_status === 'Draft' || (ssp.approval_status === 'Approved' && !validApprovedSsp(ssp))) && (
-                    <button onClick={() => runReview('submit_review')} disabled={reviewBusy}
+                    <button onClick={() => runReview('submit_review')} disabled={reviewBusy || building || statementsBusy}
                       className="px-3 py-2 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
                       Submit for Independent Review
                     </button>
