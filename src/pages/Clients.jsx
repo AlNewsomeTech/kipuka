@@ -8,6 +8,7 @@ import EmptyState from '@/components/EmptyState';
 import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal';
 import ClientLevelStatus from '@/components/clients/ClientLevelStatus';
 import ClientSummaryDashboard from '@/components/clients/ClientSummaryDashboard';
+import { seedProjectAssessments } from '@/lib/projectAssessmentSeed';
 
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
@@ -29,7 +30,7 @@ async function provisionNewClientProject(client, data) {
   if (client.organization_id) {
     const m = LEVEL_TO_PROJECT[data.target_cmmc_level] || LEVEL_TO_PROJECT['Level 1'];
     try {
-      await base44.entities.Project.create({
+      const project = await base44.entities.Project.create({
         organization_id: client.organization_id,
         project_name: `${client.legal_name || 'CMMC'} Readiness`,
         project_type: m.project_type,
@@ -42,6 +43,10 @@ async function provisionNewClientProject(client, data) {
         current_readiness_score: 0,
         onboarding_checklist: { confirm_org: true },
       });
+      // Seed the canonical assessment rows so Control Implementation opens
+      // with all requirements tracked (otherwise the integrity gate fails).
+      const seed = await seedProjectAssessments(project, m.target);
+      if (!seed.ok) warnings.push(`Assessment seed: ${seed.reason}`);
     } catch (e) {
       warnings.push(`Project could not be created: ${e?.message || 'unknown error'}`);
     }
