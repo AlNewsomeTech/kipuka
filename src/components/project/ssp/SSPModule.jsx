@@ -102,7 +102,22 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     setBuilding(true);
     setBuildError('');
     try {
-      const draft = buildSspDraft({ project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence, poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams });
+      // Resolve current tool selections at the user's build action, not from a
+      // global/selected client. Ambiguous organization clients are never guessed.
+      const [securityTools, clients, profiles] = await Promise.all([
+        base44.entities.ProjectSecurityTool.filter({ project_id: project.id }, '-created_date', 500),
+        project.organization_id ? base44.entities.Client.filter({ organization_id: project.organization_id }) : Promise.resolve([]),
+        project.organization_id ? base44.entities.CompanyProfile.filter({ organization_id: project.organization_id }) : Promise.resolve([]),
+      ]);
+      const ownClients = clients.filter((item) => item.organization_id === project.organization_id);
+      const ownProfiles = profiles.filter((item) => item.organization_id === project.organization_id);
+      const draft = buildSspDraft({
+        project, org, scoping: ctx.scoping, assets: ctx.assets, assessments, evidence,
+        poams: ctx.poams, providers: ctx.providers, diagrams: ctx.diagrams,
+        existingSsp: ssp, securityTools,
+        client: ownClients.length === 1 ? ownClients[0] : null,
+        companyProfile: ownProfiles.length === 1 ? ownProfiles[0] : null,
+      });
       const payload = { ...draft, organization_id: project.organization_id, project_id: project.id, version: ssp?.version || '1.0' };
       let saved;
       if (ssp?.id) saved = await base44.entities.SystemSecurityPlan.update(ssp.id, payload);

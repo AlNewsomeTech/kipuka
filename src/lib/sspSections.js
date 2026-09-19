@@ -1,5 +1,6 @@
 // SSP section definitions + auto-build logic from project data.
 import { isImplementationComplete } from '@/lib/canonicalReadiness';
+import { appendSspBoilerplate, resolveSspBoilerplate } from '@/lib/sspBoilerplate';
 export const SSP_SECTIONS = [
   { key: 'system_name', label: 'System Name', short: true },
   { key: 'system_description', label: 'System Description' },
@@ -54,8 +55,8 @@ function inheritanceSummaries(providers = []) {
 }
 
 // Draft an SSP from project + scoping + assets + assessments + evidence + poams
-// + providers (SRM) + diagrams. Produces a C3PAO-submittable assembly.
-export function buildSspDraft({ project, org, scoping, assets, assessments, evidence, poams, providers = [], diagrams = [] }) {
+// + providers (SRM) + diagrams. Standard language remains draft content for review.
+export function buildSspDraft({ project, org, scoping, assets = [], assessments = [], evidence = [], poams = [], providers = [], diagrams = [], existingSsp = null, client = null, companyProfile = null, securityTools = [] }) {
   const inScope = assets.filter((a) => a.in_scope);
   const cloud = assets.filter((a) => a.asset_type === 'Cloud Service' || a.asset_type === 'SaaS Application');
   const esp = assets.filter((a) => a.asset_type === 'External Provider');
@@ -64,7 +65,8 @@ export function buildSspDraft({ project, org, scoping, assets, assessments, evid
   const inh = inheritanceSummaries(providers);
   const diagramNote = diagrams.filter((d) => d.image_url).map((d) => d.diagram_type).join(' and ');
 
-  return {
+  const { paragraphs } = resolveSspBoilerplate({ project, scoping, assets, providers, client, companyProfile, securityTools });
+  const draft = {
     ssp_title: `System Security Plan — ${project.project_name}`,
     system_name: project.project_name,
     system_description: `<p>The system supports ${org?.organization_name || 'the organization'}'s ${project.target_cmmc_level} compliance objectives under the ${project.assessment_path} path.</p>`,
@@ -87,4 +89,14 @@ export function buildSspDraft({ project, org, scoping, assets, assessments, evid
     linked_poam_summary: `<p>${openPoams.length} open POA&M item(s) tracked for this system.</p>`,
     revision_history: `<p>v1.0 — Initial draft generated ${new Date().toLocaleDateString()}.</p>`,
   };
+  for (const section of SSP_SECTIONS) {
+    draft[section.key] = section.short
+      ? (isEmpty(existingSsp?.[section.key]) ? draft[section.key] : existingSsp[section.key])
+      : appendSspBoilerplate(existingSsp?.[section.key], draft[section.key], paragraphs[section.key]);
+  }
+  // Rebuilding never resets a manually entered title or revision history.
+  for (const key of ['ssp_title', 'revision_history']) {
+    if (!isEmpty(existingSsp?.[key])) draft[key] = existingSsp[key];
+  }
+  return draft;
 }
