@@ -30,6 +30,8 @@ function standardStatement(assessment, entry, project, tools, mappings) {
   if (settings && settings !== outcome) result += p(`Configuration and operating standard: ${settings}`);
   if (responsibility) result += p(`Operational responsibility: ${responsibility}`);
   if (supporting.length) result += p(`Supporting services selected for this draft: ${supporting.map(([, definition]) => `${definition.name} (${definition.role})`).join('; ')}. Confirm the licensed functions, actual coverage, and policy assignments before treating the baseline as implemented.`);
+  // Product implementation wording belongs only beneath the controls it supports.
+  supporting.forEach(([, definition]) => { result += p(definition.text); });
   if (verification.length) result += p(`Verification procedure: ${verification.join(' ')}`);
   if (fellBack) result += p(`Guidance source: ${stackLabel(usedKey)}. Review and adapt this reference design to the project's ${project.implementation_stack || 'documented'} environment; it does not enable or add any tool to scope.`);
   result += p('Retain the applicable approved procedure, configuration records, and operating results for this control. Resolve differences between this baseline and the deployed environment before independent review; generating this statement does not accept evidence, close a POA&M, or mark the control complete.');

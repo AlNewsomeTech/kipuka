@@ -15,6 +15,9 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
   const [assessments, setAssessments] = useState([]);
   const [evidence, setEvidence] = useState([]);
   const [poams, setPoams] = useState([]);
+  const [sspStatements, setSspStatements] = useState([]);
+  const [sspLocked, setSspLocked] = useState(false);
+  const [sspLoadError, setSspLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ status: '', evidence_status: '', owner: '', risk: '', level: '' });
   const [openDomains, setOpenDomains] = useState({});
@@ -26,7 +29,9 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [lib, asmt, ev, pm] = await Promise.all([
+    setSspLoadError('');
+    const statementReadFailed = () => { setSspLoadError('Saved SSP statements could not be loaded. Reload this page before editing a statement.'); return []; };
+    const [lib, asmt, ev, pm, statements, plans] = await Promise.all([
       base44.entities.ControlLibrary.filter({
         active: true,
         authoritative: true,
@@ -35,11 +40,15 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
       base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectEvidence.filter({ project_id: project.id }).catch(() => []),
       base44.entities.ProjectPOAM.filter({ project_id: project.id }).catch(() => []),
+      base44.entities.SSPControlStatement.filter({ project_id: project.id }, 'control_id', 500).catch(statementReadFailed),
+      base44.entities.SystemSecurityPlan.filter({ project_id: project.id }).catch(statementReadFailed),
     ]);
     setLibrary(lib.filter((c) => targetLevels.includes(c.cmmc_level)));
     setAssessments(asmt);
     setEvidence(ev);
     setPoams(pm);
+    setSspStatements(statements.filter((s) => s.project_id === project.id && (!s.organization_id || s.organization_id === project.organization_id) && (!s.ssp_id || s.ssp_id === plans[0]?.id)));
+    setSspLocked(['Approved', 'In Review'].includes(plans[0]?.approval_status));
     setLoading(false);
   }, [project.id, targetLevels]);
 
@@ -145,6 +154,7 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
           {integrity.tracked} of {integrity.expected} requirements tracked for {project.target_cmmc_level}.
         </p>
 
+        {sspLoadError && <p role="alert" className="mt-2 text-sm text-destructive">{sspLoadError}</p>}
         {/* Filters — client view shows a simplified Status + Level only */}
         {isClient ? (
           <div className="grid sm:grid-cols-2 gap-2 mt-4">
@@ -183,6 +193,8 @@ export default function AssessmentModule({ project, readOnly, currentUser, isCli
                     <ControlAssessmentRow
                       key={a.id}
                       assessment={a}
+                      sspStatement={sspStatements.find((s) => s.control_id === a.control_id)}
+                      sspLocked={sspLocked || Boolean(sspLoadError)}
                       libEntry={libByControl[a.control_id]}
                       evidence={evidence.filter((e) => (e.control_ids || []).includes(a.control_id))}
                       poams={poams.filter((p) => p.control_id === a.control_id)}

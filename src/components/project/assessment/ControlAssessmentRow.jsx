@@ -17,11 +17,14 @@ const RISK_TONE = {
   High: 'bg-orange-50 text-orange-700', Critical: 'bg-red-50 text-red-700',
 };
 
-export default function ControlAssessmentRow({ assessment, libEntry, evidence, poams, readOnly, project, onUpdate, onRefresh, currentUser, isClient = false }) {
+export default function ControlAssessmentRow({ assessment, libEntry, evidence, poams, readOnly, project, onUpdate, onRefresh, currentUser, isClient = false, sspStatement, sspLocked = false }) {
+  const sspValue = sspStatement?.implementation_statement || assessment.ssp_statement || libEntry?.ssp_statement_starter || '';
+  const sspReadOnly = readOnly || sspLocked || sspStatement?.statement_status === 'Approved';
   const [open, setOpen] = useState(false);
   const [sspOpen, setSspOpen] = useState(false);
-  const [sspDraft, setSspDraft] = useState(assessment.ssp_statement || '');
+  const [sspDraft, setSspDraft] = useState(sspValue);
   const [savingSsp, setSavingSsp] = useState(false);
+  const [sspError, setSspError] = useState('');
   const [evidenceModal, setEvidenceModal] = useState(false);
   const [poamOpen, setPoamOpen] = useState(false);
   const [poamDraft, setPoamDraft] = useState('');
@@ -31,10 +34,19 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
   const mark = (status) => onUpdate(assessment.id, { status });
 
   const saveSsp = async () => {
-    setSavingSsp(true);
-    await onUpdate(assessment.id, { ssp_statement: sspDraft });
-    setSavingSsp(false);
-    setSspOpen(false);
+    if (sspReadOnly || savingSsp) return;
+    setSavingSsp(true); setSspError('');
+    try {
+      if (sspStatement?.id) {
+        await base44.entities.SSPControlStatement.update(sspStatement.id, { implementation_statement: sspDraft, statement_status: 'Draft' });
+        await onRefresh();
+      } else {
+        await onUpdate(assessment.id, { ssp_statement: sspDraft });
+      }
+      setSspOpen(false);
+    } catch (error) {
+      setSspError(error?.response?.data?.error || error?.message || 'The SSP statement was not saved.');
+    } finally { setSavingSsp(false); }
   };
 
   const createPoam = async () => {
@@ -154,16 +166,17 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
           <Field label="SSP Statement">
             {sspOpen ? (
               <div className="space-y-2">
-                <RichTextField value={sspDraft} onChange={setSspDraft} />
+                <RichTextField value={sspDraft} onChange={setSspDraft} disabled={sspReadOnly || savingSsp} />
+                {sspError && <p role="alert" className="text-sm text-destructive">{sspError}</p>}
                 <div className="flex gap-2">
-                  <button onClick={saveSsp} disabled={savingSsp} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
+                  <button onClick={saveSsp} disabled={savingSsp || sspReadOnly} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#0F1E3C] disabled:opacity-60">
                     {savingSsp ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Save
                   </button>
-                  <button onClick={() => { setSspOpen(false); setSspDraft(assessment.ssp_statement || ''); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100">Cancel</button>
+                  <button onClick={() => { setSspOpen(false); setSspDraft(sspValue); }} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 bg-slate-100">Cancel</button>
                 </div>
               </div>
             ) : (
-              <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(assessment.ssp_statement || libEntry?.ssp_statement_starter || '<em>No SSP statement yet.</em>') }} />
+              <div className="prose prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(sspValue || '<em>No SSP statement yet.</em>') }} />
             )}
           </Field>
 
@@ -186,7 +199,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
               <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Ready for Documentation')}>Ready for Documentation</ActionBtn>
               <ActionBtn icon={FileUp} tone="slate" onClick={() => setEvidenceModal(true)}>Add Evidence</ActionBtn>
               <ActionBtn icon={AlertTriangle} tone="slate" onClick={() => setPoamOpen(!poamOpen)}>Create POA&M Item</ActionBtn>
-              <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(assessment.ssp_statement || libEntry?.ssp_statement_starter || ''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>
+              {!sspReadOnly && <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(sspValue); setSspError(''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>}
             </div>
           )}
 
@@ -204,7 +217,7 @@ export default function ControlAssessmentRow({ assessment, libEntry, evidence, p
                   <ActionBtn icon={CheckCircle2} tone="green" onClick={() => mark('Ready for Documentation')}>Ready for Documentation</ActionBtn>
                   <ActionBtn icon={FileUp} tone="slate" onClick={() => setEvidenceModal(true)}>Add Evidence</ActionBtn>
                   <ActionBtn icon={AlertTriangle} tone="slate" onClick={() => setPoamOpen(!poamOpen)}>Create POA&M Item</ActionBtn>
-                  <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(assessment.ssp_statement || libEntry?.ssp_statement_starter || ''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>
+                  {!sspReadOnly && <ActionBtn icon={FileText} tone="slate" onClick={() => { setSspDraft(sspValue); setSspError(''); setSspOpen(true); }}>Edit SSP Statement</ActionBtn>}
                 </div>
               )}
             </div>

@@ -1,6 +1,6 @@
 // SSP section definitions + auto-build logic from project data.
 import { isImplementationComplete } from '@/lib/canonicalReadiness';
-import { appendSspBoilerplate, resolveSspBoilerplate } from '@/lib/sspBoilerplate';
+import { removeSspBoilerplate, resolveSspBoilerplate } from '@/lib/sspBoilerplate';
 export const SSP_SECTIONS = [
   { key: 'system_name', label: 'System Name', short: true },
   { key: 'system_description', label: 'System Description' },
@@ -90,9 +90,11 @@ export function buildSspDraft({ project, org, scoping, assets = [], assessments 
     revision_history: `<p>v1.0 — Initial draft generated ${new Date().toLocaleDateString()}.</p>`,
   };
   for (const section of SSP_SECTIONS) {
-    draft[section.key] = section.short
-      ? (isEmpty(existingSsp?.[section.key]) ? draft[section.key] : existingSsp[section.key])
-      : appendSspBoilerplate(existingSsp?.[section.key], draft[section.key], paragraphs[section.key]);
+    // Descriptions hold project facts, not implementation statements. Remove only
+    // exact stock paragraphs from the previous generator; custom writing survives.
+    const existing = section.short ? existingSsp?.[section.key]
+      : removeSspBoilerplate(existingSsp?.[section.key], paragraphs[section.key]);
+    if (!isEmpty(existing)) draft[section.key] = existing;
   }
   // Rebuilding never resets a manually entered title or revision history.
   for (const key of ['ssp_title', 'revision_history']) {

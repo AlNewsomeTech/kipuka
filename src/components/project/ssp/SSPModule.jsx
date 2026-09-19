@@ -274,8 +274,23 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
             </div>
           )}
 
-          {/* Sections */}
-          <div className="space-y-3">
+          <section className="space-y-3" aria-label="Control implementation statements">
+            <h2 className="text-lg font-semibold text-foreground">Control Implementation Statements ({statements.length})</h2>
+            <p className="text-sm text-muted-foreground">Each control has its own saved narrative below. Expand a control to review or edit it; draft wording does not change its implementation or evidence status.</p>
+            {statements.length === 0 && <p className="text-sm text-muted-foreground">No individual statements have been saved yet. Rebuild Draft SSP to generate them from the project’s controls.</p>}
+            {statements.map((statement) => (
+              <SSPStatementEditor key={statement.id} statement={statement}
+                readOnly={readOnly || building || statementSaving || ssp.approval_status === 'Approved' || ssp.approval_status === 'In Review'}
+                onSavingChange={setStatementSaving}
+                onDirtyChange={(dirty) => setDirtyStatementIds((ids) => dirty ? [...new Set([...ids, statement.id])] : ids.filter((id) => id !== statement.id))}
+                onSaved={(saved) => setStatements((rows) => rows.map((row) => row.id === saved.id ? saved : row))} />
+            ))}
+          </section>
+
+          {/* Keep general project descriptions separate from the control narratives. */}
+          <details className="rounded-xl border border-border bg-card p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-card-foreground">System description and scope</summary>
+          <div className="mt-4 space-y-3">
             {SSP_SECTIONS.map((s) => (
               <div key={s.key} className="bg-white rounded-xl border border-slate-200 p-4">
                 <label className="block text-sm font-semibold text-slate-700 mb-2">{s.label}</label>
@@ -290,20 +305,9 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </div>
             ))}
           </div>
+          </details>
 
-          {statements.length > 0 && (
-            <section className="space-y-3" aria-label="Control implementation statements">
-              <h2 className="text-lg font-semibold text-foreground">Control Implementation Statements ({statements.length})</h2>
-              <p className="text-sm text-muted-foreground">Expand a control to review or edit its narrative. Draft wording does not mark a control implemented or satisfy its evidence requirements.</p>
-              {statements.map((statement) => (
-                <SSPStatementEditor key={statement.id} statement={statement}
-                  readOnly={readOnly || building || statementSaving || ssp.approval_status === 'Approved' || ssp.approval_status === 'In Review'}
-                  onSavingChange={setStatementSaving}
-                  onDirtyChange={(dirty) => setDirtyStatementIds((ids) => dirty ? [...new Set([...ids, statement.id])] : ids.filter((id) => id !== statement.id))}
-                  onSaved={(saved) => setStatements((rows) => rows.map((row) => row.id === saved.id ? saved : row))} />
-              ))}
-            </section>
-          )}
+
 
           {/* Approval block */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">

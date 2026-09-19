@@ -51,6 +51,13 @@ export function appendSspBoilerplate(existing, generated, boilerplate = '') {
   return result;
 }
 
+// Repair only verbatim generated paragraphs; retain every edited/custom paragraph.
+// This runs on an explicit rebuild, never as a background data migration.
+export function removeSspBoilerplate(existing, boilerplate = '') {
+  const generated = new Set((boilerplate.match(/<p>[\s\S]*?<\/p>/g) || []).map(plain));
+  return String(existing || '').replace(/<p(?:\s[^>]*)?>[\s\S]*?<\/p>/gi, (block) => generated.has(plain(block)) ? '' : block);
+}
+
 export function resolveSspBoilerplate({ project = {}, scoping, assets = [], providers = [], client, companyProfile, securityTools = [] }) {
   // Do not trust a selected client or a tool from another workspace/project.
   client = project.organization_id && client?.organization_id === project.organization_id ? client : null;
