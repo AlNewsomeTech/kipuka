@@ -15,6 +15,7 @@ import AcceptanceGate from '@/components/legal/AcceptanceGate';
 import ConfidentialityFooter from '@/components/legal/ConfidentialityFooter';
 import BrandLogo from '@/components/branding/BrandLogo';
 import { useBrand } from '@/lib/brandContext';
+import ReadingModeControls from '@/components/accessibility/ReadingModeControls';
 
 const navSections = [
   { label: 'Overview', items: [
@@ -256,7 +257,7 @@ export default function Layout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="app-header flex h-16 flex-shrink-0 items-center gap-3 border-b px-3 backdrop-blur-xl sm:px-4 lg:px-6">
+        <header className="app-header flex min-h-16 flex-shrink-0 flex-wrap items-center gap-3 border-b px-3 py-2 backdrop-blur-xl sm:px-4 lg:px-6">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -348,6 +349,7 @@ export default function Layout() {
               )}
             </div>
 
+            <ReadingModeControls key={user?.id || 'anonymous'} userId={user?.id} />
             <div className="flex items-center gap-2 rounded-xl p-1.5 pr-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#479dcf] to-[#286d98] text-[10px] font-extrabold text-white shadow-sm">
                 {userInitials || 'KU'}

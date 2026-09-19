@@ -1105,3 +1105,65 @@ html[data-theme='dark'] [role='listbox'] {
 /* ---- Contrast type used ON the light accent fills ---- */
 .text-\[\#04101f\] { color: #000000; }
 .text-\[\#060c18\] { color: #000000; }
+
+/* Optional reading preferences: screen-only, independent of color theme.
+   Exact class tokens keep hover states and icons untouched. */
+:root, .dark {
+  --font-reading: Verdana, Arial, sans-serif;
+}
+@media screen {
+  html[data-theme][data-reading-mode='true'] {
+    --font-heading: var(--font-reading);
+    --font-body: var(--font-reading);
+    --font-display: var(--font-reading);
+  }
+  html[data-reading-mode='true'] body,
+  html[data-reading-mode='true'] :is(button, input, select, textarea) {
+    font-family: var(--font-reading);
+  }
+  html[data-reading-mode='true'] .app-content,
+  html[data-reading-mode='true'] [role='dialog'] {
+    font-family: var(--font-reading);
+    letter-spacing: 0.035em;
+    word-spacing: 0.1em;
+    line-height: 1.8;
+    text-shadow: none;
+  }
+  html[data-reading-mode='true'] :is(.app-content, [role='dialog']) :is(p, li, label, td, th, input, textarea, select) {
+    line-height: 1.8;
+    letter-spacing: 0.035em;
+    word-spacing: 0.1em;
+  }
+  html[data-reading-mode='true'] :is(.app-content, [role='dialog']) :is(p, li) {
+    max-width: 65ch;
+    text-align: start;
+    font-style: normal;
+    overflow-wrap: anywhere;
+  }
+  html[data-reading-mode='true'] .app-content p + p { margin-top: 1em; }
+  html[data-reading-mode='true'] :is(.app-content, [role='dialog']) :is(
+    [class~='text-xs'], [class~='text-sm'], [class~='text-[9px]'],
+    [class~='text-[10px]'], [class~='text-[11px]'], [class~='text-[12px]'],
+    [class~='text-[13px]'], [class~='text-[14px]'], [class~='text-[15px]'],
+    .page-subtitle, .form-input, .prose p, .prose li, .ql-editor
+  ):not(svg):not(svg *):not(pre):not(pre *):not(code):not(code *) {
+    font-size: 1.0625rem !important;
+  }
+  html[data-reading-mode='true'] :is(.app-content, [role='dialog']) :is(h1, h2, h3, h4, label, th, .page-kicker) {
+    letter-spacing: 0.025em;
+    line-height: 1.5;
+    text-transform: none;
+  }
+  html[data-reading-mode='true'] :is(.app-content, [role='dialog']) :is(button, input, select):not([role='switch']):not([role='checkbox']):not([role='radio']):not([type='checkbox']):not([type='radio']) {
+    min-height: 2.75rem;
+  }
+  html[data-reading-mode='true'] :is(pre, code, kbd, samp) {
+    font-family: var(--font-mono);
+    letter-spacing: normal;
+    word-spacing: normal;
+  }
+  html[data-reading-mode='true'] .app-header { height: auto; min-height: 4rem; flex-wrap: wrap; padding-block: 0.5rem; }
+}
+@media print {
+  .reading-guide, .reading-mode-controls { display: none !important; }
+}
