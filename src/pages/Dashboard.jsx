@@ -36,7 +36,7 @@ export default function Dashboard() {
     setResolving(true);
     setProjectId(null);
     setResolveFailed(false);
-    resolveProjectIdForClient(selectedClientId)
+    resolveProjectIdForClient(selectedClient || selectedClientId)
       .then((id) => {
         if (!active) return;
         setProjectId(id || null);
@@ -50,7 +50,7 @@ export default function Dashboard() {
         setResolving(false);
       });
     return () => { active = false; };
-  }, [selectedClientId, orgSelfService]);
+  }, [selectedClientId, selectedClient, orgSelfService]);
 
   if (orgSelfService) {
     return <OrgDashboard organizationId={selectedOrgId} orgName={selectedOrg?.organization_name} />;

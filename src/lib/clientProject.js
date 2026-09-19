@@ -1,25 +1,31 @@
 import { base44 } from '@/api/base44Client';
 
-// Resolve the ControlAssessment "project" that backs a given consultant Client.
-// The consultant control pages are keyed by client_id, but ControlAssessment
-// (the single source of truth) is keyed by project_id. A Client and its Project
-// share organization_id; we prefer the org's CompanyProfile.active_project_id,
-// else the org's newest project.
-export async function resolveProjectIdForClient(clientId) {
-  if (!clientId) return null;
-  const clients = await base44.entities.Client.filter({ id: clientId }).catch(() => []);
-  const client = clients[0];
+// Resolve through the client's own organization. A failed read is not an
+// absent relationship: let callers show the actual loading error.
+export async function resolveClientProject(clientOrId) {
+  if (!clientOrId) return null;
+  const client = typeof clientOrId === 'string'
+    ? await base44.entities.Client.get(clientOrId)
+    : clientOrId;
   const orgId = client?.organization_id;
   if (!orgId) return null;
 
-  const profiles = await base44.entities.CompanyProfile.filter({ organization_id: orgId }).catch(() => []);
+  const profiles = await base44.entities.CompanyProfile.filter({ organization_id: orgId });
   const activeId = profiles[0]?.active_project_id;
   if (activeId) {
-    const found = await base44.entities.Project.filter({ id: activeId, organization_id: orgId }).catch(() => []);
-    if (found[0]) return found[0].id;
+    const project = await base44.entities.Project.get(activeId);
+    if (project?.organization_id !== orgId) throw new Error('The active project does not belong to this client’s organization.');
+    return project;
   }
-  const projects = await base44.entities.Project.filter({ organization_id: orgId }, '-created_date', 1).catch(() => []);
-  return projects[0]?.id || null;
+  const projects = await base44.entities.Project.filter({ organization_id: orgId }, '-created_date', 1);
+  const project = projects[0] || null;
+  if (project && project.organization_id !== orgId) throw new Error('The project does not belong to this client’s organization.');
+  return project;
+}
+
+// Preserve the ID-only interface used by existing project links and editors.
+export async function resolveProjectIdForClient(clientOrId) {
+  return (await resolveClientProject(clientOrId))?.id || null;
 }
 
 // Map a ControlAssessment status back to the 6-value consultant status vocabulary

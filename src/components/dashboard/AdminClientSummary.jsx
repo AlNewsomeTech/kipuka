@@ -15,14 +15,16 @@ export default function AdminClientSummary() {
   const navigate = useNavigate();
   const [progressByClient, setProgressByClient] = useState({});
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
     (async () => {
       // Per-client isolation: one broken client never hides the portfolio.
       const entries = await Promise.all(clients.map(async (client) => {
         try {
-          return [client.id, await loadCanonicalClientProgress(client.id)];
+          return [client.id, await loadCanonicalClientProgress(client)];
         } catch (err) {
           return [client.id, {
             projectId: null, project: null, assessments: [],
@@ -38,7 +40,7 @@ export default function AdminClientSummary() {
       setLoading(false);
     })();
     return () => { active = false; };
-  }, [clients]);
+  }, [clients, reloadKey]);
 
   const openClient = (client, result) => {
     setSelectedClientId(client.id);
@@ -94,7 +96,7 @@ export default function AdminClientSummary() {
                   <div className="min-w-0">
                     <h3 className="text-sm font-bold text-slate-900 truncate">{client.legal_name}</h3>
                     <p className="text-xs text-slate-500 truncate">
-                      {client.environment_type || 'Environment not set'} • {targetLevel ? `CMMC ${targetLevel}` : 'No linked project'}
+                      {client.environment_type || 'Environment not set'} • {targetLevel ? `CMMC ${targetLevel}` : result?.missingProject ? 'No linked project' : result?.projectId ? 'Project linked' : 'Project lookup unavailable'}
                     </p>
                   </div>
                 </div>
@@ -125,7 +127,8 @@ export default function AdminClientSummary() {
                     {result?.error ? 'Data unavailable' : 'Integrity issue'}
                   </div>
                   <p className="mt-1 text-[11px] leading-4 text-amber-700">{issueText}</p>
-                  <p className="mt-1.5 text-[10px] text-amber-600">Progress is not shown until the canonical control set is valid.</p>
+                  <p className="mt-1.5 text-[10px] text-amber-600">{result?.error && !result?.missingProject ? 'Progress could not be loaded. Your saved records have not been changed.' : 'Progress is not shown until the canonical control set is valid.'}</p>
+                  {result?.error && !result?.missingProject && <button type="button" className="mt-2 text-xs font-semibold underline" onClick={(event) => { event.stopPropagation(); setReloadKey(key => key + 1); }}>Retry loading</button>}
                 </div>
               )}
             </div>

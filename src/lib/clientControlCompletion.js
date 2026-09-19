@@ -1,5 +1,5 @@
 import { base44 } from '@/api/base44Client';
-import { resolveProjectIdForClient } from '@/lib/clientProject';
+import { resolveClientProject } from '@/lib/clientProject';
 import { isMetStatus, isInProgressStatus } from '@/lib/sprsScoring';
 import { isImplementationComplete } from '@/lib/canonicalReadiness';
 
@@ -44,29 +44,17 @@ function unavailable(extra = {}) {
 
 // Resolve the client's Project, read only that project's ControlAssessment rows,
 // and return a stable, validated progress object.
-export async function loadCanonicalClientProgress(clientId) {
-  if (!clientId) return unavailable({ error: 'No client selected.' });
+export async function loadCanonicalClientProgress(clientOrId) {
+  if (!clientOrId) return unavailable({ error: 'No client selected.' });
 
-  let projectId = null;
+  let project;
   try {
-    projectId = await resolveProjectIdForClient(clientId);
+    project = await resolveClientProject(clientOrId);
   } catch (err) {
-    return unavailable({ error: `The linked project could not be resolved: ${err?.message || 'read failed'}` });
+    return unavailable({ error: `The linked project could not be loaded: ${err?.message || 'read failed'}` });
   }
-  if (!projectId) {
-    return unavailable({ error: 'No project is linked to this client.' });
-  }
-
-  let project = null;
-  try {
-    const projects = await base44.entities.Project.filter({ id: projectId });
-    project = projects[0] || null;
-  } catch (err) {
-    return unavailable({ projectId, error: `The linked project could not be read: ${err?.message || 'read failed'}` });
-  }
-  if (!project) {
-    return unavailable({ projectId, error: 'The linked project could not be read.' });
-  }
+  if (!project) return unavailable({ missingProject: true, error: 'No project is linked to this client.' });
+  const projectId = project.id;
 
   let assessments = [];
   try {
