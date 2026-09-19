@@ -31,7 +31,7 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
   const linkClass = ({ isActive }) =>
     `group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[13px] transition-all ${
       isActive
-        ? 'bg-blue-50 font-extrabold text-[#175d88] ring-1 ring-blue-100 before:absolute before:left-0 before:h-5 before:w-0.5 before:rounded-full before:bg-[#479dcf]'
+        ? 'bg-blue-50 font-extrabold text-foreground ring-1 ring-blue-100 before:absolute before:left-0 before:h-5 before:w-0.5 before:rounded-full before:bg-[#479dcf]'
         : 'font-semibold text-slate-500 hover:bg-slate-50 hover:text-slate-800'
     }`;
 

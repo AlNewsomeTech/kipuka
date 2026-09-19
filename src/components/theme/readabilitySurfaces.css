@@ -1,0 +1,91 @@
+/* Screen-only compatibility for legacy utilities. Every selector matches a
+   complete utility token: hover/focus classes never become resting styles.
+   Local ink variables follow the nearest surface, including nested light cards
+   inside dark banners. Green Terminal and printed documents are not rethemed. */
+@media screen {
+  html[data-theme='light'] {
+    --theme-ink: #171717; --theme-body: #404040; --theme-muted: #525252;
+    --theme-info: #1e40af; --theme-success: #166534; --theme-warning: #854d0e;
+    --theme-danger: #991b1b; --theme-purple: #6b21a8; --theme-orange: #9a3412; --theme-cyan: #155e75;
+    --theme-info-bg: #e6f0fc; --theme-success-bg: #e2f6ea; --theme-warning-bg: #fcf1dc;
+    --theme-danger-bg: #fce8ea; --theme-purple-bg: #f0e9fb; --theme-orange-bg: #fcecdd; --theme-cyan-bg: #e2f2f8;
+  }
+  html[data-theme='dark'] {
+    --theme-ink: #f5f5f5; --theme-body: #e5e5e5; --theme-muted: #bdbdbd;
+    --theme-info: #93c5fd; --theme-success: #86efac; --theme-warning: #fcd34d;
+    --theme-danger: #fca5a5; --theme-purple: #d8b4fe; --theme-orange: #fdba74; --theme-cyan: #67e8f9;
+    --theme-info-bg: #1e2a33; --theme-success-bg: #12291c; --theme-warning-bg: #2a2413;
+    --theme-danger-bg: #2b1618; --theme-purple-bg: #241a38; --theme-orange-bg: #2a1e12; --theme-cyan-bg: #10262e;
+  }
+  html[data-theme]:not([data-theme='dark-green']),
+  html[data-theme]:not([data-theme='dark-green']) :is(
+    .app-shell, .app-header, .app-sidebar, .app-surface, .btn-secondary,
+    [role='dialog'], [role='alertdialog'], [role='menu'], [role='listbox'], [role='tooltip'],
+    .bg-background, .bg-card, .bg-popover, .bg-muted, .bg-secondary, .bg-accent,
+    .bg-white, [class~='bg-white/80'], [class~='bg-white/90'], [class~='bg-white/95'],
+    .bg-slate-50, .bg-slate-100, .bg-slate-200, .bg-gray-50, .bg-gray-100, .bg-gray-200,
+    .bg-neutral-50, .bg-neutral-100, .bg-neutral-200, .bg-zinc-50, .bg-zinc-100, .bg-zinc-200,
+    [class~='bg-slate-50/60'], [class~='bg-slate-50/80'], [class~='bg-slate-100/70'], [class~='bg-slate-100/80'], [class~='bg-slate-200/60'],
+    .bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100,
+    .bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100,
+    .bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100,
+    .bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100,
+    .bg-purple-50, .bg-purple-100, .bg-violet-50, .bg-violet-100,
+    .bg-orange-50, .bg-orange-100, .bg-cyan-50, .bg-cyan-100, .bg-teal-50, .bg-teal-100,
+    [class~='bg-blue-50/60'], [class~='bg-amber-50/60'], .form-input, .ql-editor
+  ) {
+    --readable-ink: var(--theme-ink); --readable-body: var(--theme-body); --readable-muted: var(--theme-muted);
+    --readable-info: var(--theme-info); --readable-success: var(--theme-success); --readable-warning: var(--theme-warning);
+    --readable-danger: var(--theme-danger); --readable-purple: var(--theme-purple); --readable-orange: var(--theme-orange); --readable-cyan: var(--theme-cyan);
+    --readable-white: #ffffff; --readable-white-muted: #d4d4d4;
+    color: var(--readable-ink);
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-white, [class~='bg-white/80'], [class~='bg-white/90'], [class~='bg-white/95'], .bg-slate-50, .bg-gray-50, .bg-neutral-50, .bg-zinc-50, [class~='bg-slate-50/60'], [class~='bg-slate-50/80']) {
+    background-color: hsl(var(--card)); color: var(--readable-ink);
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-slate-100, .bg-gray-100, .bg-neutral-100, .bg-zinc-100, [class~='bg-slate-100/70'], [class~='bg-slate-100/80']) {
+    background-color: hsl(var(--muted)); color: var(--readable-ink);
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-slate-200, .bg-gray-200, .bg-neutral-200, .bg-zinc-200, [class~='bg-slate-200/60']) {
+    background-color: hsl(var(--accent)); color: var(--readable-ink);
+  }
+  /* Intentional dark banners, code samples, and the fixed-dark public site. */
+  html[data-theme]:not([data-theme='dark-green']) :is(
+    .bg-slate-500, .bg-slate-600, .bg-slate-700, .bg-slate-800, .bg-slate-900, .bg-slate-950, .bg-gray-500, .bg-gray-600, .bg-gray-700, .bg-gray-800, .bg-gray-900, .bg-neutral-900, .bg-black,
+    [class~='bg-[#0F1E3C]'], [class~='bg-[#1E2D4A]'], [class~='bg-[#060c18]'], [class~='bg-[#050a13]'],
+    [class~='bg-[#080f1e]'], [class~='bg-[#0a1424]'], [class~='bg-[#0b1626]'], [class~='bg-[#0d1a2e]'],
+    [class~='from-[#0b1930]'], [class~='from-[#0F1E3C]'], .btn-primary
+  ):not(.app-sidebar) {
+    --readable-ink: #ffffff; --readable-body: #e5e5e5; --readable-muted: #cbd5e1;
+    --readable-info: #93c5fd; --readable-success: #86efac; --readable-warning: #fcd34d;
+    --readable-danger: #fca5a5; --readable-purple: #d8b4fe; --readable-orange: #fdba74; --readable-cyan: #67e8f9;
+    --readable-white: #ffffff; --readable-white-muted: #d4d4d4;
+    color: var(--readable-ink);
+  }
+  /* Saturated buttons keep light labels, including when nested in a pale card. */
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-blue-600, .bg-blue-700, .bg-indigo-600, .bg-indigo-700, .bg-purple-600, .bg-purple-700, .bg-violet-600, .bg-violet-700, .bg-red-600, .bg-red-700, .bg-green-700, .bg-green-800, .bg-emerald-700, .bg-destructive) {
+    --readable-ink: #ffffff; --readable-body: #ffffff; --readable-muted: #ffffff;
+    --readable-white: #ffffff; --readable-white-muted: #ffffff;
+    color: var(--readable-ink);
+  }
+  /* These fills are genuinely bright in BOTH themes: never invert their ink. */
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-slate-300, .bg-slate-400, .bg-gray-300, .bg-gray-400, .bg-neutral-300, .bg-neutral-400, .bg-zinc-300, .bg-zinc-400, .bg-amber-400, .bg-amber-500, .bg-yellow-400, .bg-yellow-500, .bg-green-400, .bg-green-500, .bg-emerald-400, .bg-emerald-500, .bg-cyan-400, .bg-cyan-500, .bg-brand, [class~='bg-[#479dcf]'], [class~='bg-[#67d1f0]']) {
+    --readable-ink: #171717; --readable-body: #171717; --readable-muted: #262626;
+    --readable-white: #171717; --readable-white-muted: #262626;
+    color: var(--readable-ink);
+  }
+  html[data-theme]:not([data-theme='dark-green']) .bg-primary {
+    --readable-ink: hsl(var(--primary-foreground)); --readable-body: hsl(var(--primary-foreground)); --readable-muted: hsl(var(--primary-foreground));
+    --readable-white: hsl(var(--primary-foreground)); --readable-white-muted: hsl(var(--primary-foreground));
+    color: hsl(var(--primary-foreground));
+  }
+  /* Explicit hover states: do not turn hover-only utilities into solid panels. */
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-slate-50, .hover\:bg-slate-100, .hover\:bg-slate-200, .hover\:bg-gray-100, .hover\:bg-white):hover {
+    background-color: hsl(var(--accent)); color: hsl(var(--accent-foreground));
+    --readable-ink: var(--theme-ink); --readable-body: var(--theme-body); --readable-muted: var(--theme-muted);
+  }
+  html[data-theme]:not([data-theme='dark-green']) .bg-brand:hover {
+    background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+    --readable-white: hsl(var(--primary-foreground)); --readable-white-muted: hsl(var(--primary-foreground));
+  }
+}

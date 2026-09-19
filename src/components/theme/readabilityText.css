@@ -1,0 +1,66 @@
+/* Contextual text, rich content, controls, and chart labels. No record content
+   or inline author formatting is mutated. These rules do not run when printing. */
+@media screen {
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-slate-50, .text-slate-100, .text-slate-200, .text-slate-300, .text-slate-400, .text-slate-500, .text-gray-300, .text-gray-400, .text-gray-500, .text-neutral-400, .text-neutral-500, .text-zinc-400, .text-zinc-500, .text-muted-foreground, [class~='text-slate-500/90']) { color: var(--readable-muted); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-slate-600, .text-slate-700, .text-gray-600, .text-gray-700, .text-neutral-600, .text-neutral-700, .text-zinc-600, .text-zinc-700) { color: var(--readable-body); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-black, .text-slate-800, .text-slate-900, .text-slate-950, .text-gray-800, .text-gray-900, .text-neutral-800, .text-neutral-900, .text-zinc-800, .text-zinc-900, [class~='text-[#0F1E3C]']) { color: var(--readable-ink); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-brand, [class~='text-[#479dcf]'], [class~='text-[#67d1f0]'], [class~='text-[#64789a]'], [class~='text-[#8296b0]'], [class~='text-[#8fa3bd]']) { color: var(--readable-muted); }
+  html[data-theme]:not([data-theme='dark-green']) :is([class~='text-[#175d88]'], [class~='text-[#8fd0f2]']) { color: var(--readable-info); }
+  html[data-theme]:not([data-theme='dark-green']) .text-white { color: var(--readable-white); }
+  html[data-theme]:not([data-theme='dark-green']) :is([class~='text-white/35'], [class~='text-white/40'], [class~='text-white/50'], [class~='text-white/55'], [class~='text-white/60'], [class~='text-white/65'], [class~='text-white/70'], [class~='text-white/80']) { color: var(--readable-white-muted); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:text-slate-600, .hover\:text-slate-700, .hover\:text-slate-800, .hover\:text-slate-900):hover { color: var(--readable-ink); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:text-blue-600, .hover\:text-blue-700):hover { color: var(--readable-info); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:text-red-500, .hover\:text-red-600, .hover\:text-red-700):hover { color: var(--readable-danger); }
+  html[data-theme='light'] .app-sidebar { --readable-white: #171717; --readable-white-muted: #525252; }
+  html[data-theme='dark'] .app-sidebar { --readable-white: #f5f5f5; --readable-white-muted: #bdbdbd; }
+
+  /* Tailwind Typography assigns independent colors to headings, bold, lists,
+     links, and tables; changing only the parent's text color never fixed them. */
+  html[data-theme]:not([data-theme='dark-green']) .prose {
+    --tw-prose-body: var(--readable-body); --tw-prose-headings: var(--readable-ink);
+    --tw-prose-lead: var(--readable-body); --tw-prose-links: var(--readable-info);
+    --tw-prose-bold: var(--readable-ink); --tw-prose-counters: var(--readable-muted);
+    --tw-prose-bullets: var(--readable-muted); --tw-prose-hr: hsl(var(--border));
+    --tw-prose-quotes: var(--readable-body); --tw-prose-quote-borders: hsl(var(--input));
+    --tw-prose-captions: var(--readable-muted); --tw-prose-code: var(--readable-ink);
+    --tw-prose-pre-code: #e5e5e5; --tw-prose-pre-bg: #171717;
+    --tw-prose-th-borders: hsl(var(--input)); --tw-prose-td-borders: hsl(var(--border));
+    color: var(--readable-body);
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(.form-input, input.bg-white, select.bg-white, textarea.bg-white) {
+    color: hsl(var(--foreground)); background-color: hsl(var(--card));
+    border-color: hsl(var(--input));
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(input, textarea)::placeholder {
+    color: hsl(var(--muted-foreground)); opacity: 1;
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(select option, select optgroup) {
+    color: hsl(var(--popover-foreground)); background-color: hsl(var(--popover));
+  }
+  /* Preserve disabled behavior without fading the entire label into its fill. */
+  html[data-theme]:not([data-theme='dark-green']) :is(button:disabled, input:disabled, select:disabled, textarea:disabled, [data-disabled]) {
+    opacity: 1; cursor: not-allowed; box-shadow: none;
+    border-style: dashed;
+  }
+  html[data-theme]:not([data-theme='dark-green']) button:disabled {
+    outline: 1px dashed hsl(var(--muted-foreground)); outline-offset: 2px;
+  }
+  html[data-theme]:not([data-theme='dark-green']) :is(input:disabled, textarea:disabled, select:disabled) {
+    background-color: hsl(var(--muted)); color: hsl(var(--foreground));
+  }
+  html[data-theme]:not([data-theme='dark-green']) .ql-toolbar,
+  html[data-theme]:not([data-theme='dark-green']) .ql-snow .ql-picker-options {
+    background-color: hsl(var(--popover)); border-color: hsl(var(--input)); color: hsl(var(--popover-foreground));
+  }
+  html[data-theme]:not([data-theme='dark-green']) .ql-snow .ql-stroke { stroke: hsl(var(--foreground)); }
+  html[data-theme]:not([data-theme='dark-green']) .ql-snow .ql-fill { fill: hsl(var(--foreground)); }
+  html[data-theme]:not([data-theme='dark-green']) .ql-snow .ql-picker { color: hsl(var(--foreground)); }
+  html[data-theme]:not([data-theme='dark-green']) .ql-editor.ql-blank::before { color: hsl(var(--muted-foreground)); }
+  /* Default Recharts tooltips ship inline white fills and colored labels. */
+  html[data-theme]:not([data-theme='dark-green']) .recharts-default-tooltip {
+    background-color: hsl(var(--popover)) !important; color: hsl(var(--popover-foreground)) !important;
+    border-color: hsl(var(--input)) !important;
+  }
+  html[data-theme]:not([data-theme='dark-green']) .recharts-default-tooltip :is(.recharts-tooltip-label, .recharts-tooltip-item) { color: hsl(var(--popover-foreground)) !important; }
+  html[data-theme]:not([data-theme='dark-green']) .recharts-cartesian-axis-tick-value { fill: hsl(var(--foreground)); }
+}

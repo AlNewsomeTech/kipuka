@@ -1,0 +1,29 @@
+/* Paired status surfaces and labels, preserving semantic hues. */
+@media screen {
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-blue-50, .bg-blue-100, .bg-indigo-50, .bg-indigo-100, [class~='bg-blue-50/60']) { background-color: var(--theme-info-bg); color: var(--theme-info); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-green-50, .bg-green-100, .bg-emerald-50, .bg-emerald-100) { background-color: var(--theme-success-bg); color: var(--theme-success); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-amber-50, .bg-amber-100, .bg-yellow-50, .bg-yellow-100, [class~='bg-amber-50/60']) { background-color: var(--theme-warning-bg); color: var(--theme-warning); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-red-50, .bg-red-100, .bg-rose-50, .bg-rose-100) { background-color: var(--theme-danger-bg); color: var(--theme-danger); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-purple-50, .bg-purple-100, .bg-violet-50, .bg-violet-100) { background-color: var(--theme-purple-bg); color: var(--theme-purple); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-orange-50, .bg-orange-100) { background-color: var(--theme-orange-bg); color: var(--theme-orange); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.bg-cyan-50, .bg-cyan-100, .bg-teal-50, .bg-teal-100) { background-color: var(--theme-cyan-bg); color: var(--theme-cyan); }
+
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-blue-400, .text-blue-500, .text-blue-600, .text-blue-700, .text-blue-800, .text-blue-900, .text-blue-950, .text-indigo-500, .text-indigo-600, .text-indigo-700, .text-indigo-800, .text-indigo-900, [class~='text-blue-800/80'], [class~='text-blue-900/75'], [class~='text-blue-900/80'], [class~='text-blue-900/90']) { color: var(--readable-info); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-green-400, .text-green-500, .text-green-600, .text-green-700, .text-green-800, .text-green-900, .text-green-950, .text-emerald-400, .text-emerald-500, .text-emerald-600, .text-emerald-700, .text-emerald-800, .text-emerald-900, .text-emerald-950) { color: var(--readable-success); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-amber-300, .text-amber-400, .text-amber-500, .text-amber-600, .text-amber-700, .text-amber-800, .text-amber-900, .text-amber-950, .text-yellow-500, .text-yellow-600, .text-yellow-700, .text-yellow-800) { color: var(--readable-warning); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-red-400, .text-red-500, .text-red-600, .text-red-700, .text-red-800, .text-red-900, .text-red-950, .text-rose-500, .text-rose-600, .text-rose-700, .text-rose-800, [class~='text-red-700/80']) { color: var(--readable-danger); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-purple-400, .text-purple-500, .text-purple-600, .text-purple-700, .text-purple-800, .text-purple-900, .text-purple-950, .text-violet-500, .text-violet-600, .text-violet-700, .text-violet-800, .text-violet-900, .text-violet-950, [class~='text-purple-500/90']) { color: var(--readable-purple); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-orange-400, .text-orange-500, .text-orange-600, .text-orange-700, .text-orange-800, .text-orange-900, .text-orange-950) { color: var(--readable-orange); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.text-cyan-400, .text-cyan-500, .text-cyan-600, .text-cyan-700, .text-cyan-800, .text-cyan-900, .text-cyan-950, .text-teal-500, .text-teal-600, .text-teal-700, .text-teal-800) { color: var(--readable-cyan); }
+
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-blue-50, .hover\:bg-blue-100):hover { background-color: var(--theme-info-bg); color: var(--theme-info); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-green-50, .hover\:bg-green-100):hover { background-color: var(--theme-success-bg); color: var(--theme-success); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-amber-50, .hover\:bg-amber-100):hover { background-color: var(--theme-warning-bg); color: var(--theme-warning); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-red-50, .hover\:bg-red-100):hover { background-color: var(--theme-danger-bg); color: var(--theme-danger); }
+  html[data-theme]:not([data-theme='dark-green']) :is(.hover\:bg-purple-50, .hover\:bg-purple-100):hover { background-color: var(--theme-purple-bg); color: var(--theme-purple); }
+  /* White labels on these legacy action fills need a deeper shade, not opacity. */
+  html[data-theme]:not([data-theme='dark-green']) :is(button, a):is(.bg-green-600, .bg-emerald-600) { background-color: #166534; color: #ffffff; --readable-white: #ffffff; }
+  html[data-theme]:not([data-theme='dark-green']) :is(button, a):is(.bg-orange-600, .bg-amber-600) { background-color: #9a3412; color: #ffffff; --readable-white: #ffffff; }
+  html[data-theme]:not([data-theme='dark-green']) :is(button, a):is(.bg-green-600, .bg-emerald-600):hover { background-color: #14532d; }
+  html[data-theme]:not([data-theme='dark-green']) :is(button, a):is(.bg-orange-600, .bg-amber-600):hover { background-color: #7c2d12; }
+}

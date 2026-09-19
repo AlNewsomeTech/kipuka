@@ -58,7 +58,7 @@
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted-foreground: 0 0% 35%;
     --accent: 0 0% 90%;
     --accent-foreground: 0 0% 9%;
     --destructive: 356 56% 50%;
@@ -97,7 +97,7 @@
     --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 93%;
     --muted: 0 0% 13%;
-    --muted-foreground: 0 0% 64%;
+    --muted-foreground: 0 0% 72%;
     --accent: 0 0% 22%;
     --accent-foreground: 0 0% 96%;
     --destructive: 0 72% 55%;
@@ -175,7 +175,7 @@
   }
 
   :focus-visible {
-    outline: 3px solid rgb(163 163 163 / 0.42);
+    outline: 3px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 

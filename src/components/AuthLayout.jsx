@@ -9,8 +9,8 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
           <div className="flex justify-center mb-5">
             <BrandLogo variant="color" imgClassName="h-12 w-auto object-contain" wordmarkClassName="text-2xl" />
           </div>
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-brand mb-4">
-            <Icon className="w-7 h-7 text-white" aria-hidden="true" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-primary-foreground mb-4">
+            <Icon className="w-7 h-7" aria-hidden="true" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">{title}</h1>
           {subtitle && <p className="text-muted-foreground mt-2">{subtitle}</p>}

@@ -351,7 +351,7 @@ export default function Layout() {
 
             <ReadingModeControls key={user?.id || 'anonymous'} userId={user?.id} />
             <div className="flex items-center gap-2 rounded-xl p-1.5 pr-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#479dcf] to-[#286d98] text-[10px] font-extrabold text-white shadow-sm">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-[10px] font-extrabold text-primary-foreground shadow-sm">
                 {userInitials || 'KU'}
               </div>
               <div className="hidden min-w-0 2xl:block">
