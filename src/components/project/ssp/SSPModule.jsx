@@ -96,17 +96,18 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const finalReady = allPass(checks);
   const [showFinalGate, setShowFinalGate] = useState(false);
 
-  const exportDraft = async () => {
+  const exportDraft = async (format) => {
     if (!ssp || building || statementsBusy || exportingDraft) return;
-    setExportingDraft(true); setExportError('');
+    setExportingDraft(format); setExportError('');
     try {
-      await generateSspDocx({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
+      const generate = format === 'pdf' ? generateSspPdf : generateSspDocx;
+      await generate({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
     } catch (error) {
-      setExportError(error?.message || 'The Word document could not be downloaded.');
+      setExportError(error?.message || `The ${format === 'pdf' ? 'PDF' : 'Word document'} could not be downloaded.`);
     } finally { setExportingDraft(false); }
   };
 
-  // Final PDF output remains gated; draft downloads are editable Word documents.
+  // Final PDF output remains gated; drafts offer both Word and PDF downloads.
   const exportFinal = async () => {
     if (!finalReady) {
       setShowFinalGate(true);
@@ -226,10 +227,16 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </button>
             )}
             {ssp && (
-              <button disabled={building || statementsBusy || exportingDraft} onClick={exportDraft}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
-                {exportingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} {exportingDraft ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}
-              </button>
+              <>
+                <button disabled={building || statementsBusy || Boolean(exportingDraft)} onClick={() => exportDraft('docx')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
+                  {exportingDraft === 'docx' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} {exportingDraft === 'docx' ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}
+                </button>
+                <button disabled={building || statementsBusy || Boolean(exportingDraft)} onClick={() => exportDraft('pdf')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
+                  {exportingDraft === 'pdf' ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} {exportingDraft === 'pdf' ? 'Preparing PDF…' : 'Download Draft SSP (.pdf)'}
+                </button>
+              </>
             )}
             {ssp && !readOnly && (
               <button disabled={building || statementsBusy} onClick={() => (finalReady ? exportFinal() : setShowFinalGate(true))}
@@ -266,8 +273,10 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
         <div className="space-y-3">
           <ReadinessPrecheck title="Final SSP — Readiness Pre-Check" checks={checks} warning={FINAL_DOC_WARNING} />
           <div className="flex flex-wrap gap-2">
-            <button onClick={exportDraft} disabled={building || statementsBusy || exportingDraft}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">{exportingDraft ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}</button>
+            <button onClick={() => exportDraft('docx')} disabled={building || statementsBusy || Boolean(exportingDraft)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">{exportingDraft === 'docx' ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}</button>
+            <button onClick={() => exportDraft('pdf')} disabled={building || statementsBusy || Boolean(exportingDraft)}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">{exportingDraft === 'pdf' ? 'Preparing PDF…' : 'Download Draft SSP (.pdf)'}</button>
             <button onClick={() => setShowFinalGate(false)}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Return to Implementation Checklist</button>
           </div>
