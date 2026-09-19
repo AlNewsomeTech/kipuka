@@ -11,6 +11,7 @@ import RichTextField from '@/components/ui/RichTextField';
 import EvidenceUploadModal from '@/components/project/evidence/EvidenceUploadModal';
 import RelatedSecurityTools from '@/components/securitytools/RelatedSecurityTools';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
+import { cleanSspDraftText } from '@/lib/sspDraftText';
 
 const RISK_TONE = {
   Low: 'bg-green-50 text-green-700', Moderate: 'bg-amber-50 text-amber-700',
@@ -18,7 +19,7 @@ const RISK_TONE = {
 };
 
 export default function ControlAssessmentRow({ assessment, libEntry, evidence, poams, readOnly, project, onUpdate, onRefresh, currentUser, isClient = false, sspStatement, sspLocked = false }) {
-  const sspValue = sspStatement?.implementation_statement || assessment.ssp_statement || libEntry?.ssp_statement_starter || '';
+  const sspValue = cleanSspDraftText(sspStatement?.implementation_statement || assessment.ssp_statement || libEntry?.ssp_statement_starter || '');
   const sspReadOnly = readOnly || sspLocked || sspStatement?.statement_status === 'Approved';
   const [open, setOpen] = useState(false);
   const [sspOpen, setSspOpen] = useState(false);

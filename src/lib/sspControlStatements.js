@@ -1,6 +1,7 @@
 import { base44 } from '@/api/base44Client';
 import { appendSspBoilerplate, escapeSspText, resolveSspBoilerplate, SSP_TOOL_BOILERPLATE } from '@/lib/sspBoilerplate';
 import { resolveVariant, stackKeyForProject, stackLabel } from '@/lib/implementationStacks';
+import { cleanSspDraftText } from '@/lib/sspDraftText';
 
 export function hasSspStatement(value) {
   return Boolean(String(value || '').replace(/<[^>]*>/g, '').replace(/&nbsp;|&#160;|\s|\u200b/g, ''));
@@ -25,8 +26,7 @@ function standardStatement(assessment, entry, project, tools, mappings) {
   const mapped = mappings.filter((m) => m.active !== false && m.support_type !== 'Not Applicable' && m.control_id === assessment.control_id).map((m) => m.tool_name).join(' ');
   const supporting = Object.entries(SSP_TOOL_BOILERPLATE).filter(([key, definition]) => tools[key] && definition.match.test(`${source} ${mapped}`));
   const verification = (variant?.validation_steps || []).filter((step) => typeof step === 'string').map(text).filter(Boolean);
-  let result = p('Pac-Sec standard implementation — draft for review. The following describes the control-specific implementation baseline, not verified deployment or an assessment finding.');
-  result += p(outcome);
+  let result = p(outcome);
   if (settings && settings !== outcome) result += p(`Configuration and operating standard: ${settings}`);
   if (responsibility) result += p(`Operational responsibility: ${responsibility}`);
   if (supporting.length) result += p(`Supporting services selected for this draft: ${supporting.map(([, definition]) => `${definition.name} (${definition.role})`).join('; ')}. Confirm the licensed functions, actual coverage, and policy assignments before treating the baseline as implemented.`);
@@ -61,7 +61,7 @@ export function planSspControlStatements({ project, assessments, statements, lib
       const sourceText = text(assessment.ssp_statement);
       if (!text(narrative).includes(sourceText)) narrative += `${hasSspStatement(narrative) ? '\n\n<p><br></p>' : ''}${assessment.ssp_statement}`;
     }
-    narrative = appendSspBoilerplate(narrative, '', standard);
+    narrative = appendSspBoilerplate(cleanSspDraftText(narrative), '', standard);
     if (existing && narrative === existing.implementation_statement) return null;
     return {
       id: existing?.id,

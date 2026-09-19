@@ -5,6 +5,7 @@ import RichTextField from '@/components/ui/RichTextField';
 import ProgressBar from '@/components/ProgressBar';
 import { SSP_SECTIONS, sectionCompletion, buildSspDraft } from '@/lib/sspSections';
 import { generateSspPdf } from '@/lib/reportGenerators';
+import { generateSspDocx } from '@/lib/sspDocxExport';
 import {
   computeReadiness, sspPrechecks, allPass, FINAL_DOC_WARNING, validApprovedSsp,
 } from '@/lib/readinessGate';
@@ -24,6 +25,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const [loadError, setLoadError] = useState(null);
   const [building, setBuilding] = useState(false);
   const [buildError, setBuildError] = useState('');
+  const [exportingDraft, setExportingDraft] = useState(false);
+  const [exportError, setExportError] = useState('');
   const [statementSaving, setStatementSaving] = useState(false);
   const [dirtyStatementIds, setDirtyStatementIds] = useState([]);
   const statementsBusy = statementSaving || dirtyStatementIds.length > 0;
@@ -93,7 +96,17 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
   const finalReady = allPass(checks);
   const [showFinalGate, setShowFinalGate] = useState(false);
 
-  // Final output is fail-closed. Draft PDF generation remains available at any time.
+  const exportDraft = async () => {
+    if (!ssp || building || statementsBusy || exportingDraft) return;
+    setExportingDraft(true); setExportError('');
+    try {
+      await generateSspDocx({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments });
+    } catch (error) {
+      setExportError(error?.message || 'The Word document could not be downloaded.');
+    } finally { setExportingDraft(false); }
+  };
+
+  // Final PDF output remains gated; draft downloads are editable Word documents.
   const exportFinal = async () => {
     if (!finalReady) {
       setShowFinalGate(true);
@@ -213,9 +226,9 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
               </button>
             )}
             {ssp && (
-              <button disabled={building || statementsBusy} onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
+              <button disabled={building || statementsBusy || exportingDraft} onClick={exportDraft}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
-                <FileDown className="w-4 h-4" /> Draft SSP PDF
+                {exportingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />} {exportingDraft ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}
               </button>
             )}
             {ssp && !readOnly && (
@@ -232,6 +245,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
           evidence collection, control validation, and final inventory are complete.
         </p>
         {dirtyStatementIds.length > 0 && <p role="status" className="mt-3 text-sm text-muted-foreground">Save or discard your control statement edits before rebuilding, exporting, or submitting for review.</p>}
+        {exportError && <p role="alert" className="mt-3 text-sm text-destructive">{exportError}</p>}
         {buildError && (
           <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-700">
             <span className="font-semibold">Draft save failed:</span> {buildError}
@@ -252,8 +266,8 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
         <div className="space-y-3">
           <ReadinessPrecheck title="Final SSP — Readiness Pre-Check" checks={checks} warning={FINAL_DOC_WARNING} />
           <div className="flex flex-wrap gap-2">
-            <button onClick={() => generateSspPdf({ project, org, ssp, statements, generatedBy: currentUser?.full_name || currentUser?.email, diagrams: ctx.diagrams, poams: ctx.poams, assessments })}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">Generate Draft SSP</button>
+            <button onClick={exportDraft} disabled={building || statementsBusy || exportingDraft}
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">{exportingDraft ? 'Preparing Word document…' : 'Download Draft SSP (.docx)'}</button>
             <button onClick={() => setShowFinalGate(false)}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200">Return to Implementation Checklist</button>
           </div>
