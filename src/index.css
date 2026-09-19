@@ -527,6 +527,16 @@
     linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
   background-size: 28px 28px;
 }
+/* Keep the grid as an overlay, not a replacement for the banner gradient.
+   Both loading and loaded dashboard banners also get an opaque fallback. */
+.soft-grid.bg-gradient-to-r {
+  background-color: var(--brand-navy);
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to right, var(--tw-gradient-stops, var(--brand-navy), var(--brand-navy-soft)));
+  background-size: 28px 28px, 28px 28px, 100% 100%;
+}
 
 .dark {
   --app-bg: hsl(var(--background));
