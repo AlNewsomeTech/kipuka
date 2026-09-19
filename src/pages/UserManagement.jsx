@@ -21,13 +21,28 @@ export default function UserManagement() {
       let list = await base44.entities.User.list();
       // Apply any pending custom app role to users who have now accepted their invite.
       for (const u of list) {
-        const pending = u.email && localStorage.getItem('pending_role_' + u.email.toLowerCase());
+        const emailKey = (u.email || '').toLowerCase();
+        const pending = emailKey && localStorage.getItem('pending_role_' + emailKey);
         if (pending && u.role !== pending) {
           try {
             await base44.entities.User.update(u.id, { role: pending });
             u.role = pending;
           } catch { /* will retry on next load */ }
-          localStorage.removeItem('pending_role_' + u.email.toLowerCase());
+          localStorage.removeItem('pending_role_' + emailKey);
+        }
+        // Apply a pending client assignment queued when the client was created
+        // (the invitee didn't exist as a User record until they accepted).
+        const pendingAssign = emailKey && localStorage.getItem('pending_assign_' + emailKey);
+        if (pendingAssign) {
+          const ids = (u.assigned_client_ids || '').split(',').filter(Boolean);
+          if (!ids.includes(pendingAssign)) {
+            try {
+              const assignedStr = [...ids, pendingAssign].join(',');
+              await base44.entities.User.update(u.id, { assigned_client_ids: assignedStr });
+              u.assigned_client_ids = assignedStr;
+            } catch { /* will retry on next load */ }
+          }
+          localStorage.removeItem('pending_assign_' + emailKey);
         }
       }
       setUsers(list);

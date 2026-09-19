@@ -12,6 +12,61 @@ import ClientSummaryDashboard from '@/components/clients/ClientSummaryDashboard'
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 
+const LEVEL_TO_PROJECT = {
+  'Level 1': { project_type: 'CMMC Level 1', target: 'Level 1', path: 'Level 1 Self-Assessment' },
+  'Level 2 Ready': { project_type: 'CMMC Level 2 Self-Assessment', target: 'Level 2', path: 'Level 2 Self-Assessment' },
+  'Level 2': { project_type: 'CMMC Level 2 C3PAO Readiness', target: 'Level 2', path: 'Level 2 C3PAO Assessment' },
+};
+
+// For a brand-new client: create the CMMC project and invite the POC as a
+// client-role user linked to the client. Mirrors UserManagement's invite flow
+// (platform invite accepts 'user'; the 'client' role + client assignment are
+// applied once the invitee accepts and appears in the user list). Failures are
+// surfaced as warnings so the client record is still saved.
+async function provisionNewClientProject(client, data) {
+  const warnings = [];
+
+  if (client.organization_id) {
+    const m = LEVEL_TO_PROJECT[data.target_cmmc_level] || LEVEL_TO_PROJECT['Level 1'];
+    try {
+      await base44.entities.Project.create({
+        organization_id: client.organization_id,
+        project_name: `${client.legal_name || 'CMMC'} Readiness`,
+        project_type: m.project_type,
+        target_cmmc_level: m.target,
+        assessment_path: m.path,
+        project_status: 'Not Started',
+        project_owner_name: data.poc_name || '',
+        project_owner_email: data.poc_email || '',
+        start_date: data.start_date || new Date().toISOString().slice(0, 10),
+        current_readiness_score: 0,
+        onboarding_checklist: { confirm_org: true },
+      });
+    } catch (e) {
+      warnings.push(`Project could not be created: ${e?.message || 'unknown error'}`);
+    }
+  } else {
+    warnings.push('No organization selected — project was not created.');
+  }
+
+  const email = (data.poc_email || '').trim();
+  if (email) {
+    try {
+      await base44.users.inviteUser(email, 'user');
+      localStorage.setItem('pending_role_' + email.toLowerCase(), 'client');
+      localStorage.setItem('pending_assign_' + email.toLowerCase(), client.id);
+    } catch (e) {
+      warnings.push(`Invitation could not be sent to ${email}: ${e?.message || 'unknown error'}`);
+    }
+  } else {
+    warnings.push('No POC email — invitation skipped.');
+  }
+
+  if (warnings.length) {
+    alert('Client created with warnings:\n• ' + warnings.join('\n• '));
+  }
+}
+
 export default function Clients() {
   const { clients, setSelectedClientId, selectedClientId, refreshClients } = useClient();
   const { user } = useAuth();
@@ -102,6 +157,8 @@ export default function Clients() {
         // Auto-generate the standard CMMC deployment task set for the new client
         if (savedClient?.id) {
           await base44.functions.invoke('generateDeploymentTasks', { client_id: savedClient.id }).catch(() => {});
+          // Create the CMMC project and invite the POC as a client user.
+          await provisionNewClientProject(savedClient, form);
         }
       }
       await refreshClients();
