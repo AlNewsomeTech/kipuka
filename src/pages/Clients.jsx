@@ -9,6 +9,8 @@ import AssignTechniciansModal from '@/components/clients/AssignTechniciansModal'
 import ClientLevelStatus from '@/components/clients/ClientLevelStatus';
 import ClientSummaryDashboard from '@/components/clients/ClientSummaryDashboard';
 import { seedProjectAssessments } from '@/lib/projectAssessmentSeed';
+import { saveProjectSetupData } from '@/lib/projectSetupData';
+import { resolveProjectIdForClient } from '@/lib/clientProject';
 
 const envTypes = ['Greenfield', 'Existing M365', 'Google Migration', 'Hybrid'];
 const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
@@ -30,6 +32,12 @@ async function provisionNewClientProject(client, data) {
   if (client.organization_id) {
     const m = LEVEL_TO_PROJECT[data.target_cmmc_level] || LEVEL_TO_PROJECT['Level 1'];
     try {
+      const [org, profiles] = await Promise.all([
+        base44.entities.Organization.get(client.organization_id),
+        base44.entities.CompanyProfile.filter({ organization_id: client.organization_id }),
+      ]);
+      if (profiles.length > 1) throw new Error('Multiple company profiles need review.');
+      const company = profiles[0];
       const project = await base44.entities.Project.create({
         organization_id: client.organization_id,
         project_name: `${client.legal_name || 'CMMC'} Readiness`,
@@ -40,6 +48,10 @@ async function provisionNewClientProject(client, data) {
         project_owner_name: data.poc_name || '',
         project_owner_email: data.poc_email || '',
         start_date: data.start_date || new Date().toISOString().slice(0, 10),
+        ...(data.target_completion_date ? { target_completion_date: data.target_completion_date } : {}),
+        primary_cage_code: company?.cage_code || org.cage_codes?.[0] || '',
+        uei: company?.duns_uei || org.uei || '',
+        implementation_stack: company?.implementation_stack || 'Microsoft 365 Commercial',
         current_readiness_score: 0,
         onboarding_checklist: { confirm_org: true },
       });
@@ -47,6 +59,7 @@ async function provisionNewClientProject(client, data) {
       // with all requirements tracked (otherwise the integrity gate fails).
       const seed = await seedProjectAssessments(project, m.target);
       if (!seed.ok) warnings.push(`Assessment seed: ${seed.reason}`);
+      await saveProjectSetupData(project, client);
     } catch (e) {
       warnings.push(`Project could not be created: ${e?.message || 'unknown error'}`);
     }
@@ -97,9 +110,8 @@ export default function Clients() {
   });
   const [saving, setSaving] = useState(false);
 
-  // Overlapping Organization → Client fields, so new clients don't re-ask info
-  // the selected organization already captured. Only fills empty fields, so any
-  // value the user already typed is preserved when they switch organizations.
+  // Reuse organization details. On organization changes, replace untouched
+  // defaults from the old organization while preserving manually entered values.
   const orgDefaults = (org) => {
     if (!org) return {};
     let domain = '';
@@ -117,14 +129,14 @@ export default function Clients() {
 
   const onOrgChange = (orgId) => {
     const d = orgDefaults(organizations.find((o) => o.id === orgId));
-    setForm((f) => ({
-      ...f,
-      organization_id: orgId,
-      legal_name: f.legal_name || d.legal_name,
-      primary_domain: f.primary_domain || d.primary_domain,
-      poc_name: f.poc_name || d.poc_name,
-      poc_email: f.poc_email || d.poc_email,
-    }));
+    setForm((f) => {
+      const previous = orgDefaults(organizations.find((o) => o.id === f.organization_id));
+      const next = { ...f, organization_id: orgId };
+      for (const key of ['legal_name', 'primary_domain', 'poc_name', 'poc_email']) {
+        if (!f[key] || (!editingClient && f[key] === previous[key])) next[key] = d[key] || '';
+      }
+      return next;
+    });
   };
 
   const openNew = () => {
@@ -157,6 +169,16 @@ export default function Clients() {
       let savedClient = editingClient;
       if (editingClient) {
         savedClient = await base44.entities.Client.update(editingClient.id, form);
+        // Backfill missing shared details only when this organization has one client.
+        if (savedClient.organization_id) {
+          try {
+            const peers = await base44.entities.Client.filter({ organization_id: savedClient.organization_id });
+            if (peers.length === 1) {
+              const projectId = await resolveProjectIdForClient(savedClient.id);
+              if (projectId) await saveProjectSetupData(await base44.entities.Project.get(projectId), savedClient);
+            }
+          } catch (error) { alert(`Client saved, but linked project details need review: ${error.message}`); }
+        }
       } else {
         savedClient = await base44.entities.Client.create(form);
         // Auto-generate the standard CMMC deployment task set for the new client

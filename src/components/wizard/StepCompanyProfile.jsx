@@ -4,6 +4,7 @@ const FIELDS = [
   { key: 'primary_cage_code', label: 'CAGE code' },
   { key: 'sam_status', label: 'SAM status' },
   { key: 'primary_poc', label: 'Primary point of contact' },
+  { key: 'primary_poc_email', label: 'Primary contact email' },
   { key: 'it_poc', label: 'IT point of contact' },
   { key: 'compliance_poc', label: 'Compliance point of contact' },
   { key: 'affirming_official_name', label: 'Affirming Official' },

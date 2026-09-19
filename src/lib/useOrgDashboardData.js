@@ -27,7 +27,7 @@ export function useOrgDashboardData(organizationId) {
       // Resolve the active project: profile.active_project_id, else first project.
       let proj = null;
       if (profile?.active_project_id) {
-        const found = await base44.entities.Project.filter({ id: profile.active_project_id }).catch(() => []);
+        const found = await base44.entities.Project.filter({ id: profile.active_project_id, organization_id: organizationId }).catch(() => []);
         proj = found[0] || null;
       }
       if (!proj) {

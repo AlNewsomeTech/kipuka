@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Loader2, Rocket } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useAuth } from '@/lib/AuthContext';
 import { useOrg } from '@/lib/orgContext';
+import { useClient } from '@/lib/clientContext';
+import { seedProjectAssessments } from '@/lib/projectAssessmentSeed';
+import { loadProjectSetupDefaults, saveProjectSetupData } from '@/lib/projectSetupData';
 import { recommendCmmc, PATH_TO_PROJECT } from '@/lib/cmmcDetermination';
 import { logAudit, AUDIT_ACTIONS } from '@/lib/auditLog';
 import WizardShell from '@/components/wizard/WizardShell';
@@ -23,24 +26,26 @@ export default function NewProjectWizard() {
   const [answers, setAnswers] = useState({});
   const [selectedPath, setSelectedPath] = useState('');
   const [creating, setCreating] = useState(false);
+  const [loadingDefaults, setLoadingDefaults] = useState(false);
+  const [setupError, setSetupError] = useState('');
+  const [linkedClient, setLinkedClient] = useState(null);
+  const { selectedClient } = useClient();
+  const savedProject = useRef(null);
+  const savedDetermination = useRef(false);
 
-  // Pre-fill the profile from the selected organization.
   useEffect(() => {
-    if (selectedOrg) {
-      setProfile((p) => ({
-        legal_name: selectedOrg.legal_name || selectedOrg.organization_name || '',
-        uei: selectedOrg.uei || '',
-        primary_cage_code: (selectedOrg.cage_codes || [])[0] || '',
-        sam_status: selectedOrg.sam_registration_status || '',
-        primary_poc: selectedOrg.primary_contact_name || '',
-        it_poc: '',
-        compliance_poc: '',
-        affirming_official_name: '',
-        project_name: `${selectedOrg.short_name || selectedOrg.organization_name || 'CMMC'} Readiness`,
-        ...p,
-      }));
-    }
-  }, [selectedOrg]);
+    let alive = true;
+    savedProject.current = null;
+    savedDetermination.current = false;
+    setProfile({}); setAnswers({}); setSelectedPath(''); setStep(1); setLinkedClient(null); setSetupError('');
+    if (!selectedOrgId) return;
+    setLoadingDefaults(true);
+    loadProjectSetupDefaults(selectedOrg, selectedClient)
+      .then(data => { if (alive) { setProfile(data.profile); setAnswers(data.answers); setLinkedClient(data.client); } })
+      .catch(error => { if (alive) setSetupError(`Saved company details could not be loaded: ${error.message}`); })
+      .finally(() => { if (alive) setLoadingDefaults(false); });
+    return () => { alive = false; };
+  }, [selectedOrgId, selectedClient?.id]);
 
   const recommendation = recommendCmmc(answers);
 
@@ -51,10 +56,12 @@ export default function NewProjectWizard() {
   };
 
   const handleGenerate = async () => {
+    if (creating || !selectedOrgId) return;
     setCreating(true);
+    setSetupError('');
     try {
       const mapping = PATH_TO_PROJECT[selectedPath] || {};
-      const project = await base44.entities.Project.create({
+      const project = savedProject.current || await base44.entities.Project.create({
         organization_id: selectedOrgId || '',
         project_name: profile.project_name || profile.legal_name || 'New CMMC Project',
         project_type: mapping.project_type || 'Other',
@@ -64,14 +71,22 @@ export default function NewProjectWizard() {
         primary_cage_code: profile.primary_cage_code || '',
         uei: profile.uei || '',
         project_owner_name: profile.primary_poc || user?.full_name || '',
-        project_owner_email: user?.email || '',
+        project_owner_email: profile.primary_poc_email || user?.email || '',
         affirming_official_name: profile.affirming_official_name || '',
+        implementation_stack: profile.implementation_stack || 'Microsoft 365 Commercial',
         current_readiness_score: 0,
-        start_date: new Date().toISOString().slice(0, 10),
+        start_date: profile.start_date || new Date().toISOString().slice(0, 10),
+        ...(profile.target_completion_date ? { target_completion_date: profile.target_completion_date } : {}),
         onboarding_checklist: { confirm_org: true, level_determination: true },
       });
 
-      await base44.entities.CMMCLevelDetermination.create({
+      savedProject.current = project;
+      if (['Level 1', 'Level 2'].includes(project.target_cmmc_level)) {
+        const seed = await seedProjectAssessments(project);
+        if (!seed.ok) throw new Error(seed.reason);
+      }
+      await saveProjectSetupData(project, linkedClient, profile, answers);
+      if (!savedDetermination.current) await base44.entities.CMMCLevelDetermination.create({
         organization_id: selectedOrgId || '',
         project_id: project.id,
         handles_fci: !!answers.handles_fci,
@@ -88,6 +103,7 @@ export default function NewProjectWizard() {
         user_selected_path: selectedPath,
         determination_notes: recommendation.rationale,
       });
+      savedDetermination.current = true;
 
       await logAudit({
         organizationId: selectedOrgId,
@@ -99,6 +115,8 @@ export default function NewProjectWizard() {
       });
 
       navigate(`/projects/${project.id}`);
+    } catch (error) {
+      setSetupError(`${savedProject.current ? 'Project saved; setup needs to finish. Select Generate Workspace to retry without creating another project. ' : ''}${error.message}`);
     } finally {
       setCreating(false);
     }
@@ -119,7 +137,9 @@ export default function NewProjectWizard() {
         </div>
       )}
 
-      <WizardShell step={step}>
+      {setupError && <p role="alert" className="text-sm text-destructive">{setupError}</p>}
+      {loadingDefaults && <p role="status" className="text-sm text-muted-foreground">Loading saved company details…</p>}
+      {!loadingDefaults && <WizardShell step={step}>
         {step === 1 && <StepCompanyProfile data={profile} onChange={setProfile} />}
         {step === 2 && <StepContractData data={answers} onChange={setAnswers} />}
         {step === 3 && <StepRecommendation recommendation={recommendation} />}
@@ -129,7 +149,7 @@ export default function NewProjectWizard() {
         <div className="flex items-center justify-between mt-6 pt-5 border-t border-slate-100">
           <button
             onClick={() => setStep((s) => Math.max(1, s - 1))}
-            disabled={step === 1}
+            disabled={step === 1 || creating || !!savedProject.current}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium text-slate-600 bg-slate-100 disabled:opacity-40 hover:bg-slate-200"
           >
             <ArrowLeft className="w-4 h-4" /> Back
@@ -138,7 +158,7 @@ export default function NewProjectWizard() {
           {step < 5 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
-              disabled={!canNext()}
+              disabled={!canNext() || loadingDefaults || !selectedOrgId}
               className="flex items-center gap-1.5 px-5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] disabled:opacity-40 hover:bg-[#152a52]"
             >
               Next <ArrowRight className="w-4 h-4" />
@@ -154,7 +174,7 @@ export default function NewProjectWizard() {
             </button>
           )}
         </div>
-      </WizardShell>
+      </WizardShell>}
     </div>
   );
 }

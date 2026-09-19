@@ -15,7 +15,7 @@ export async function resolveProjectIdForClient(clientId) {
   const profiles = await base44.entities.CompanyProfile.filter({ organization_id: orgId }).catch(() => []);
   const activeId = profiles[0]?.active_project_id;
   if (activeId) {
-    const found = await base44.entities.Project.filter({ id: activeId }).catch(() => []);
+    const found = await base44.entities.Project.filter({ id: activeId, organization_id: orgId }).catch(() => []);
     if (found[0]) return found[0].id;
   }
   const projects = await base44.entities.Project.filter({ organization_id: orgId }, '-created_date', 1).catch(() => []);
