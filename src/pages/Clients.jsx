@@ -15,7 +15,7 @@ const cmmcLevels = ['Level 1', 'Level 2 Ready', 'Level 2'];
 export default function Clients() {
   const { clients, setSelectedClientId, selectedClientId, refreshClients } = useClient();
   const { user } = useAuth();
-  const { organizations, selectedOrgId } = useOrg();
+  const { organizations, selectedOrgId, selectedOrg } = useOrg();
   const isAdmin = user?.role === 'admin';
   const [showForm, setShowForm] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
@@ -37,12 +37,43 @@ export default function Clients() {
   });
   const [saving, setSaving] = useState(false);
 
+  // Overlapping Organization → Client fields, so new clients don't re-ask info
+  // the selected organization already captured. Only fills empty fields, so any
+  // value the user already typed is preserved when they switch organizations.
+  const orgDefaults = (org) => {
+    if (!org) return {};
+    let domain = '';
+    if (org.website) {
+      try { domain = new URL(org.website).hostname.replace(/^www\./, ''); }
+      catch { domain = org.website; }
+    }
+    return {
+      legal_name: org.legal_name || org.organization_name || '',
+      primary_domain: domain,
+      poc_name: org.primary_contact_name || '',
+      poc_email: org.primary_contact_email || '',
+    };
+  };
+
+  const onOrgChange = (orgId) => {
+    const d = orgDefaults(organizations.find((o) => o.id === orgId));
+    setForm((f) => ({
+      ...f,
+      organization_id: orgId,
+      legal_name: f.legal_name || d.legal_name,
+      primary_domain: f.primary_domain || d.primary_domain,
+      poc_name: f.poc_name || d.poc_name,
+      poc_email: f.poc_email || d.poc_email,
+    }));
+  };
+
   const openNew = () => {
     setEditingClient(null);
+    const d = orgDefaults(selectedOrg);
     setForm({
       organization_id: selectedOrgId || '',
-      legal_name: '', dba_name: '', primary_domain: '', ms_tenant_domain: '',
-      poc_name: '', poc_email: '', executive_sponsor: '',
+      legal_name: d.legal_name, dba_name: '', primary_domain: d.primary_domain, ms_tenant_domain: '',
+      poc_name: d.poc_name, poc_email: d.poc_email, executive_sponsor: '',
       initial_user_count: 13, expected_user_count: 13,
       environment_type: 'Greenfield', target_cmmc_level: 'Level 1',
       cloud_only: false, has_physical_location: true, physical_location_description: '',
@@ -214,7 +245,7 @@ export default function Clients() {
             <div className="p-5 space-y-4">
               <div className="grid md:grid-cols-2 gap-3">
                 <Field label="Organization">
-                  <select className="form-input" value={form.organization_id || ''} onChange={e => setForm({...form, organization_id: e.target.value})}>
+                  <select className="form-input" value={form.organization_id || ''} onChange={e => onOrgChange(e.target.value)}>
                     <option value="">— Unassigned —</option>
                     {organizations.map(o => <option key={o.id} value={o.id}>{o.organization_name}</option>)}
                   </select>
