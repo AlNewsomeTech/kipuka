@@ -9,6 +9,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import LoginRedirect from '@/components/public/LoginRedirect';
+import OAuthConsent from '@/pages/OAuthConsent';
 
 // Routes shown to unauthenticated visitors. Only the marketing landing page
 // and public legal pages are reachable; every other path preserves the
@@ -25,6 +26,7 @@ export default function PublicApp() {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="*" element={<LoginRedirect />} />
     </Routes>
   );

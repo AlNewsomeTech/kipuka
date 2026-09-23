@@ -16,6 +16,7 @@ import LandingPage from '@/pages/public/LandingPage';
 import BlogIndex from '@/pages/public/BlogIndex';
 import BlogPostPage from '@/pages/public/BlogPostPage';
 import BlogAdmin from '@/pages/BlogAdmin';
+import OAuthConsent from '@/pages/OAuthConsent';
 import BlogAdminErrorBoundary from '@/components/blog/BlogAdminErrorBoundary';
 import OnboardingGate from '@/components/onboarding/OnboardingGate';
 import Layout from '@/components/Layout';
@@ -106,6 +107,8 @@ const AuthenticatedApp = () => {
     <Routes>
       {/* Logged-in preview of the public landing page (visitors see it at "/"). */}
       <Route path="/landing-preview" element={<LandingPage />} />
+      {/* MCP OAuth consent — outside the onboarding/layout guards so the ctx handle is preserved. */}
+      <Route path="/oauth/consent" element={<OAuthConsent />} />
       {/* Public blog stays reachable while logged in (same pages visitors see). */}
       <Route path="/blog" element={<BlogIndex />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
