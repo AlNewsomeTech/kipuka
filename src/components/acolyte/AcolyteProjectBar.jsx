@@ -1,12 +1,12 @@
 import { FolderKanban } from 'lucide-react';
 
-// Project scope selector shown at the top of every ACOLYTE page so records
+// Project scope selector shown at the top of every APEX page so records
 // stay tenant- and project-aware.
 export default function AcolyteProjectBar({ projects, projectId, onSelect, orgName }) {
   return (
     <div className="flex items-center gap-2.5 flex-wrap">
       <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-        <FolderKanban className="w-4 h-4" /> ACOLYTE project scope:
+        <FolderKanban className="w-4 h-4" /> APEX project scope:
       </div>
       <select
         value={projectId || ''}

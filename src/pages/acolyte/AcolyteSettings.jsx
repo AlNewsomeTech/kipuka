@@ -64,7 +64,7 @@ export default function AcolyteSettings() {
         organizationId: payload.organization_id, user,
         actionType: AUDIT_ACTIONS.ACOLYTE_PROFILE_UPDATE,
         targetEntity: 'AcolyteProfile', targetRecordId: projectId,
-        summary: `Updated ACOLYTE service profile for "${project?.project_name}".`,
+        summary: `Updated APEX service profile for "${project?.project_name}".`,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -76,7 +76,7 @@ export default function AcolyteSettings() {
 
   return (
     <div className="space-y-4">
-      <AcolyteHeader title="ACOLYTE Settings" subtitle="Configure the ACOLYTE managed service profile for this organization and project." icon={Settings} />
+      <AcolyteHeader title="APEX Settings" subtitle="Configure the APEX managed service profile for this organization and project." icon={Settings} />
       <AcolyteProjectBar projects={projects} projectId={projectId} onSelect={selectProject} orgName={orgNameForProject} />
 
       {!project ? (
@@ -125,7 +125,7 @@ export default function AcolyteSettings() {
               <button onClick={save} disabled={saving}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#152a52] disabled:opacity-60">
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}
-                {saved ? 'Saved' : 'Save ACOLYTE Profile'}
+                {saved ? 'Saved' : 'Save APEX Profile'}
               </button>
             </div>
           )}

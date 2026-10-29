@@ -52,7 +52,7 @@ export const PLAN_CONFIG = {
   },
   L2_Premium: {
     label: 'L2 Premium',
-    blurb: 'Everything in L2 Professional plus mock assessment mode, the C3PAO evidence export package, evidence review workflow, advanced POA&M reporting, multi-project support, and ACOLYTE Operations availability.',
+    blurb: 'Everything in L2 Professional plus mock assessment mode, the C3PAO evidence export package, evidence review workflow, advanced POA&M reporting, multi-project support, and APEX Operations availability.',
     features: L2_PREMIUM,
     badge: 'bg-purple-100 text-purple-700',
   },

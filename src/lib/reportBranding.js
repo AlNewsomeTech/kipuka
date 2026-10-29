@@ -4,9 +4,9 @@ import jsPDF from 'jspdf';
 
 export const BRAND = {
   company: 'Pacific Global Security Group',
-  product: 'Kipuka',
-  poweredBy: 'Kipuka by Pac-Sec',
-  confidential: 'CONFIDENTIAL & PROPRIETARY — Property of Pacific Global Security Group. Unauthorized distribution is prohibited.',
+  product: 'Acolyte',
+  poweredBy: 'Acolyte by Pac-Sec',
+  confidential: 'CONFIDENTIAL & PROPRIETARY - Property of Pacific Global Security Group. Unauthorized distribution is prohibited.',
   disclaimer: 'Operational guidance only. Validate against official requirements.',
   poamDisclaimer: 'Not all gaps may be allowable for the target assessment path. The organization must validate official requirements before submission.',
 };
@@ -19,7 +19,7 @@ const LINE = 15;
 
 // Module-level branding cache so PDF helpers can embed the uploaded logo.
 // Set once at app load / branding change via setReportBranding().
-let REPORT_BRANDING = { logoDataUrl: null, wordmark: 'Kipuka' };
+let REPORT_BRANDING = { logoDataUrl: null, wordmark: 'Acolyte' };
 export function setReportBranding(b) { REPORT_BRANDING = { ...REPORT_BRANDING, ...b }; }
 export function getReportBranding() { return REPORT_BRANDING; }
 

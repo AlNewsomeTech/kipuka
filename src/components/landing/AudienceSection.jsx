@@ -44,9 +44,9 @@ export default function AudienceSection() {
 
       <Reveal className="mx-auto mt-10 max-w-3xl text-center">
         <p className="text-sm leading-relaxed text-[#8296b0]">
-          Kipuka can work alongside consultants, assessors, security providers, and broader
-          governance platforms. It organizes and documents implementation work without
-          claiming to replace independent assessment or certification.
+          Acolyte works alongside consultants, assessors, security providers, and broader
+          governance platforms. It organizes and documents implementation work to prepare
+          your organization for independent assessment and certification.
         </p>
       </Reveal>
     </section>

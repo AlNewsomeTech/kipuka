@@ -35,7 +35,7 @@ export const DEMO_EXEC = {
     'Prepare SPRS self-assessment package',
   ],
   valueStatement:
-    'Kipuka gives company admins one guided workspace for scoping, control assessment, evidence, SSP, POA&M, SPRS preparation, and executive reporting.',
+    'Acolyte gives company admins one guided workspace for scoping, control assessment, evidence, SSP, POA&M, SPRS preparation, and executive reporting.',
 };
 
 export const DEMO_ONBOARDING = {
@@ -213,7 +213,7 @@ export const DEMO_REPORTS = {
 
 export const DEMO_ACOLYTE = {
   profile: {
-    service_tier: 'ACOLYTE CMMC Premium',
+    service_tier: 'APEX CMMC Premium',
     service_status: 'Active',
     readiness_score: 74,
     review_cadence: 'Quarterly',
@@ -243,7 +243,7 @@ export const DEMO_ACOLYTE = {
     { label: 'Backup & Recovery', value: 'Good' },
   ],
   valueStatement:
-    'ACOLYTE is Pac-Sec\u2019s managed cyber readiness service — continuous posture review, vulnerability tracking, remediation coordination, incident readiness, and executive cyber reporting alongside CMMC evidence.',
+    'Acolyte Apex is Pac-Sec\u2019s managed cyber readiness service - continuous posture review, vulnerability tracking, remediation coordination, incident readiness, and executive cyber reporting alongside CMMC evidence.',
 };
 
 export const DEMO_TOUR_STEPS = [
@@ -260,4 +260,4 @@ export const DEMO_TOUR_STEPS = [
 ];
 
 export const DEMO_CTA =
-  'Kipuka by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.';
+  'Acolyte by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.';

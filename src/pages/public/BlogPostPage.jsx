@@ -36,7 +36,7 @@ export default function BlogPostPage() {
         const p = res.data?.post;
         if (!p) { setNotFound(true); return; }
         setPost(p);
-        document.title = `${p.meta_title || p.title} | Kipuka Blog`;
+        document.title = `${p.meta_title || p.title} | Acolyte Blog`;
         if (p.meta_description) setMetaDescription(p.meta_description);
       })
       .catch(() => { if (!cancelled) setNotFound(true); });
@@ -87,7 +87,7 @@ export default function BlogPostPage() {
             </div>
             <div className="mt-14 rounded-2xl border border-[#1c2c44] bg-[#0a1424] p-8 text-center">
               <h2 className="text-lg font-bold text-white">Ready to make your CMMC plan executable?</h2>
-              <p className="mx-auto mt-2 max-w-md text-sm text-[#8fa3bd]">See how Kipuka turns compliance requirements into guided, evidence-backed execution.</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-[#8fa3bd]">See how Acolyte turns compliance requirements into guided, evidence-backed execution.</p>
               <button
                 type="button"
                 onClick={() => setDemoOpen(true)}

@@ -1,4 +1,4 @@
-// Shared editorial rules and SEO keyword plan for the Kipuka marketing blog.
+// Shared editorial rules and SEO keyword plan for the Acolyte marketing blog.
 // Imported by generateBlogArticle. Keep all writing rules here so the drafting
 // prompt and the automated style check never drift apart.
 
@@ -130,7 +130,7 @@ SEO RULES:
   statement of what the article answers.
 
 ACCURACY RULES:
-- Kipuka is a CMMC deployment and evidence management platform. Describe only
+- Acolyte is a CMMC deployment and evidence management platform. Describe only
   platform capability: guided control implementation, evidence capture,
   readiness reporting, and document generation.
 - Never promise a certification result, an assessment outcome, a score, or a

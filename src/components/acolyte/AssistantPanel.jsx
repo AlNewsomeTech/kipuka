@@ -55,7 +55,7 @@ export default function AssistantPanel({
         organizationId, user,
         actionType: AUDIT_ACTIONS.ACOLYTE_ASSISTANT_APPLY,
         targetEntity, targetRecordId,
-        summary: `Applied ACOLYTE Analyst Assistant content (${actionLabel}) to record.`,
+        summary: `Applied APEX Analyst Assistant content (${actionLabel}) to record.`,
       });
       onClose();
     } finally {

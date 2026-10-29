@@ -31,7 +31,7 @@ export default function MonitoringConnectCard({ projectId, requiredPermissions =
       <p className="text-xs text-slate-500 mb-3">
         Create an app registration in your own Microsoft Entra tenant and grant it ONLY the
         read permissions below. Monitoring is read-only: no write permission is needed and
-        Kipuka never changes your Microsoft configuration from this module.
+        Acolyte never changes your Microsoft configuration from this module.
       </p>
       <div className="bg-slate-50 border border-slate-200 rounded-lg p-3 mb-4">
         <div className="flex items-center gap-1.5 text-[11px] font-bold text-slate-600 uppercase tracking-wide mb-1.5">

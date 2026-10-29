@@ -12,7 +12,7 @@ export default function PublicFooter({ onRequestDemo }) {
         <div className="flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           <div className="flex items-center gap-2.5">
             <img src="/kipuka-fishhook.svg" alt="" aria-hidden="true" className="h-9 w-auto flex-shrink-0 object-contain" />
-            <span className="font-display text-lg font-bold text-white">Kipuka</span>
+            <span className="font-display text-lg font-bold text-white">Acolyte</span>
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2.5 sm:grid-cols-3">

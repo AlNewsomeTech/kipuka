@@ -1,4 +1,4 @@
-// Official SCF 2026.2 cross-references for Kipuka's canonical CMMC control IDs.
+// Official SCF 2026.2 cross-references for Acolyte's canonical CMMC control IDs.
 // Source: SCF Council workbook, secure-controls-framework-scf-2026-2.xlsx.
 // SCF content is used unchanged with attribution under CC BY-ND 4.0.
 // These are cross-references only. They do not transfer completion or assessment status.

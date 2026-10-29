@@ -24,7 +24,7 @@ export default function ProblemSection() {
     <section id="platform" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28" aria-labelledby="problem-heading">
       <Reveal className="mx-auto max-w-3xl text-center">
         <h2 id="problem-heading" className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          CMMC tells you what must be protected. Kipuka helps your team execute the work.
+          CMMC tells you what must be protected. Acolyte helps your team execute the work.
         </h2>
         <p className="mt-5 text-base leading-relaxed text-[#8fa3bd]">
           CMMC readiness requires much more than checking boxes. Teams must define scope,
@@ -49,7 +49,7 @@ export default function ProblemSection() {
 
       <Reveal className="mt-10 text-center">
         <p className="text-base font-bold text-[#cfe4f5]">
-          Kipuka connects the requirement, the work, the documentation, and the proof.
+          Acolyte connects the requirement, the work, the documentation, and the proof.
         </p>
       </Reveal>
     </section>

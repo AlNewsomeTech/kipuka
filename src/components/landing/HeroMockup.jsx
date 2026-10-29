@@ -8,11 +8,11 @@ const STEPS = [
   { label: 'Verify', icon: CheckCircle2 },
 ];
 
-// A faithful, hand-built recreation of the Kipuka guided-control interface,
+// A faithful, hand-built recreation of the Acolyte guided-control interface,
 // rendered with neutral demonstration data only. Purely decorative.
 export default function HeroMockup() {
   return (
-    <div role="img" aria-label="Preview of the Kipuka guided control workflow showing the Understand, Do, Capture, Upload, and Verify steps with supporting readiness cards" className="w-full">
+    <div role="img" aria-label="Preview of the Acolyte guided control workflow showing the Understand, Do, Capture, Upload, and Verify steps with supporting readiness cards" className="w-full">
       <div aria-hidden="true" className="overflow-hidden rounded-2xl border border-[#24385a] bg-[#0b1626] shadow-[0_24px_60px_rgba(2,8,20,0.6)]">
         {/* Browser chrome */}
         <div className="flex items-center gap-2 border-b border-[#1c2c44] bg-[#0d1a2e] px-4 py-2.5">
@@ -20,7 +20,7 @@ export default function HeroMockup() {
           <span className="h-2.5 w-2.5 rounded-full bg-[#2a3d5c]" />
           <span className="h-2.5 w-2.5 rounded-full bg-[#2a3d5c]" />
           <div className="ml-3 flex-1 rounded-md bg-[#121f36] px-3 py-1 text-[11px] text-[#8296b0]">
-            app.kipuka — Guided Implementation
+            app.acolyte - Guided Implementation
           </div>
         </div>
 

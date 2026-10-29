@@ -11,13 +11,18 @@
     "service_tier": {
       "type": "string",
       "enum": [
+        "APEX Watch",
+        "APEX Ready",
+        "APEX Shield",
+        "APEX CMMC",
+        "APEX CMMC Premium",
         "ACOLYTE Watch",
         "ACOLYTE Ready",
         "ACOLYTE Shield",
         "ACOLYTE CMMC",
         "ACOLYTE CMMC Premium"
       ],
-      "default": "ACOLYTE Watch"
+      "default": "APEX Watch"
     },
     "service_status": {
       "type": "string",

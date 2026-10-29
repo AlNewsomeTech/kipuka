@@ -48,7 +48,7 @@ export default function AcolyteSummaryCard({ projectId }) {
           <div className="w-7 h-7 rounded-lg bg-[#0F1E3C] flex items-center justify-center">
             <Radar className="w-4 h-4 text-white" />
           </div>
-          <h3 className="text-sm font-bold text-slate-800">ACOLYTE Cyber Readiness</h3>
+          <h3 className="text-sm font-bold text-slate-800">APEX Cyber Readiness</h3>
           <span className="text-[10px] font-bold tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">PAC-SEC</span>
         </div>
         <Link to="/acolyte" className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline">
@@ -60,16 +60,16 @@ export default function AcolyteSummaryCard({ projectId }) {
         <div className="flex justify-center py-6"><Loader2 className="w-5 h-5 animate-spin text-slate-400" /></div>
       ) : !profile ? (
         <div className="text-center py-4">
-          <p className="text-sm text-slate-500 mb-3">No ACOLYTE profile has been created for this project yet.</p>
+          <p className="text-sm text-slate-500 mb-3">No APEX profile has been created for this project yet.</p>
           <Link to="/acolyte/settings" className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold text-white bg-[#0F1E3C] hover:bg-[#1E2D4A]">
-            <ShieldPlus className="w-4 h-4" /> Create ACOLYTE Profile
+            <ShieldPlus className="w-4 h-4" /> Create APEX Profile
           </Link>
         </div>
       ) : (
         <>
           <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100">
             <div>
-              <div className="text-sm font-semibold text-slate-800">{profile.service_tier || 'ACOLYTE Watch'}</div>
+              <div className="text-sm font-semibold text-slate-800">{(profile.service_tier || 'APEX Watch').replace(/^ACOLYTE\b/, 'APEX')}</div>
               <div className="text-xs text-slate-500">{profile.service_status || 'Not Started'}</div>
             </div>
             <div className="text-right">

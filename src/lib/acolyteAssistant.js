@@ -1,15 +1,15 @@
-// ACOLYTE Analyst Assistant — user-triggered AI drafting helpers. Every function
+// APEX Analyst Assistant - user-triggered AI drafting helpers. Every function
 // here is invoked manually by a user action. Nothing runs on a schedule; nothing
-// writes to records — the calling UI shows an editable preview and only persists
+// writes to records - the calling UI shows an editable preview and only persists
 // after the user clicks "Apply to Record".
 import { base44 } from '@/api/base44Client';
 import { roleHasPerm, isReadOnly, PERMS } from '@/lib/orgRoles';
 
 export const ASSISTANT_BRAND = {
-  name: 'ACOLYTE Analyst Assistant',
+  name: 'APEX Analyst Assistant',
   subtitle: 'Pac-Sec Drafting Assistant',
   description:
-    'The ACOLYTE Analyst Assistant helps summarize cyber readiness, draft executive language, explain findings, recommend remediation steps, and align operational issues to CMMC readiness. It supports Pac-Sec analysts and client admins but does not replace professional review.',
+    'The APEX Analyst Assistant helps summarize cyber readiness, draft executive language, explain findings, recommend remediation steps, and align operational issues to CMMC readiness. It supports Pac-Sec analysts and client admins during professional review.',
 };
 
 // Shown near every assistant action.
@@ -70,10 +70,10 @@ function remediationLines(items = []) {
     .join('\n');
 }
 
-const SYSTEM = `You are the ACOLYTE Analyst Assistant, a drafting aid for Pacific Global Security Group (Pac-Sec) cyber readiness analysts.
+const SYSTEM = `You are the APEX Analyst Assistant, a drafting aid for Pacific Global Security Group (Pac-Sec) cyber readiness analysts.
 Write clear, professional, plain-language content suitable for a managed-security service context.
 Be concise and factual. Do not invent data that was not provided. Do not claim compliance; frame CMMC alignment as advisory.
-Return well-structured prose with short paragraphs or bullet points. Do not include a disclaimer — the application adds one.`;
+Return well-structured prose with short paragraphs or bullet points. Do not include a disclaimer - the application adds one.`;
 
 async function run(prompt) {
   const text = await base44.integrations.Core.InvokeLLM({
@@ -86,12 +86,12 @@ async function run(prompt) {
 
 export async function summarizeReadiness({ project, orgName, profile, reviews = [], findings = [], remediations = [], incident }) {
   const openF = findings.filter((f) => ['Open', 'In Progress', 'Pending Validation'].includes(f.finding_status));
-  const prompt = `Task: Summarize the current ACOLYTE cyber readiness in a concise briefing (150–250 words).
+  const prompt = `Task: Summarize the current APEX cyber readiness in a concise briefing (150-250 words).
 
 ${projectHeader(project, orgName)}
-Service Tier: ${profile?.service_tier || '—'} | Service Status: ${profile?.service_status || '—'}
+Service Tier: ${profile?.service_tier || '-'} | Service Status: ${profile?.service_status || '-'}
 Readiness Score: ${Math.round(profile?.current_readiness_score || project?.current_readiness_score || 0)}%
-Posture — Endpoint: ${profile?.endpoint_posture_status || 'Unknown'}, Cloud: ${profile?.cloud_posture_status || 'Unknown'}, Identity: ${profile?.identity_access_status || 'Unknown'}, Vulnerability: ${profile?.vulnerability_status || 'Unknown'}, Incident Readiness: ${profile?.incident_readiness_status || 'Unknown'}, Compliance: ${profile?.compliance_alignment_status || 'Unknown'}
+Posture - Endpoint: ${profile?.endpoint_posture_status || 'Unknown'}, Cloud: ${profile?.cloud_posture_status || 'Unknown'}, Identity: ${profile?.identity_access_status || 'Unknown'}, Vulnerability: ${profile?.vulnerability_status || 'Unknown'}, Incident Readiness: ${profile?.incident_readiness_status || 'Unknown'}, Compliance: ${profile?.compliance_alignment_status || 'Unknown'}
 Open findings (${openF.length}):
 ${findingLines(openF)}
 Remediation:
@@ -105,7 +105,7 @@ Provide: overall posture, the most significant risks, and the top priorities rig
 
 export async function draftExecutiveSummary({ project, orgName, profile, findings = [], remediations = [], incident }) {
   const openF = findings.filter((f) => ['Open', 'In Progress', 'Pending Validation'].includes(f.finding_status));
-  const prompt = `Task: Draft leadership-ready executive summary language for an ACOLYTE Executive Cyber Report.
+  const prompt = `Task: Draft leadership-ready executive summary language for an APEX Executive Cyber Report.
 Audience: organizational executives / leadership. Tone: clear, non-alarmist, decision-oriented.
 
 ${projectHeader(project, orgName)}

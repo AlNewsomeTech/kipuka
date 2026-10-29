@@ -57,7 +57,7 @@ export default function ExecutiveReports() {
   const generatePack = async () => {
     setPacking(true);
     await generateMonthlyReviewPack({ project, org, generatedBy: user?.full_name }).catch(() => {});
-    await logAudit({ organizationId: project?.organization_id, user, actionType: AUDIT_ACTIONS.ACOLYTE_REPORT_EXPORT, targetEntity: 'ReportExport', targetRecordId: '', summary: 'Generated ACOLYTE Monthly Review Pack.' }).catch(() => {});
+    await logAudit({ organizationId: project?.organization_id, user, actionType: AUDIT_ACTIONS.ACOLYTE_REPORT_EXPORT, targetEntity: 'ReportExport', targetRecordId: '', summary: 'Generated APEX Monthly Review Pack.' }).catch(() => {});
     setPacking(false);
   };
 
@@ -157,7 +157,7 @@ export default function ExecutiveReports() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
-                    {!readOnly && canAssist && <button onClick={() => setDraftFor(r)} className="p-1.5 rounded-lg text-purple-600 hover:bg-purple-50" title="Draft Executive Report with ACOLYTE Analyst Assistant"><Sparkles className="w-4 h-4" /></button>}
+                    {!readOnly && canAssist && <button onClick={() => setDraftFor(r)} className="p-1.5 rounded-lg text-purple-600 hover:bg-purple-50" title="Draft Executive Report with APEX Analyst Assistant"><Sparkles className="w-4 h-4" /></button>}
                     <button onClick={() => setPreview(r)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Preview"><Eye className="w-4 h-4" /></button>
                     <button onClick={() => exportPdf(r)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Export PDF"><FileDown className="w-4 h-4" /></button>
                     {!readOnly && <button onClick={() => { setEditing(r); setModal(true); }} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100" title="Edit"><Pencil className="w-4 h-4" /></button>}

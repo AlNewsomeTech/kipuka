@@ -10,7 +10,7 @@ const slugify = (text) =>
 
 const EMPTY = {
   title: '', slug: '', excerpt: '', content: '', cover_image_url: '',
-  tags: '', author_name: 'Kipuka Team', status: 'Draft', published_date: '',
+  tags: '', author_name: 'Acolyte Team', status: 'Draft', published_date: '',
   meta_title: '', meta_description: '',
 };
 
@@ -28,7 +28,7 @@ export default function BlogPostEditorModal({ open, onOpenChange, post, onSave, 
     setForm(post?.id ? {
       title: post.title || '', slug: post.slug || '', excerpt: post.excerpt || '',
       content: post.content || '', cover_image_url: post.cover_image_url || '',
-      tags: (post.tags || []).join(', '), author_name: post.author_name || 'Kipuka Team',
+      tags: (post.tags || []).join(', '), author_name: post.author_name || 'Acolyte Team',
       status: post.status || 'Draft', published_date: post.published_date || '',
       meta_title: post.meta_title || '', meta_description: post.meta_description || '',
     } : EMPTY);
@@ -54,7 +54,7 @@ export default function BlogPostEditorModal({ open, onOpenChange, post, onSave, 
       content: form.content,
       cover_image_url: form.cover_image_url.trim(),
       tags: form.tags.split(',').map((t) => t.trim()).filter(Boolean),
-      author_name: form.author_name.trim() || 'Kipuka Team',
+      author_name: form.author_name.trim() || 'Acolyte Team',
       status: form.status,
       published_date: form.status === 'Published' && !form.published_date
         ? new Date().toISOString().slice(0, 10)

@@ -39,7 +39,7 @@ export default function HeroSection({ onRequestDemo }) {
               CMMC implementation, <span className="text-[#67d1f0]">made executable.</span>
             </h1>
             <p className="mt-5 text-lg font-semibold leading-relaxed text-[#cfe4f5]">
-              Kipuka turns CMMC Level 2 readiness into a guided, step-by-step workflow
+              Acolyte turns CMMC Level 2 readiness into a guided, step-by-step workflow
               for the technicians responsible for getting it done.
             </p>
             <p className="mt-3 max-w-xl text-base leading-relaxed text-[#8fa3bd]">
@@ -66,7 +66,7 @@ export default function HeroSection({ onRequestDemo }) {
                 href="#how-it-works"
                 className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-bold text-[#67d1f0] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
               >
-                See How Kipuka Works
+                See How Acolyte Works
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </a>
             </div>

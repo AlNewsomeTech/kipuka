@@ -40,7 +40,7 @@ const navSections = [
   ]},
   { label: 'Assistance', items: [
     { to: '/assistant', label: 'AI Assistants', icon: Bot },
-    { to: '/acolyte', label: 'ACOLYTE Operations', icon: Radar, clientVisible: true },
+    { to: '/acolyte', label: 'APEX Operations', icon: Radar, clientVisible: true },
   ]},
   { label: 'Support', items: [
     { to: '/help', label: 'Help Center', icon: LifeBuoy, clientVisible: true },

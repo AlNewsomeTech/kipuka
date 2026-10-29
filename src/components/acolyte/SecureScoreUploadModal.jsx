@@ -106,7 +106,7 @@ export default function SecureScoreUploadModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Upload Microsoft Secure Score export</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Assign, privately store, hash, and summarize the export for this ACOLYTE project.</p>
+              <p className="mt-0.5 text-xs text-slate-500">Assign, privately store, hash, and summarize the export for this APEX project.</p>
             </div>
           </div>
           <button onClick={onClose} disabled={Boolean(stage)} aria-label="Close" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-40">
@@ -169,7 +169,7 @@ export default function SecureScoreUploadModal({
           </Field>
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
-            CSV and Graph JSON layouts are parsed using recognized Secure Score fields. If the layout cannot be recognized, ACOLYTE preserves the original export and marks it for review instead of calculating an unsupported score.
+            CSV and Graph JSON layouts are parsed using recognized Secure Score fields. If the layout cannot be recognized, APEX preserves the original export and marks it for review instead of calculating an unsupported score.
           </div>
 
           {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">{error}</div>}

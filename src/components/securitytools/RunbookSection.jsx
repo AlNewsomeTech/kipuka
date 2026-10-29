@@ -158,7 +158,7 @@ export default function RunbookSection({
                   <AlertTriangle className="w-4 h-4" /> Create POA&amp;M Item
                 </button>
                 <button onClick={() => onCreateGap('acolyte')} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200">
-                  <ExternalLink className="w-4 h-4" /> Create ACOLYTE Remediation
+                  <ExternalLink className="w-4 h-4" /> Create APEX Remediation
                 </button>
               </>
             )}

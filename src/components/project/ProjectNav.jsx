@@ -107,7 +107,7 @@ export default function ProjectNav({ projectId, orgRole, isClient = false }) {
           className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-600 transition-colors hover:bg-blue-50 hover:text-blue-700"
         >
           <Radar className="h-4 w-4 flex-shrink-0 text-[#479dcf]" />
-          <span className="truncate">ACOLYTE Operations</span>
+          <span className="truncate">APEX Operations</span>
           <ArrowUpRight className="ml-auto h-3.5 w-3.5 text-slate-400" />
         </Link>
       </div>

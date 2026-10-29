@@ -13,7 +13,7 @@ export default function PublicTerms() {
           className="inline-flex items-center gap-1.5 rounded-lg text-sm font-bold text-[#67d1f0] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Kipuka
+          Back to Acolyte
         </Link>
         <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white">{DEFAULT_TERMS_TITLE}</h1>
         <p className="mt-1 text-sm text-[#8fa3bd]">{TERMS_SUBTITLE}</p>

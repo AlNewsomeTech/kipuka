@@ -157,7 +157,7 @@ export default function ProjectDashboard() {
         assessments,
       });
     } catch (error) {
-      setControlSetError(error?.message || 'Kipuka could not create the SCF cross-reference export.');
+      setControlSetError(error?.message || 'Acolyte could not create the SCF cross-reference export.');
     } finally {
       setExportingScf(false);
     }
@@ -170,10 +170,10 @@ export default function ProjectDashboard() {
     setControlSetError('');
     try {
       const saved = await base44.entities.Project.update(project.id, { control_set_mode: controlSetMode });
-      if (!saved?.id) throw new Error('Kipuka did not confirm the project update.');
+      if (!saved?.id) throw new Error('Acolyte did not confirm the project update.');
       await refreshProject();
     } catch (error) {
-      setControlSetError(error?.message || 'Kipuka could not update the control-set view.');
+      setControlSetError(error?.message || 'Acolyte could not update the control-set view.');
     } finally {
       setSavingControlSet(false);
     }

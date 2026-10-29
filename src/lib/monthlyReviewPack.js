@@ -1,7 +1,7 @@
-// ACOLYTE Monthly Review Pack — one-click branded PDF.
+// APEX Monthly Review Pack - one-click branded PDF.
 //
-// Reuses createReportPdf/BRAND (same machinery as every other Kipuka export)
-// and pulls live data from the existing ACOLYTE + CMMC entities. Saves a
+// Reuses createReportPdf/BRAND (same machinery as every other Acolyte export)
+// and pulls live data from the existing APEX + CMMC entities. Saves a
 // ReportExport record (report_type 'ACOLYTE Monthly Review Pack') and downloads.
 import { base44 } from '@/api/base44Client';
 import { createReportPdf, safeFileName } from '@/lib/reportBranding';
@@ -37,13 +37,13 @@ export async function generateMonthlyReviewPack({ project, org, generatedBy }) {
   const delta = latest && previous ? Math.round(latest.overall_score) - Math.round(previous.overall_score) : null;
 
   const pdf = createReportPdf({
-    title: 'ACOLYTE Monthly Review Pack', project, org, generatedBy, poweredBy: false,
+    title: 'APEX Monthly Review Pack', project, org, generatedBy, poweredBy: false,
   });
   const { doc, state } = pdf;
 
-  // ACOLYTE identity line.
+  // APEX identity line.
   doc.setFontSize(10); doc.setFont(undefined, 'bold'); doc.setTextColor(15, 30, 60);
-  doc.text('ACOLYTE — Managed Cyber Readiness & Security Operations', 48, state.y); state.y += 14;
+  doc.text('APEX - Managed Cyber Readiness & Security Operations', 48, state.y); state.y += 14;
   doc.setFont(undefined, 'normal'); doc.setTextColor(80); doc.setFontSize(9);
   doc.text(ACOLYTE_BRAND.preparedBy, 48, state.y); state.y += 12;
   const periodEnd = new Date();
@@ -153,7 +153,7 @@ export async function generateMonthlyReviewPack({ project, org, generatedBy }) {
   pdf.disclaimerNote(ACOLYTE_BRAND.reportDisclaimer);
 
   // Save ReportExport record then download.
-  const title = `ACOLYTE Monthly Review Pack — ${org?.organization_name || project?.project_name || ''}`.trim();
+  const title = `APEX Monthly Review Pack - ${org?.organization_name || project?.project_name || ''}`.trim();
   await base44.entities.ReportExport.create({
     organization_id: orgId || '',
     project_id: projectId,
@@ -164,6 +164,6 @@ export async function generateMonthlyReviewPack({ project, org, generatedBy }) {
     report_status: 'Generated',
   }).catch(() => {});
 
-  pdf.save(`${safeFileName(title || 'ACOLYTE_Monthly_Review_Pack')}.pdf`);
+  pdf.save(`${safeFileName(title || 'APEX_Monthly_Review_Pack')}.pdf`);
   return { ok: true };
 }

@@ -1,4 +1,4 @@
-const PLATFORM_NAME_PATTERN = /Kipuka(?:\s+by\s+Pac-Sec)?/gi;
+const PLATFORM_NAME_PATTERN = /(?:Kipuka|Acolyte)(?:\s+by\s+Pac-Sec)?/gi;
 
 export const CAPTURE_SAFETY_NOTE =
   'Do not capture passwords, secrets, private keys, recovery codes, full CUI content, or unrelated personal information. Redact those values before upload.';
@@ -14,13 +14,13 @@ export function neutralizeCustomerArtifactText(value, fallback = '') {
 function cleanCaptureTitle(value) {
   const original = String(value || '').replace(/^\s*\d+[.)]\s*/, '').trim();
   const replacements = [
-    [/^Kipuka mobile device inventory$/i, 'Current mobile device inventory from the project Asset Inventory'],
-    [/^Kipuka wireless asset\/connection register$/i, 'Current wireless asset and connection register'],
-    [/^Kipuka CUI data-flow diagram and asset inventory$/i, 'Current CUI data-flow diagram and in-scope asset inventory'],
-    [/^Kipuka External Connections export or screenshot$/i, 'Current external connections register export'],
-    [/^Kipuka assessment records and assessor notes$/i, 'Current assessment records and assessor notes'],
-    [/^Kipuka training records$/i, 'Current training records'],
-    [/^Findings imported\/mapped in Kipuka$/i, 'Finding-to-control mapping record'],
+    [/^(?:Kipuka|Acolyte) mobile device inventory$/i, 'Current mobile device inventory from the project Asset Inventory'],
+    [/^(?:Kipuka|Acolyte) wireless asset\/connection register$/i, 'Current wireless asset and connection register'],
+    [/^(?:Kipuka|Acolyte) CUI data-flow diagram and asset inventory$/i, 'Current CUI data-flow diagram and in-scope asset inventory'],
+    [/^(?:Kipuka|Acolyte) External Connections export or screenshot$/i, 'Current external connections register export'],
+    [/^(?:Kipuka|Acolyte) assessment records and assessor notes$/i, 'Current assessment records and assessor notes'],
+    [/^(?:Kipuka|Acolyte) training records$/i, 'Current training records'],
+    [/^Findings imported\/mapped in (?:Kipuka|Acolyte)$/i, 'Finding-to-control mapping record'],
   ];
   const replacement = replacements.find(([pattern]) => pattern.test(original));
   return neutralizeCustomerArtifactText(replacement?.[1] || original, 'Implementation evidence');

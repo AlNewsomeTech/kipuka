@@ -37,7 +37,7 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
       setPolicies(pol.filter((policy) => !policy.is_master_template));
       setCompanyProfile(cp[0] || null);
     } catch (error) {
-      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete policy set.');
+      setLoadError(error?.response?.data?.error || error?.message || 'Acolyte could not verify the complete policy set.');
     } finally {
       setLoading(false);
     }
@@ -129,7 +129,7 @@ export default function PoliciesModule({ project, org, readOnly, currentUser }) 
     <div className="bg-red-50 border border-red-200 rounded-xl p-5">
       <div className="text-sm font-bold text-red-800">Policy data could not be verified</div>
       <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
-      <p className="text-xs text-red-600 mt-1">Kipuka will not display an empty policy set after a failed read.</p>
+      <p className="text-xs text-red-600 mt-1">Acolyte will not display an empty policy set after a failed read.</p>
       <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
     </div>
   );

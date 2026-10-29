@@ -28,7 +28,7 @@ export default function PieeSelfAssessmentUpload({ project, user, readOnly, onUp
     try {
       // 1. Stage the export for canonical ingestion.
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      if (!file_url) throw new Error('Kipuka could not stage the export for ingestion.');
+      if (!file_url) throw new Error('Acolyte could not stage the export for ingestion.');
 
       // 2. Resolve a canonical control to attach the export to. CA.L2-3.12.1
       //    (assess controls) is the natural home; fall back to the first assessed
@@ -36,7 +36,7 @@ export default function PieeSelfAssessmentUpload({ project, user, readOnly, onUp
       const assessments = await base44.entities.ControlAssessment.filter({ project_id: project.id }).catch(() => []);
       const mapped = assessments.find((a) => a.control_id === ASSESSMENT_CONTROL_ID) || assessments[0] || null;
       if (!mapped) {
-        throw new Error('Seed controls in the Control Implementation module first so Kipuka can attach the export.');
+        throw new Error('Seed controls in the Control Implementation module first so Acolyte can attach the export.');
       }
 
       // 3. Create the canonical evidence record (Draft — submit for review next).
@@ -65,7 +65,7 @@ export default function PieeSelfAssessmentUpload({ project, user, readOnly, onUp
       setLastUploaded(title);
       onUploaded?.();
     } catch (e) {
-      setError(e?.response?.data?.error || e?.message || 'Kipuka could not import the PIEE export.');
+      setError(e?.response?.data?.error || e?.message || 'Acolyte could not import the PIEE export.');
     } finally {
       setUploading(false);
     }
@@ -83,7 +83,7 @@ export default function PieeSelfAssessmentUpload({ project, user, readOnly, onUp
         </div>
       </div>
       <p className="mt-2 text-[13px] text-slate-500 leading-relaxed">
-        Upload the export you downloaded from PIEE / SPRS after completing your CMMC self-assessment. Kipuka stores it as canonical evidence and adds it to your Evidence Readiness pool for objective linking and review.
+        Upload the export you downloaded from PIEE / SPRS after completing your CMMC self-assessment. Acolyte stores it as canonical evidence and adds it to your Evidence Readiness pool for objective linking and review.
       </p>
 
       {error && (

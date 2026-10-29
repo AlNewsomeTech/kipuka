@@ -1,5 +1,5 @@
 {
-  "description": "Writes one SEO article for the public Kipuka blog every Sunday, Tuesday, and Thursday at 7:00 AM. Takes the next topic from the Blog Topic queue, or the built-in keyword rotation when the queue is empty. A clean article publishes automatically. An article that fails the ASD-STE100 house style check is saved as a Draft for review instead.",
+  "description": "Writes one SEO article for the public Acolyte blog every Sunday, Tuesday, and Thursday at 7:00 AM. Takes the next topic from the Blog Topic queue, or the built-in keyword rotation when the queue is empty. A clean article publishes automatically. An article that fails the ASD-STE100 house style check is saved as a Draft for review instead.",
   "name": "Blog Content Schedule",
   "definition": {
     "document": {

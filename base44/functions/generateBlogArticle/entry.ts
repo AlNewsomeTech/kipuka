@@ -11,7 +11,7 @@ import {
 } from '../../shared/blogStyleGuide.ts';
 import { BLOG_WORKFLOW_SECRET } from '../../shared/blogWorkflowAuth.ts';
 
-// Writes one SEO article for the public Kipuka blog in ASD-STE100 style.
+// Writes one SEO article for the public Acolyte blog in ASD-STE100 style.
 //
 // Two callers:
 //   1. The "Blog Content Schedule" workflow (no user session). It may publish a
@@ -26,7 +26,7 @@ const AUTO_THROTTLE_HOURS = 6;
 
 function buildPrompt(topic, existingTitles) {
   return [
-    'You write technical articles for the Kipuka blog. Kipuka is a CMMC 2.0',
+    'You write technical articles for the Acolyte blog. Acolyte is a CMMC 2.0',
     'deployment and evidence management platform used by MSPs, compliance',
     'consultants, and defense contractors.',
     '',
@@ -204,7 +204,7 @@ export default async function (req: Request): Promise<Response> {
       excerpt: sanitizeText(article?.excerpt).slice(0, 400),
       content,
       tags,
-      author_name: 'Kipuka Team',
+      author_name: 'Acolyte Team',
       status,
       published_date: status === 'Published' ? new Date().toISOString().slice(0, 10) : undefined,
       meta_title: sanitizeText(article?.meta_title || title).slice(0, 200),

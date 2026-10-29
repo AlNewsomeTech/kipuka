@@ -57,7 +57,7 @@ export default function StepCapture({
           icon={ShieldCheck}
           kicker="Implementation recorded - evidence still required"
           title={implementedTools.join(', ')}
-          lead="Kipuka has skipped the setup work for this control because the mapped security tool is marked Implemented. Capture current screenshots, exports, logs, or reports that prove the configured tool covers this tenant and the full in-scope population. This does not mark the control assessment complete."
+          lead="Acolyte has skipped the setup work for this control because the mapped security tool is marked Implemented. Capture current screenshots, exports, logs, or reports that prove the configured tool covers this tenant and the full in-scope population. This does not mark the control assessment complete."
         />
       )}
 

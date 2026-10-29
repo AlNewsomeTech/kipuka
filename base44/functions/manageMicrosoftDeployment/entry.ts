@@ -209,7 +209,7 @@ export default async function (req: Request): Promise<Response> {
         rollback_snapshot_uri: rollbackUri, rollback_snapshot_sha256: rollbackSha,
         rollback_available: rollbackAvailable,
         error_details: nameConflict
-          ? `An existing Microsoft policy named "${displayName}" was not created by Kipuka. Resolve the conflict before deploying.`
+          ? `An existing Microsoft policy named "${displayName}" was not created by Acolyte. Resolve the conflict before deploying.`
           : (missingPermissions.length ? `Missing Graph application permissions: ${missingPermissions.join(', ')}` : ''),
       };
       const deployment = existing

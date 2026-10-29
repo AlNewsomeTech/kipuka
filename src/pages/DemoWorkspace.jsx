@@ -302,8 +302,8 @@ export default function DemoWorkspace() {
         <ValueStatement>{DEMO_SPRS.valueStatement}</ValueStatement>
       </DemoSection>
 
-      {/* 10b. ACOLYTE Operations */}
-      <DemoSection id="acolyte" title="ACOLYTE Operations (Managed Cyber Readiness)" icon={Radar}>
+      {/* 10b. APEX Operations */}
+      <DemoSection id="acolyte" title="APEX Operations (Managed Cyber Readiness)" icon={Radar}>
         <div className="flex flex-col sm:flex-row items-center gap-5 mb-4">
           <div className="relative w-24 h-24 flex-shrink-0">
             <svg viewBox="0 0 36 36" className="w-24 h-24 -rotate-90">

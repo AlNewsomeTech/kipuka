@@ -15,7 +15,7 @@ export default async function (req: Request): Promise<Response> {
       excerpt: p.excerpt || '',
       cover_image_url: p.cover_image_url || '',
       tags: Array.isArray(p.tags) ? p.tags.slice(0, 10) : [],
-      author_name: p.author_name || 'Kipuka Team',
+      author_name: (p.author_name && p.author_name !== 'Kipuka Team') ? p.author_name : 'Acolyte Team',
       published_date: p.published_date || p.created_date,
     });
 

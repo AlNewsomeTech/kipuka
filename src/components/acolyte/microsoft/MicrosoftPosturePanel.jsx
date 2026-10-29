@@ -59,7 +59,7 @@ export default function MicrosoftPosturePanel({ projectId }) {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             <Tile label="MFA Coverage" value={mfa.coverage_percent != null ? `${mfa.coverage_percent}%` : null} />
             <Tile label="CA Policies" value={ca.total} />
-            <Tile label="Kipuka-managed" value={ca.kipuka_managed} />
+            <Tile label="Acolyte-managed" value={ca.kipuka_managed} />
             <Tile label="Drift Items" value={driftCount} tone={driftCount ? 'red' : 'green'} />
             <Tile label="Managed Devices" value={devices.total} />
             <Tile label="Noncompliant" value={devices.noncompliant} tone={devices.noncompliant ? 'amber' : 'slate'} />

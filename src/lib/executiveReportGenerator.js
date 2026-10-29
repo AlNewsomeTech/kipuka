@@ -85,8 +85,8 @@ export function buildSourceSummary(data) {
   const cortex = tools.find((t) => t.tool_name === 'Palo Alto Cortex XDR' && ['Enabled', 'In Review', 'Planned'].includes(t.tool_status));
 
   const lines = [];
-  lines.push(`ACOLYTE Profile: ${profile ? `tier ${profile.service_tier}, status ${profile.service_status}, readiness ${Math.round(profile.current_readiness_score || 0)}%` : 'none on record'}`);
-  lines.push(`Readiness Reviews: ${reviews.length} (latest: ${reviews[0]?.review_title || '—'})`);
+  lines.push(`APEX Profile: ${profile ? `tier ${profile.service_tier}, status ${profile.service_status}, readiness ${Math.round(profile.current_readiness_score || 0)}%` : 'none on record'}`);
+  lines.push(`Readiness Reviews: ${reviews.length} (latest: ${reviews[0]?.review_title || '-'})`);
   lines.push(`Cyber Findings: ${findings.length} total, ${openFindings.length} open, ${highFindings.length} high/critical open`);
   lines.push(`Remediation Items: ${remediations.length} (${fmtTally(tally(remediations, 'status'))})`);
   lines.push(`Incident Readiness: ${incident ? `IR plan ${incident.ir_plan_status}, tabletop ${incident.tabletop_status}, backup/recovery ${incident.backup_recovery_status}` : 'no record'}`);
@@ -128,10 +128,10 @@ function detailContext(data) {
   return lines.join('\n');
 }
 
-const SYSTEM = `You are the ACOLYTE Analyst Assistant for Pacific Global Security Group (Pac-Sec).
+const SYSTEM = `You are the APEX Analyst Assistant for Pacific Global Security Group (Pac-Sec).
 Draft clear, factual, executive-ready cyber report content from the supplied project data only.
 Do NOT invent data. If a data source is empty, say so plainly or keep that field brief.
-Do NOT claim compliance, certification, or assessment readiness — frame CMMC alignment as advisory/in-progress.
+Do NOT claim compliance, certification, or assessment readiness - frame CMMC alignment as advisory/in-progress.
 Each field should be concise professional prose or short bullet points. No disclaimers (the app adds one).`;
 
 // Generate all draft fields at once. Returns { fields: {key: html}, meta }.

@@ -80,7 +80,7 @@ export default function PostureSnapshotSections({ snapshot, projectId }) {
           <Stat label="Enabled" value={ca.enabled} />
           <Stat label="Report-only" value={ca.report_only} />
           <Stat label="Disabled" value={ca.disabled} />
-          <Stat label="Kipuka-managed" value={ca.kipuka_managed} />
+          <Stat label="Acolyte-managed" value={ca.kipuka_managed} />
         </div>
         {(ca.policies || []).length > 0 && (
           <div className="overflow-x-auto">
@@ -100,7 +100,7 @@ export default function PostureSnapshotSections({ snapshot, projectId }) {
                     <td className="py-1.5 pr-3 font-medium text-slate-800">{p.display_name}</td>
                     <td className="py-1.5 pr-3 text-slate-600">{CA_STATE_LABELS[p.state] || p.state}</td>
                     <td className="py-1.5 pr-3">
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${p.managed_by === 'Kipuka' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{p.managed_by === 'Kipuka' ? 'Kipuka-managed' : 'Customer'}</span>
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${(p.managed_by === 'Kipuka' || p.managed_by === 'Acolyte') ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{(p.managed_by === 'Kipuka' || p.managed_by === 'Acolyte') ? 'Acolyte-managed' : 'Customer'}</span>
                     </td>
                     <td className="py-1.5 pr-3 text-slate-600">{(p.grant_controls || []).join(', ') || '\u2014'}{p.auth_strength ? ` (${p.auth_strength})` : ''}</td>
                     <td className="py-1.5 text-slate-600">{(p.exclude_users || []).length + (p.exclude_groups || []).length}</td>
@@ -127,7 +127,7 @@ export default function PostureSnapshotSections({ snapshot, projectId }) {
                 <span className="font-medium">{p.display_name}</span>
                 <span className="text-slate-400">{p.platform}</span>
                 <span className="text-slate-500">{p.assignment_count} assignment(s)</span>
-                {p.managed_by === 'Kipuka' && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Kipuka-managed</span>}
+                {(p.managed_by === 'Kipuka' || p.managed_by === 'Acolyte') && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">Acolyte-managed</span>}
               </div>
             ))}
           </div>

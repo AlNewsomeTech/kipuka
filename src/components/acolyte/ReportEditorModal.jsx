@@ -43,7 +43,7 @@ export default function ReportEditorModal({ project, existing, user, orgName, ca
         <div className="p-5 space-y-4">
           {canAssist && (
             <div className="flex items-center justify-between gap-3 rounded-lg border border-purple-200 bg-purple-50 px-3 py-2.5">
-              <p className="text-xs text-purple-700">Draft report fields from current project data with the ACOLYTE Analyst Assistant.</p>
+              <p className="text-xs text-purple-700">Draft report fields from current project data with the APEX Analyst Assistant.</p>
               <button
                 type="button"
                 onClick={() => setDrafting(true)}

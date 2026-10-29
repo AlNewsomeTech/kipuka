@@ -1,7 +1,7 @@
 {
   "name": "BlogPost",
   "type": "object",
-  "description": "A marketing/SEO blog article shown on the public Kipuka landing site. Draft posts are only visible in the admin Blog Manager; only Published posts are served to visitors via the getPublicBlogPosts backend function. Designed so a scheduled content agent can create drafts or published posts later.",
+  "description": "A marketing/SEO blog article shown on the public Acolyte landing site. Draft posts are only visible in the admin Blog Manager; only Published posts are served to visitors via the getPublicBlogPosts backend function. Designed so a scheduled content agent can create drafts or published posts later.",
   "properties": {
     "title": {
       "type": "string"
@@ -30,7 +30,7 @@
     },
     "author_name": {
       "type": "string",
-      "default": "Kipuka Team"
+      "default": "Acolyte Team"
     },
     "status": {
       "type": "string",

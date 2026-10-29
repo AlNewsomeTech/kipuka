@@ -44,7 +44,7 @@ export default function RemediationFormModal({ project, existing, fromFinding, f
       await logAudit({
         organizationId: payload.organization_id, user, actionType: action,
         targetEntity: 'AcolyteRemediationItem', targetRecordId: existing?.id || '',
-        summary: `${existing?.id ? 'Updated' : 'Created'} ACOLYTE remediation "${form.remediation_title}".`,
+        summary: `${existing?.id ? 'Updated' : 'Created'} APEX remediation "${form.remediation_title}".`,
       });
       onSaved();
     } finally {

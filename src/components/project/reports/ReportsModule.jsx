@@ -47,7 +47,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
     } catch (error) {
       setData(null);
       setHistory([]);
-      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not load the complete final-document data set.');
+      setLoadError(error?.response?.data?.error || error?.message || 'Acolyte could not load the complete final-document data set.');
     }
   }, [project.id, project.target_cmmc_level]);
 
@@ -74,7 +74,7 @@ export default function ReportsModule({ project, org, readOnly, currentUser }) {
     <div className="bg-red-50 border border-red-200 rounded-xl p-5">
       <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> Final-document data could not be verified</div>
       <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
-      <p className="text-xs text-red-600 mt-1">Kipuka will not show empty readiness data or generate a final export from a partial load.</p>
+      <p className="text-xs text-red-600 mt-1">Acolyte will not show empty readiness data or generate a final export from a partial load.</p>
       <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
     </div>
   );

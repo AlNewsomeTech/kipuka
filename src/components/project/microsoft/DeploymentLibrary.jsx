@@ -36,7 +36,7 @@ export default function DeploymentLibrary({ definitions, deployments, connected,
         <div>
           <h2 className="text-sm font-bold text-slate-900">Microsoft policy library</h2>
           <p className="text-xs text-slate-500">
-            {definitions.length} canonical implementation baselines · {deployments.length} Kipuka-managed deployments in this project
+            {definitions.length} canonical implementation baselines · {deployments.length} Acolyte-managed deployments in this project
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">

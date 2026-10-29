@@ -62,7 +62,7 @@ async function fetchPublicUpload(appId: string, rawUrl: string): Promise<{ bytes
   try { url = new URL(rawUrl); } catch { throw new Error('Uploaded file URL is invalid.'); }
   const expectedPrefix = `/api/apps/${appId}/files/mp/public/${appId}/`;
   if (url.protocol !== 'https:' || url.hostname !== 'base44.app' || !url.pathname.startsWith(expectedPrefix)) {
-    throw new Error('Evidence ingestion accepts only a newly uploaded file from this Kipuka app.');
+    throw new Error('Evidence ingestion accepts only a newly uploaded file from this Acolyte app.');
   }
   let response: Response | null = null;
   for (let hop = 0; hop <= 4; hop += 1) {

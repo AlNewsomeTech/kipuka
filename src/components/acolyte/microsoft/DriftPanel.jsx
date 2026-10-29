@@ -64,7 +64,7 @@ export default function DriftPanel({ snapshot, deploymentEnabled, projectId }) {
         </div>
       )}
       <p className="text-[11px] text-slate-400 mt-3">
-        ACOLYTE never changes Microsoft configuration automatically. Restorations require the full Kipuka deployment approval workflow.
+        APEX never changes Microsoft configuration automatically. Restorations require the full Acolyte deployment approval workflow.
       </p>
     </div>
   );

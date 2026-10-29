@@ -13,7 +13,7 @@ export default function FinalCtaSection({ onRequestDemo }) {
           <div className="flex items-start gap-3 rounded-2xl border border-[#1e3050] bg-[#0b1626] p-5">
             <Info className="mt-0.5 h-5 w-5 shrink-0 text-[#67d1f0]" aria-hidden="true" />
             <p className="text-sm leading-relaxed text-[#8fa3bd]">
-              Kipuka supports CMMC implementation, documentation, evidence management, and
+              Acolyte supports CMMC implementation, documentation, evidence management, and
               assessment preparation. Use of the platform does not by itself establish
               compliance, guarantee a passing assessment, or replace an authorized C3PAO
               or other required assessor.
@@ -39,7 +39,7 @@ export default function FinalCtaSection({ onRequestDemo }) {
                 Give your technicians a clear path through CMMC.
               </h2>
               <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-[#8fa3bd]">
-                See how Kipuka can turn requirements into assigned work, documented
+                See how Acolyte can turn requirements into assigned work, documented
                 implementation, reviewable evidence, and measurable readiness.
               </p>
               <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

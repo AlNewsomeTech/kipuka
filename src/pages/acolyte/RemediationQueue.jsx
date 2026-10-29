@@ -65,7 +65,7 @@ export default function RemediationQueue() {
     <div className="space-y-4">
       <AcolyteHeader
         title="Remediation Queue"
-        subtitle="Convert ACOLYTE findings into accountable, tracked remediation work."
+        subtitle="Convert APEX findings into accountable, tracked remediation work."
         icon={Wrench}
         right={!readOnly && project ? (
           <button onClick={() => { setEditing(null); setModal(true); }} className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
@@ -105,7 +105,7 @@ export default function RemediationQueue() {
 
           {rows.length === 0 ? (
             <div className="bg-white rounded-xl border border-slate-200 p-10 text-center text-sm text-slate-500">
-              {items.length === 0 ? 'No ACOLYTE remediation items have been created yet.' : 'No remediation items in this view.'}
+              {items.length === 0 ? 'No APEX remediation items have been created yet.' : 'No remediation items in this view.'}
             </div>
           ) : (
             <div className="bg-white rounded-xl border border-slate-200 divide-y divide-slate-100">

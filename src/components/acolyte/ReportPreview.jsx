@@ -18,7 +18,7 @@ export default function ReportPreview({ report, project, orgName, demo, onClose 
           <div className="bg-[#0F1E3C] rounded-lg p-5 text-white mb-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
-                <div className="text-[11px] font-bold tracking-wider text-white/70">ACOLYTE · PACIFIC GLOBAL SECURITY GROUP</div>
+                <div className="text-[11px] font-bold tracking-wider text-white/70">APEX · PACIFIC GLOBAL SECURITY GROUP</div>
                 <h1 className="text-lg font-bold mt-0.5">{report.report_title}</h1>
               </div>
               <StatusBadge status={report.report_status} size="xs" />
@@ -33,7 +33,7 @@ export default function ReportPreview({ report, project, orgName, demo, onClose 
 
           {demo && (
             <div className="mb-4 text-[11px] font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              DEMO ONLY — Sample ACOLYTE data. Not for submission or external distribution.
+              DEMO ONLY - Sample APEX data. Not for submission or external distribution.
             </div>
           )}
 

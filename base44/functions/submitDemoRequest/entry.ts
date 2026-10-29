@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
-// Public demo-request intake for the Kipuka landing page.
+// Public demo-request intake for the Acolyte landing page.
 // Intentionally callable WITHOUT user authentication (the landing page is
 // public). It therefore:
 //   - never reads any entity data,

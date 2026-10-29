@@ -64,7 +64,7 @@ export default function WorkflowSection() {
         <Reveal className="mx-auto mt-12 max-w-3xl rounded-2xl border border-[#1e3050] bg-[#0b1626] p-5">
           <div aria-hidden="true" className="flex items-center gap-3">
             <span className="rounded-md bg-[#479dcf]/15 px-2 py-1 text-[11px] font-bold text-[#67d1f0]">Guided control preview</span>
-            <span className="text-[11px] text-[#64789a]">Kipuka guided walkthrough</span>
+            <span className="text-[11px] text-[#64789a]">Acolyte guided walkthrough</span>
           </div>
           <div aria-hidden="true" className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="rounded-xl border border-[#22344f] bg-[#0d1a2e] p-3">

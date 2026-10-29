@@ -176,7 +176,7 @@ export default function SecureScoreImports() {
               <div>
                 <h2 className="text-sm font-bold text-blue-900">What to upload</h2>
                 <p className="mt-1 text-xs leading-relaxed text-slate-700">
-                  Upload a CSV exported from Microsoft Secure Score or JSON returned by the Microsoft Graph secureScores endpoint. ACOLYTE records the selected client, report date, source layout, file hash, uploader, score, category summary, and parsing warnings.
+                  Upload a CSV exported from Microsoft Secure Score or JSON returned by the Microsoft Graph secureScores endpoint. APEX records the selected client, report date, source layout, file hash, uploader, score, category summary, and parsing warnings.
                 </p>
                 <p className="mt-1 text-[11px] text-slate-600">
                   Microsoft Secure Score is a posture indicator, not proof that every CMMC requirement is met. Keep the export as supporting evidence and validate the underlying configuration separately.

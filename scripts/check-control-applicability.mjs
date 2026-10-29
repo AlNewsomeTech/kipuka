@@ -114,7 +114,7 @@ const verifyStep = read('src/components/guided/StepVerify.jsx');
 const guidedProgress = read('src/lib/guidedProgress.js');
 ok(!/ControlAssessment\.update\([\s\S]{0,400}\.catch\(\(\) => \{\}\)/.test(guided), 'guided completion never swallows an assessment write failure');
 ok(!/ProjectPOAM\.create\([\s\S]{0,500}\.catch\(\(\) => \{\}\)/.test(guided), 'guided stuck flow never swallows a POA&M write failure');
-ok(guided.includes("if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.')"), 'guided transitions require a confirmed saved assessment');
+ok(guided.includes("if (!savedAssessment?.id) throw new Error('Acolyte did not confirm the control status update.')"), 'guided transitions require a confirmed saved assessment');
 ok(guided.includes("setActionError(actionErrorMessage("), 'guided transitions surface backend errors');
 ok(guided.includes("role=\"alert\""), 'guided page renders accessible workflow errors');
 ok(verifyStep.includes('role="alert"') && verifyStep.includes('{error}'), 'verify step displays a failed completion message');

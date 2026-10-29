@@ -58,7 +58,7 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
         });
       }
     } catch (error) {
-      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete scoping profile.');
+      setLoadError(error?.response?.data?.error || error?.message || 'Acolyte could not verify the complete scoping profile.');
     } finally {
       setLoading(false);
     }
@@ -150,7 +150,7 @@ export default function ScopingModule({ project, readOnly, currentUser }) {
     <div className="bg-red-50 border border-red-200 rounded-xl p-5">
       <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> Scoping profile could not be verified</div>
       <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
-      <p className="text-xs text-red-600 mt-1">Kipuka will not display a blank scope or allow approval from a partial load.</p>
+      <p className="text-xs text-red-600 mt-1">Acolyte will not display a blank scope or allow approval from a partial load.</p>
       <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
     </div>
   );

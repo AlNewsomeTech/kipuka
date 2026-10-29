@@ -97,7 +97,7 @@ export default function SprsModule({ project, org, readOnly, currentUser }) {
         source_system: 'SPRS / PIEE',
         source_tool: 'SPRS / PIEE',
         provenance_type: 'Screenshot',
-        provenance_details: 'Uploaded from the Kipuka SPRS / PIEE workflow.',
+        provenance_details: 'Uploaded from the Acolyte SPRS / PIEE workflow.',
         owner: currentUser?.full_name || currentUser?.email || '',
         evidence_date: new Date().toISOString().slice(0, 10),
         retention_until: retention.toISOString().slice(0, 10),

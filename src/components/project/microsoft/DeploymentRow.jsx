@@ -36,7 +36,7 @@ export default function DeploymentRow({ definition, deployment, connected, canDe
             </span>
             {deployment?.graph_object_id && (
               <span className="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-blue-50 text-blue-700">
-                Kipuka managed
+                Acolyte managed
               </span>
             )}
           </div>
@@ -90,7 +90,7 @@ export default function DeploymentRow({ definition, deployment, connected, canDe
           <p className="text-[13px] text-red-900 font-semibold mb-1">Restore the saved pre-change configuration?</p>
           <p className="text-[12px] text-red-800 mb-2">
             This PATCHes the stored Microsoft object ({deployment.graph_object_id}) back to the verified snapshot taken
-            before Kipuka's change, reads it back to verify, and records evidence and an audit event.
+            before Acolyte's change, reads it back to verify, and records evidence and an audit event.
           </p>
           <div className="flex items-center gap-2">
             <button

@@ -54,7 +54,7 @@ const CAPABILITIES = [
     preview: { kicker: 'Readiness View', rows: ['Implemented and proven', 'Implemented, evidence pending', 'Gap identified — POA&M open'] },
   },
   {
-    title: 'ACOLYTE Security Operations',
+    title: 'APEX Security Operations',
     copy: 'Bring supporting security operations into the client readiness workspace.',
     bullets: [
       'Website vulnerability scanning',
@@ -64,8 +64,8 @@ const CAPABILITIES = [
       'Audit logging',
       'Remediation workflow',
     ],
-    preview: { kicker: 'ACOLYTE Operations', rows: ['Website scan — Findings assigned', 'Secure Score import — Reviewed', 'Remediation item — In progress'] },
-    footnote: 'Secure Score data and vulnerability scanning support the readiness picture — they do not by themselves demonstrate CMMC compliance.',
+    preview: { kicker: 'APEX Operations', rows: ['Website scan - Findings assigned', 'Secure Score import - Reviewed', 'Remediation item - In progress'] },
+    footnote: 'Secure Score data and vulnerability scanning support the readiness picture - they do not by themselves demonstrate CMMC compliance.',
   },
 ];
 

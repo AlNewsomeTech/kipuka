@@ -45,7 +45,7 @@ export default function TenantConnectionCard({ project, connection, readOnly, on
             <div className="text-sm font-bold text-slate-900">Microsoft tenant connection</div>
             {connected ? (
               <div className="text-xs text-slate-500 mt-0.5 space-y-0.5">
-                <div>{connection.tenant_display_name || 'Tenant'} — {connection.tenant_primary_domain || 'no domain on record'}</div>
+                <div>{connection.tenant_display_name || 'Tenant'} - {connection.tenant_primary_domain || 'no domain on record'}</div>
                 <div className="font-mono text-[11px]">Tenant ID: {connection.tenant_id}</div>
                 <div>Connected by {connection.connected_by} · {connection.granted_scopes?.length || 0} Graph application permissions granted</div>
               </div>

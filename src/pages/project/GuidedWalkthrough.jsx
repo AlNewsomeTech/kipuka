@@ -81,7 +81,7 @@ export default function GuidedWalkthrough() {
       const p = await base44.entities.Project.get(projectId);
       if (!p) {
         setProject(null);
-        setLoadError('Kipuka could not find this project.');
+        setLoadError('Acolyte could not find this project.');
         return;
       }
       const levels = targetLevelsFor(p);
@@ -133,7 +133,7 @@ export default function GuidedWalkthrough() {
     } catch (error) {
       setLoadError(actionErrorMessage(
         error,
-        'Kipuka could not load the complete guided workflow. No empty or missing state has been assumed. Retry when the connection is available.',
+        'Acolyte could not load the complete guided workflow. No empty or missing state has been assumed. Retry when the connection is available.',
       ));
     } finally {
       setLoading(false);
@@ -163,7 +163,7 @@ export default function GuidedWalkthrough() {
       const saved = await saveGuidedProgress(progress, {
         projectId, organizationId: org, controlId, patch: { workflow_version: GUIDED_WORKFLOW_VERSION, ...patch },
       });
-      if (!saved?.id) throw new Error('Kipuka did not return a saved walkthrough record.');
+      if (!saved?.id) throw new Error('Acolyte did not return a saved walkthrough record.');
       setProgress(saved);
       return saved;
     } catch (error) {
@@ -236,7 +236,7 @@ export default function GuidedWalkthrough() {
       return;
     }
     if (!assessment?.id) {
-      setActionError('Kipuka cannot mark this control done because its assessment record is missing.');
+      setActionError('Acolyte cannot mark this control done because its assessment record is missing.');
       return;
     }
     setActionError('');
@@ -247,7 +247,7 @@ export default function GuidedWalkthrough() {
         last_reviewed_by: user?.full_name || user?.email || '',
         last_reviewed_date: new Date().toISOString().slice(0, 10),
       });
-      if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.');
+      if (!savedAssessment?.id) throw new Error('Acolyte did not confirm the control status update.');
       setAssessments((prev) => prev.map((row) => (
         row.id === assessment.id ? { ...row, ...savedAssessment } : row
       )));
@@ -257,7 +257,7 @@ export default function GuidedWalkthrough() {
     } catch (error) {
       setActionError(actionErrorMessage(
         error,
-        'Kipuka could not mark this control done. No completion was recorded; try again or contact Pac-Sec support.',
+        'Acolyte could not mark this control done. No completion was recorded; try again or contact Pac-Sec support.',
       ));
     } finally {
       setSaving(false);
@@ -267,7 +267,7 @@ export default function GuidedWalkthrough() {
   // "I'm stuck" → reuse an existing open guided POA&M item, then set Gap Identified.
   const submitStuck = async () => {
     if (!assessment?.id) {
-      setActionError('Kipuka cannot flag this control because its assessment record is missing.');
+      setActionError('Acolyte cannot flag this control because its assessment record is missing.');
       return;
     }
     setActionError('');
@@ -289,10 +289,10 @@ export default function GuidedWalkthrough() {
           risk_rating: assessment.risk_rating || 'Moderate',
           status: 'Open',
         });
-        if (!created?.id) throw new Error('Kipuka did not confirm the POA&M item.');
+        if (!created?.id) throw new Error('Acolyte did not confirm the POA&M item.');
       }
       const savedAssessment = await base44.entities.ControlAssessment.update(assessment.id, { status: GUIDED_STUCK_STATUS });
-      if (!savedAssessment?.id) throw new Error('Kipuka did not confirm the control status update.');
+      if (!savedAssessment?.id) throw new Error('Acolyte did not confirm the control status update.');
       setAssessments((prev) => prev.map((row) => (
         row.id === assessment.id ? { ...row, ...savedAssessment } : row
       )));
@@ -301,7 +301,7 @@ export default function GuidedWalkthrough() {
     } catch (error) {
       setActionError(actionErrorMessage(
         error,
-        'Kipuka could not finish the stuck-control update. Retry is safe and will reuse an existing open to-do.',
+        'Acolyte could not finish the stuck-control update. Retry is safe and will reuse an existing open to-do.',
       ));
     } finally {
       setSavingStuck(false);

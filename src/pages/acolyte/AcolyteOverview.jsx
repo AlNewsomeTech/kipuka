@@ -87,7 +87,7 @@ export default function AcolyteOverview() {
               </button>
             )}
             <Link to="/acolyte/settings" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-white text-[#0F1E3C] rounded-lg hover:bg-slate-100">
-              <Settings className="w-4 h-4" /> ACOLYTE Settings
+              <Settings className="w-4 h-4" /> APEX Settings
             </Link>
           </div>
         }
@@ -122,7 +122,7 @@ export default function AcolyteOverview() {
                 </div>
               ) : (
                 <div className="text-sm text-slate-500">
-                  No ACOLYTE service profile yet for this project.{' '}
+                  No APEX service profile yet for this project.{' '}
                   <Link to="/acolyte/settings" className="text-blue-600 font-semibold hover:underline">Configure the service</Link>.
                 </div>
               )}
@@ -198,7 +198,7 @@ export default function AcolyteOverview() {
             {profile?.next_steps_summary ? (
               <div className="prose prose-slate prose-sm max-w-none text-slate-700" dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.next_steps_summary) }} />
             ) : (
-              <p className="text-sm text-slate-400 italic">No next steps recorded yet. Add them in ACOLYTE Settings.</p>
+              <p className="text-sm text-slate-400 italic">No next steps recorded yet. Add them in APEX Settings.</p>
             )}
           </div>
 

@@ -89,9 +89,9 @@ export default function MicrosoftPosture() {
           <Lock className="w-8 h-8 text-slate-300 mx-auto mb-3" />
           <h2 className="text-sm font-bold text-slate-800 mb-1">Microsoft Graph monitoring is not enabled</h2>
           <p className="text-sm text-slate-500 max-w-lg mx-auto">
-            ACOLYTE Microsoft Graph monitoring is an optional read-only capability enabled by Pacific
-            Global Security Group for organizations with an ACOLYTE service entitlement. Contact
-            Pac-Sec to add it to your service. All existing ACOLYTE features continue unchanged.
+            APEX Microsoft Graph monitoring is an optional read-only capability enabled by Pacific
+            Global Security Group for organizations with an APEX service entitlement. Contact
+            Pac-Sec to add it to your service. All existing APEX features continue unchanged.
           </p>
         </div>
       ) : (

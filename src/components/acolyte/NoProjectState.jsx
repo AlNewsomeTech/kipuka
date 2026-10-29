@@ -7,7 +7,7 @@ export default function NoProjectState() {
       <EmptyState
         icon={FolderKanban}
         title="No project in scope"
-        description="ACOLYTE records are tenant- and project-aware. Select an organization in the top bar and choose a project to view ACOLYTE operations."
+        description="APEX records are tenant- and project-aware. Select an organization in the top bar and choose a project to view APEX operations."
       />
     </div>
   );

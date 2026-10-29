@@ -97,7 +97,7 @@ export default function RunbookViewer({ runbook, project, readOnly, currentUser,
           onUploadEvidence={() => setUploadModal(true)}
           onCreateGap={(type) => {
             if (type === 'acolyte' && !acolyteEnabled) {
-              alert('ACOLYTE is not enabled for this project. Create a POA&M item instead, or enable ACOLYTE in the Managed Service module.');
+              alert('APEX is not enabled for this project. Create a POA&M item instead, or enable APEX in the Managed Service module.');
               return;
             }
             setGapModal(type);

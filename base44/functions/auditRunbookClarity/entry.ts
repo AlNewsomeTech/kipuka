@@ -2,8 +2,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.41';
 
 const FORBIDDEN_NAVIGATION = [
   'kipuka',
+  'acolyte',
   'project workspace',
   'kipuka training records',
+  'acolyte training records',
 ];
 
 const MAX_STEPS = 24;

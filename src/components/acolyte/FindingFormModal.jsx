@@ -63,7 +63,7 @@ export default function FindingFormModal({ project, existing, user, onClose, onS
       await logAudit({
         organizationId: payload.organization_id, user, actionType: action,
         targetEntity: 'CyberFinding', targetRecordId: existing?.id || '',
-        summary: `${existing?.id ? 'Updated' : 'Created'} ACOLYTE finding "${form.finding_title}".`,
+        summary: `${existing?.id ? 'Updated' : 'Created'} APEX finding "${form.finding_title}".`,
       });
       onSaved();
     } finally {

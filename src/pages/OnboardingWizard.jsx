@@ -74,7 +74,7 @@ export default function OnboardingWizard() {
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Welcome to Kipuka</h1>
+              <h1 className="text-xl font-bold text-slate-900">Welcome to Acolyte</h1>
               <p className="text-sm text-slate-500">Let's set up your compliance workspace in two quick steps.</p>
             </div>
           </div>

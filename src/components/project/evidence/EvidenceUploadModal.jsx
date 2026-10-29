@@ -164,7 +164,7 @@ export default function EvidenceUploadModal({
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-[13px] text-blue-950">
               <div className="font-semibold">What happens after you choose the file</div>
               <ol className="mt-1.5 space-y-1 list-decimal pl-4">
-                <li>Kipuka verifies the file, calculates its SHA-256 hash, and stores a private copy.</li>
+                <li>Acolyte verifies the file, calculates its SHA-256 hash, and stores a private copy.</li>
                 <li>Complete the owner, evidence date, source, and Retain Until fields below.</li>
                 <li>Save Draft, then submit the saved record for independent review from the guided upload step.</li>
                 <li>Only Accepted evidence can support readiness. Uploading a file does not mark an assessment objective MET.</li>
@@ -191,7 +191,7 @@ export default function EvidenceUploadModal({
             <div className="bg-slate-900 rounded-lg p-3">
               <div className="text-[10px] text-slate-400 uppercase tracking-wide">Private stored filename with the guided defaults</div>
               <div className="text-green-400 font-mono text-[11px] break-all mt-1">{expectedStoredFilename}</div>
-              <p className="text-[11px] text-slate-400 mt-1">Kipuka preserves the original filename in provenance and uses the standardized name for the verified private copy.</p>
+              <p className="text-[11px] text-slate-400 mt-1">Acolyte preserves the original filename in provenance and uses the standardized name for the verified private copy.</p>
             </div>
           )}
 
@@ -212,7 +212,7 @@ export default function EvidenceUploadModal({
           </div>
 
           {naming && <div className="bg-slate-900 rounded-lg p-3"><div className="text-[10px] text-slate-400 uppercase tracking-wide">Suggested source filename</div><div className="text-green-400 font-mono text-[11px] break-all">{naming.example}</div></div>}
-          {filenameWarn && <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-[13px] text-amber-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />Kipuka will normalize this filename and preserve the original name in provenance.</div>}
+          {filenameWarn && <div className="flex gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5 text-[13px] text-amber-800"><AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />Acolyte will normalize this filename and preserve the original name in provenance.</div>}
 
           <RichTextField label="Description" value={form.description} onChange={(value) => set('description', value)} placeholder="" disabled={false} onBlur={() => {}} />
           <Field label="Provenance Details"><textarea className="form-input min-h-20" value={form.provenance_details} onChange={(event) => set('provenance_details', event.target.value)} placeholder="How, where, and by whom this record was produced." /></Field>

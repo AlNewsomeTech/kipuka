@@ -85,7 +85,7 @@ export default function WebsiteTargetModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Add authorized website</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Assign a public website to this ACOLYTE client project.</p>
+              <p className="mt-0.5 text-xs text-slate-500">Assign a public website to this APEX client project.</p>
             </div>
           </div>
           <button onClick={onClose} aria-label="Close" className="rounded-lg p-2 text-slate-500 hover:bg-slate-100">

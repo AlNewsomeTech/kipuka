@@ -12,16 +12,16 @@ export default function PublicPrivacy() {
           className="inline-flex items-center gap-1.5 rounded-lg text-sm font-bold text-[#67d1f0] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          Back to Kipuka
+          Back to Acolyte
         </Link>
         <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-white">Privacy Policy</h1>
         <p className="mt-4 text-sm leading-relaxed text-[#8fa3bd]">
-          The Kipuka privacy policy is maintained by Pacific Global Security Group and is
+          The Acolyte privacy policy is maintained by Pacific Global Security Group and is
           being prepared for publication on this page. In the meantime, please use the
-          contact option on the Kipuka home page to request privacy information.
+          contact option on the Acolyte home page to request privacy information.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-[#8fa3bd]">
-          Kipuka handles sensitive readiness data with organization-level separation,
+          Acolyte handles sensitive readiness data with organization-level separation,
           role-based access, and audit history, as described in the platform&apos;s{' '}
           <Link to="/legal-terms" className="font-bold text-[#67d1f0] hover:text-white">Terms and Conditions</Link>.
         </p>

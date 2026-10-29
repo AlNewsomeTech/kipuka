@@ -9,7 +9,7 @@ const SAM_STATUSES = ['Unknown', 'Active', 'Inactive', 'Pending', 'Not Applicabl
 const SUB_STATUSES = ['Trial', 'Active', 'Past Due', 'Suspended', 'Cancelled'];
 const SUPPORT_LEVELS = ['Standard', 'Priority', 'Pac-Sec Managed'];
 const ACOLYTE_TIERS = ['none', 'watch', 'ready', 'shield', 'cmmc_premium'];
-const ACOLYTE_LABELS = { none: 'None (locked preview)', watch: 'ACOLYTE Watch', ready: 'ACOLYTE Ready', shield: 'ACOLYTE Shield', cmmc_premium: 'ACOLYTE CMMC Premium' };
+const ACOLYTE_LABELS = { none: 'None (locked preview)', watch: 'APEX Watch', ready: 'APEX Ready', shield: 'APEX Shield', cmmc_premium: 'APEX CMMC Premium' };
 
 const empty = {
   organization_name: '', legal_name: '', short_name: '', primary_contact_name: '',
@@ -135,17 +135,17 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
             </Field>
           </div>
 
-          {/* Platform capability entitlements — super-admin only */}
+          {/* Platform capability entitlements - super-admin only */}
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
             <h4 className="text-sm font-bold text-slate-800 mb-1">Platform Entitlements</h4>
-            <p className="text-xs text-slate-500 mb-3">Sets which platform capabilities this organization can use. No self-serve billing — you set these manually.</p>
+            <p className="text-xs text-slate-500 mb-3">Sets which platform capabilities this organization can use. You configure these entitlements manually.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label="Plan tier (platform capabilities)">
                 <select className="form-input" value={form.plan_tier} onChange={(e) => applyTierDefaults(e.target.value)}>
                   {PLAN_TIERS.map((t) => <option key={t} value={t}>{PLAN_CONFIG[t].label}</option>)}
                 </select>
               </Field>
-              <Field label="ACOLYTE Operations tier">
+              <Field label="APEX Operations tier">
                 <select className="form-input" value={form.acolyte_tier} onChange={(e) => set('acolyte_tier', e.target.value)}>
                   {ACOLYTE_TIERS.map((t) => <option key={t} value={t}>{ACOLYTE_LABELS[t]}</option>)}
                 </select>
@@ -165,10 +165,10 @@ export default function OrgFormModal({ open, onClose, org, onSaved }) {
                   Enable Graph-assisted implementation
                 </label>
               </Field>
-              <Field label="ACOLYTE Graph monitoring (optional)">
+              <Field label="APEX Graph monitoring (optional)">
                 <label className="flex items-center gap-2 text-sm text-slate-700 h-[38px]">
                   <input type="checkbox" checked={!!form.acolyte_microsoft_graph_monitoring_enabled} onChange={(e) => set('acolyte_microsoft_graph_monitoring_enabled', e.target.checked)} />
-                  Enable read-only Microsoft monitoring (requires an ACOLYTE tier)
+                  Enable read-only Microsoft monitoring (requires an APEX tier)
                 </label>
               </Field>
             </div>

@@ -57,7 +57,7 @@ const VAGUE_PHRASES = [
   'ensure that',
 ];
 
-const AMBIGUOUS_PRODUCT = ['kipuka', 'project workspace'];
+const AMBIGUOUS_PRODUCT = ['kipuka', 'acolyte', 'project workspace'];
 
 // Generic UI words that are not navigation targets and never need to be
 // present in the source text.
@@ -110,7 +110,7 @@ function words(text: string): number {
 // the resulting internal wording counts as source-backed, not invented.
 export function normalizeSourceStep(text: string): string {
   return String(text || '')
-    .replace(/\bKipuka(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
+    .replace(/\b(?:Kipuka|Acolyte)(?:\s+by\s+Pac-Sec)?\b/gi, 'this CMMC project')
     .replace(/\b(?:the\s+)?project workspace\b/gi, 'this CMMC project');
 }
 

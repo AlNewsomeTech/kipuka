@@ -12,7 +12,7 @@ export default function BlogIndex() {
   const [demoOpen, setDemoOpen] = useState(false);
 
   useEffect(() => {
-    document.title = 'Blog — CMMC Compliance Insights | Kipuka';
+    document.title = 'Blog - CMMC Compliance Insights | Acolyte';
     let cancelled = false;
     base44.functions.invoke('getPublicBlogPosts', {})
       .then((res) => { if (!cancelled) setPosts(res.data?.posts || []); })
@@ -25,7 +25,7 @@ export default function BlogIndex() {
       <PublicHeader onRequestDemo={() => setDemoOpen(true)} />
       <main className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="max-w-2xl">
-          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#67d1f0]">Kipuka Blog</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[#67d1f0]">Acolyte Blog</p>
           <h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-white">CMMC Compliance Insights</h1>
           <p className="mt-4 text-base leading-relaxed text-[#8fa3bd]">
             Practical guidance on CMMC 2.0, NIST SP 800-171, evidence collection, and getting

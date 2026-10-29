@@ -46,7 +46,7 @@ export default function ReviewFormModal({ project, existing, findings = [], reme
         organizationId: payload.organization_id, user,
         actionType: create ? AUDIT_ACTIONS.ACOLYTE_REVIEW_CREATE : AUDIT_ACTIONS.ACOLYTE_REVIEW_UPDATE,
         targetEntity: 'CyberReadinessReview', targetRecordId: existing?.id || '',
-        summary: `${create ? 'Created' : 'Updated'} ACOLYTE readiness review "${form.review_title}".`,
+        summary: `${create ? 'Created' : 'Updated'} APEX readiness review "${form.review_title}".`,
       });
       onSaved();
     } finally {

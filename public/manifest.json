@@ -1,7 +1,7 @@
 {
-  "name": "Kipuka by Pac-Sec",
-  "short_name": "Kipuka",
-  "description": "Kipuka by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.",
+  "name": "Acolyte by Pac-Sec",
+  "short_name": "Acolyte",
+  "description": "Acolyte by Pac-Sec is a guided CMMC readiness platform that helps small defense contractors implement controls, capture evidence, generate documentation, and prepare assessor-ready packages.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F1E3C",

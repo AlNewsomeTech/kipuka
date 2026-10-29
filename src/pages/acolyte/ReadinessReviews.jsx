@@ -137,7 +137,7 @@ export default function ReadinessReviews() {
                     {!readOnly && (
                       <div className="flex items-center gap-1.5 flex-shrink-0">
                         {canAssist && (
-                          <button onClick={() => setNarrativeFor(r)} title="Draft Review Narrative with ACOLYTE Analyst Assistant"
+                          <button onClick={() => setNarrativeFor(r)} title="Draft Review Narrative with APEX Analyst Assistant"
                             className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-purple-700 bg-white border border-purple-200 hover:bg-purple-50">
                             <Sparkles className="w-3.5 h-3.5" /> Draft Narrative
                           </button>

@@ -113,8 +113,8 @@ export default function PostureAssessment() {
         <AcolyteHeader title="Cyber Posture Assessment" subtitle="Guided self-assessment producing a 0-100 posture score and an automatic remediation plan." icon={ShieldCheck} />
         <div className="bg-white rounded-xl border border-slate-200 p-10 text-center">
           <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mx-auto mb-3"><Lock className="w-6 h-6 text-slate-400" /></div>
-          <h3 className="text-base font-bold text-slate-800">ACOLYTE capability</h3>
-          <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">The Cyber Posture Assessment is part of ACOLYTE Operations. It becomes available when ACOLYTE is enabled for your organization.</p>
+          <h3 className="text-base font-bold text-slate-800">APEX capability</h3>
+          <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">The Cyber Posture Assessment is part of APEX Operations. It becomes available when APEX is enabled for your organization.</p>
         </div>
       </div>
     );

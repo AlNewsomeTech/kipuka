@@ -49,7 +49,7 @@ async function fetchPublicUpload(rawUrl: string) {
   }
   const expectedPrefix = `/api/apps/${APP_ID}/files/mp/public/${APP_ID}/`;
   if (url.protocol !== 'https:' || url.hostname !== 'base44.app' || !url.pathname.startsWith(expectedPrefix)) {
-    throw new Error('Secure Score ingestion accepts only a newly uploaded file from this Kipuka app.');
+    throw new Error('Secure Score ingestion accepts only a newly uploaded file from this Acolyte app.');
   }
   let response: Response | null = null;
   for (let hop = 0; hop <= 4; hop += 1) {

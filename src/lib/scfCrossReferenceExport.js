@@ -50,12 +50,12 @@ export function downloadScfCrossReferenceCsv(args) {
   const csv = buildScfCrossReferenceCsv(args);
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
-  const safeProjectName = String(args.project?.project_name || 'Kipuka')
+  const safeProjectName = String(args.project?.project_name || 'Acolyte')
     .replace(/[^A-Za-z0-9._-]+/g, '_')
     .replace(/^_+|_+$/g, '');
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = `${safeProjectName || 'Kipuka'}_CMMC_SCF_Cross_Reference_${new Date().toISOString().slice(0, 10)}.csv`;
+  anchor.download = `${safeProjectName || 'Acolyte'}_CMMC_SCF_Cross_Reference_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();

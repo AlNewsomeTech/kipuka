@@ -15,7 +15,10 @@ export default function BrandingSettings() {
   const { isPlatformAdmin } = useOrg();
   const { branding, refresh, wordmark } = useBrand();
   const [uploading, setUploading] = useState(null);
-  const [wordmarkText, setWordmarkText] = useState(branding?.wordmark_text || 'Kipuka');
+  const [wordmarkText, setWordmarkText] = useState(() => {
+    const saved = branding?.wordmark_text?.trim();
+    return (!saved || saved === 'Kipuka') ? 'Acolyte' : saved;
+  });
   const [savedFlash, setSavedFlash] = useState(false);
 
   if (!isPlatformAdmin) {

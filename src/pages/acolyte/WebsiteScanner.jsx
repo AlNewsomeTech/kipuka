@@ -183,7 +183,7 @@ export default function WebsiteScanner() {
       });
       await load();
     } catch (promoteError) {
-      setError(promoteError?.response?.data?.error || promoteError?.message || 'The finding could not be added to ACOLYTE Cyber Findings.');
+      setError(promoteError?.response?.data?.error || promoteError?.message || 'The finding could not be added to APEX Cyber Findings.');
     } finally {
       setPromotingId('');
     }
@@ -402,7 +402,7 @@ export default function WebsiteScanner() {
                                 <button onClick={() => promoteFinding(finding)} disabled={Boolean(finding.cyber_finding_id) || promotingId === finding.id}
                                   className="btn-secondary flex-shrink-0 disabled:opacity-50">
                                   {promotingId === finding.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <AlertTriangle className="h-4 w-4" />}
-                                  {finding.cyber_finding_id ? 'Added to Findings' : 'Add to ACOLYTE Findings'}
+                                  {finding.cyber_finding_id ? 'Added to Findings' : 'Add to APEX Findings'}
                                 </button>
                               )}
                             </div>

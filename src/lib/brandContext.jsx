@@ -12,12 +12,12 @@ async function toDataUrl(url) {
 }
 
 // Loads the single platform BrandingSettings record and exposes logo variants.
-// Falls back to the "Kipuka" wordmark when nothing is uploaded.
+// Falls back to the "Acolyte" wordmark when nothing is uploaded.
 const BrandContext = createContext({
   branding: null,
   loading: true,
   refresh: () => {},
-  wordmark: 'Kipuka',
+  wordmark: 'Acolyte',
 });
 
 export function BrandProvider({ children }) {
@@ -32,7 +32,9 @@ export function BrandProvider({ children }) {
       // Feed the color logo (for document cover pages/headers) into the report cache.
       const logoUrl = b?.logo_color_url;
       const logoDataUrl = logoUrl ? await toDataUrl(logoUrl) : null;
-      setReportBranding({ logoDataUrl, wordmark: b?.wordmark_text || 'Kipuka' });
+      const rawWordmark = b?.wordmark_text?.trim();
+      const resolvedWordmark = (!rawWordmark || rawWordmark === 'Kipuka') ? 'Acolyte' : rawWordmark;
+      setReportBranding({ logoDataUrl, wordmark: resolvedWordmark });
     } catch {
       setBranding(null);
     } finally {
@@ -42,7 +44,8 @@ export function BrandProvider({ children }) {
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  const wordmark = branding?.wordmark_text || 'Kipuka';
+  const rawWordmark = branding?.wordmark_text?.trim();
+  const wordmark = (!rawWordmark || rawWordmark === 'Kipuka') ? 'Acolyte' : rawWordmark;
 
   return (
     <BrandContext.Provider value={{ branding, loading, refresh, wordmark }}>

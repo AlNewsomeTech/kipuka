@@ -60,7 +60,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
       setObjectiveLinks(links);
       setCtx({ scoping: scope[0] || null, assets, poams, providers, diagrams });
     } catch (error) {
-      setLoadError(error?.response?.data?.error || error?.message || 'Kipuka could not verify the complete SSP source data.');
+      setLoadError(error?.response?.data?.error || error?.message || 'Acolyte could not verify the complete SSP source data.');
     } finally {
       setLoading(false);
     }
@@ -205,7 +205,7 @@ export default function SSPModule({ project, org, readOnly, currentUser }) {
     <div className="bg-red-50 border border-red-200 rounded-xl p-5">
       <div className="flex items-center gap-2 text-sm font-bold text-red-800"><AlertTriangle className="w-4 h-4" /> SSP source data could not be verified</div>
       <p className="text-[13px] text-red-700 mt-2">{loadError}</p>
-      <p className="text-xs text-red-600 mt-1">Kipuka will not build or export an SSP from a partial data load.</p>
+      <p className="text-xs text-red-600 mt-1">Acolyte will not build or export an SSP from a partial data load.</p>
       <button onClick={load} className="mt-3 px-4 py-2 rounded-lg text-sm font-semibold text-white bg-red-700 hover:bg-red-800">Retry complete load</button>
     </div>
   );

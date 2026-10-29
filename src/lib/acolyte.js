@@ -1,23 +1,23 @@
-// ACOLYTE module shared configuration: brand strings, enums, and badge styling.
-// ACOLYTE is Pacific Global Security Group's managed cyber readiness and
-// security operations support service, integrated inside Kipuka.
+// APEX module shared configuration: brand strings, enums, and badge styling.
+// APEX is Pacific Global Security Group's managed cyber readiness and
+// security operations support service, integrated inside Acolyte.
 
 export const ACOLYTE_BRAND = {
-  name: 'ACOLYTE',
-  full: 'ACOLYTE Operations',
+  name: 'APEX',
+  full: 'APEX Operations',
   company: 'Pacific Global Security Group',
   short: 'Pac-Sec',
   subtitle: 'Managed cyber readiness and security operations support by Pacific Global Security Group.',
   positioning:
-    'Kipuka helps organizations organize and prove readiness. ACOLYTE helps them achieve and maintain readiness.',
+    'Acolyte helps organizations organize and prove readiness. Acolyte Apex helps them achieve and maintain readiness.',
   description:
-    'ACOLYTE is Pac-Sec\u2019s managed cyber readiness and security operations support service for organizations that need disciplined cybersecurity oversight without building a full internal security department. ACOLYTE provides continuous posture review, vulnerability tracking, remediation coordination, incident response preparation, executive cyber reporting, and compliance-aligned operational support.',
+    'Acolyte Apex is Pac-Sec\u2019s managed cyber readiness and security operations support service for organizations that need disciplined cybersecurity oversight without building a full internal security department. Apex provides continuous posture review, vulnerability tracking, remediation coordination, incident response preparation, executive cyber reporting, and compliance-aligned operational support.',
   preparedBy: 'Prepared by Pacific Global Security Group',
   reportDisclaimer: 'Operational guidance only. Validate against applicable requirements.',
-  confidential: 'CONFIDENTIAL & PROPRIETARY \u2014 Property of Pacific Global Security Group. Unauthorized distribution is prohibited.',
+  confidential: 'CONFIDENTIAL & PROPRIETARY - Property of Pacific Global Security Group. Unauthorized distribution is prohibited.',
 };
 
-export const SERVICE_TIERS = ['ACOLYTE Watch', 'ACOLYTE Ready', 'ACOLYTE Shield', 'ACOLYTE CMMC', 'ACOLYTE CMMC Premium'];
+export const SERVICE_TIERS = ['APEX Watch', 'APEX Ready', 'APEX Shield', 'APEX CMMC', 'APEX CMMC Premium'];
 export const SERVICE_STATUSES = ['Not Started', 'Active', 'Paused', 'Suspended', 'Complete'];
 export const REVIEW_CADENCES = ['Monthly', 'Quarterly', 'Semiannual', 'Annual', 'On Demand'];
 export const POSTURE_STATUSES = ['Good', 'Needs Attention', 'High Risk', 'Unknown'];
