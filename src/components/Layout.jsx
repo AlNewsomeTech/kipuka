@@ -268,8 +268,8 @@ export default function Layout() {
               <Menu className="h-5 w-5" />
             </button>
             <Link
-              to="/projects"
-              aria-label="Go to projects home"
+              to="/"
+              aria-label="Go to dashboard home"
               className="flex h-10 items-center gap-2 rounded-xl px-2.5 text-xs font-extrabold text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
               <Home className="h-4 w-4" />

@@ -5,7 +5,7 @@
 /* ============================================================
    PAC-SEC BRAND FONTS
    Licensed fonts load from /fonts once dropped in; until then the
-   Google-Fonts fallbacks (Lora, Nunito Sans — linked in index.html)
+   Inter (linked in index.html) is the live typeface.
    render live. Uncomment each @font-face after adding the woff2 file.
    ============================================================ */
 /*
@@ -44,9 +44,9 @@
     --app-success: #15805d;
     --app-warning: #b86a08;
     --app-danger: #c43c46;
-    --font-heading: 'Avenir', 'Nunito Sans', 'Segoe UI', sans-serif;
-    --font-body: 'Avenir', 'Nunito Sans', 'Segoe UI', sans-serif;
-    --font-display: 'Questa', 'Lora', Georgia, serif;
+    --font-heading: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'Inter', 'Segoe UI', system-ui, sans-serif;
     --background: 0 0% 98%;
     --foreground: 0 0% 9%;
     --card: 0 0% 100%;
