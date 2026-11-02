@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function PublicFooter({ onRequestDemo }) {
-  const { navigateToLogin } = useAuth();
+  const { navigateToLogin, user } = useAuth();
   const linkClass =
     'text-sm text-[#8fa3bd] hover:text-white rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]';
 
@@ -16,12 +16,17 @@ export default function PublicFooter({ onRequestDemo }) {
           </div>
 
           <nav aria-label="Footer" className="grid grid-cols-2 gap-x-12 gap-y-2.5 sm:grid-cols-3">
+            <a href="/#about" className={linkClass}>About</a>
             <a href="#platform" className={linkClass}>Platform</a>
             <a href="#capabilities" className={linkClass}>Capabilities</a>
             <a href="/#security" className={linkClass}>Security</a>
             <Link to="/blog" className={linkClass}>Blog</Link>
             <button type="button" onClick={onRequestDemo} className={`${linkClass} text-left`}>Contact</button>
-            <button type="button" onClick={() => navigateToLogin()} className={`${linkClass} text-left`}>Log In</button>
+            {user ? (
+              <Link to="/dashboard" className={linkClass}>Open Dashboard</Link>
+            ) : (
+              <button type="button" onClick={() => navigateToLogin()} className={`${linkClass} text-left`}>Log In</button>
+            )}
             <Link to="/privacy" className={linkClass}>Privacy Policy</Link>
             <Link to="/legal-terms" className={linkClass}>Terms and Conditions</Link>
           </nav>

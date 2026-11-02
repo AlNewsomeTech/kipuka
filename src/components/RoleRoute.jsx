@@ -11,7 +11,7 @@ export default function RoleRoute({ allow }) {
   const role = user?.role;
 
   if (role && allow && !allow.includes(role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <Outlet />;

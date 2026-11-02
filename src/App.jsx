@@ -105,8 +105,9 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Logged-in preview of the public landing page (visitors see it at "/"). */}
-      <Route path="/landing-preview" element={<LandingPage />} />
+      {/* The marketing home page is the default page for signed-in users too. */}
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/landing-preview" element={<Navigate to="/" replace />} />
       {/* MCP OAuth consent — outside the onboarding/layout guards so the ctx handle is preserved. */}
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       {/* Public blog stays reachable while logged in (same pages visitors see). */}
@@ -114,7 +115,7 @@ const AuthenticatedApp = () => {
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route element={<OrgProvider><OnboardingGate><ClientProvider><Layout /></ClientProvider></OnboardingGate></OrgProvider>}>
         {/* Read-only pages — all roles, including client */}
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/intake" element={<ClientIntake />} />
         <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
         <Route path="/org-settings" element={<OrgSettings />} />

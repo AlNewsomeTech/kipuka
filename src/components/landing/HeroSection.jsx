@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import HeroMockup from '@/components/landing/HeroMockup';
 import Reveal from '@/components/landing/Reveal';
@@ -12,7 +13,7 @@ const CAPABILITY_STRIP = [
 ];
 
 export default function HeroSection({ onRequestDemo }) {
-  const { navigateToLogin } = useAuth();
+  const { navigateToLogin, user } = useAuth();
 
   return (
     <section id="top" className="relative overflow-hidden">
@@ -55,13 +56,22 @@ export default function HeroSection({ onRequestDemo }) {
               >
                 Request a Demo
               </button>
-              <button
-                type="button"
-                onClick={() => navigateToLogin()}
-                className="rounded-xl border border-[#2a3d5c] px-6 py-3 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
-              >
-                Log In
-              </button>
+              {user ? (
+                <Link
+                  to="/dashboard"
+                  className="rounded-xl border border-[#2a3d5c] px-6 py-3 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+                >
+                  Open Dashboard
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => navigateToLogin()}
+                  className="rounded-xl border border-[#2a3d5c] px-6 py-3 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+                >
+                  Log In
+                </button>
+              )}
               <a
                 href="#how-it-works"
                 className="inline-flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-bold text-[#67d1f0] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"

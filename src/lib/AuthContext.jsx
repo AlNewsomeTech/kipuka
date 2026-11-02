@@ -125,8 +125,9 @@ export const AuthProvider = ({ children }) => {
     resetRoleCache();
     
     if (shouldRedirect) {
-      // Use the SDK's logout method which handles token cleanup and redirect
-      base44.auth.logout(window.location.href);
+      // Use the SDK's logout method which handles token cleanup and redirect.
+      // Sign-out returns to the public home page, not the in-app dashboard route.
+      base44.auth.logout(`${window.location.origin}/`);
     } else {
       // Just remove the token without redirect
       base44.auth.logout();
@@ -137,7 +138,7 @@ export const AuthProvider = ({ children }) => {
     // Use the app's explicit signed-out login route. Sending /login through the
     // public catch-all and then back to redirectToLogin creates a redirect loop.
     const currentPath = window.location.pathname + window.location.search + window.location.hash;
-    const returnTo = currentPath === '/' || currentPath.startsWith('/login') ? '/' : currentPath;
+    const returnTo = currentPath === '/' || currentPath.startsWith('/login') ? '/dashboard' : currentPath;
     window.location.assign(`/login?returnTo=${encodeURIComponent(returnTo)}`);
   };
 

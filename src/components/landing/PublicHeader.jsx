@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
 
@@ -12,7 +13,7 @@ const NAV_LINKS = [
 ];
 
 export default function PublicHeader({ onRequestDemo }) {
-  const { navigateToLogin } = useAuth();
+  const { navigateToLogin, user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -36,13 +37,22 @@ export default function PublicHeader({ onRequestDemo }) {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <button
-            type="button"
-            onClick={() => navigateToLogin()}
-            className="rounded-xl border border-[#2a3d5c] px-4 py-2 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
-          >
-            Log In
-          </button>
+          {user ? (
+            <Link
+              to="/dashboard"
+              className="rounded-xl border border-[#2a3d5c] px-4 py-2 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+            >
+              Open Dashboard
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigateToLogin()}
+              className="rounded-xl border border-[#2a3d5c] px-4 py-2 text-sm font-bold text-white transition-colors hover:border-[#479dcf] hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+            >
+              Log In
+            </button>
+          )}
           <button
             type="button"
             onClick={onRequestDemo}
@@ -80,13 +90,23 @@ export default function PublicHeader({ onRequestDemo }) {
             ))}
           </ul>
           <div className="mt-4 flex flex-col gap-2.5">
-            <button
-              type="button"
-              onClick={() => navigateToLogin()}
-              className="w-full rounded-xl border border-[#2a3d5c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
-            >
-              Log In
-            </button>
+            {user ? (
+              <Link
+                to="/dashboard"
+                onClick={() => setMenuOpen(false)}
+                className="w-full rounded-xl border border-[#2a3d5c] px-4 py-2.5 text-center text-sm font-bold text-white hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+              >
+                Open Dashboard
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigateToLogin()}
+                className="w-full rounded-xl border border-[#2a3d5c] px-4 py-2.5 text-sm font-bold text-white hover:bg-[#0d1a2e] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#67d1f0]"
+              >
+                Log In
+              </button>
+            )}
             <button
               type="button"
               onClick={() => { setMenuOpen(false); onRequestDemo(); }}

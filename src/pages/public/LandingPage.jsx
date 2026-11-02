@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PublicHeader from '@/components/landing/PublicHeader';
 import HeroSection from '@/components/landing/HeroSection';
+import WhoWeAreSection from '@/components/landing/WhoWeAreSection';
 import ProblemSection from '@/components/landing/ProblemSection';
 import WorkflowSection from '@/components/landing/WorkflowSection';
 import ReadinessSection from '@/components/landing/ReadinessSection';
@@ -12,8 +13,8 @@ import FinalCtaSection from '@/components/landing/FinalCtaSection';
 import PublicFooter from '@/components/landing/PublicFooter';
 import DemoRequestModal from '@/components/landing/DemoRequestModal';
 
-// Public marketing landing page. Renders for unauthenticated visitors only and
-// intentionally requests NO protected application data.
+// Public marketing home page. It is the default route for visitors AND for
+// signed-in users, and intentionally requests NO protected application data.
 export default function LandingPage() {
   const [demoOpen, setDemoOpen] = useState(false);
   const openDemo = () => setDemoOpen(true);
@@ -23,6 +24,7 @@ export default function LandingPage() {
       <PublicHeader onRequestDemo={openDemo} />
       <main>
         <HeroSection onRequestDemo={openDemo} />
+        <WhoWeAreSection />
         <ProblemSection />
         <WorkflowSection />
         <ReadinessSection />

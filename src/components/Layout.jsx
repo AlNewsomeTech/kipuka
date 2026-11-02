@@ -19,7 +19,7 @@ import ReadingModeControls from '@/components/accessibility/ReadingModeControls'
 
 const navSections = [
   { label: 'Overview', items: [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true, clientVisible: true },
+    { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, end: true, clientVisible: true },
     { to: '/dashboards', label: 'Role Dashboards', icon: BarChart3, clientVisible: true },
     { to: '/projects', label: 'Projects', icon: FolderKanban, clientVisible: true },
     { to: '/clients', label: 'Clients', icon: Building2 },

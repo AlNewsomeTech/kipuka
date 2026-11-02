@@ -69,7 +69,7 @@ export default function ClientProgressOverview({ onlyClientId = null }) {
 
   const handleSelect = (clientId) => {
     setSelectedClientId(clientId);
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
